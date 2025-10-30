@@ -1,0 +1,58 @@
+{
+  "report_id": "attr_20251008_071034_660616",
+  "query": "What are the most popular programming languages in 2025?",
+  "final_answer": "The most popular programming languages in 2025 are: 1. Python (23.88% rating, +8.72% increase) 2. C++ (11.37% rating, +0.84% increase) 3. Java (10.66% rating, +1.79% increase) These rankings indicate that Python remains the most popular language, with a significant increase in ratings.",
+  "timestamp": "2025-10-08T07:10:34.660616",
+  "tools_used": [
+    {
+      "tool_name": "smart_search",
+      "tool_type": "search",
+      "invocation_time": "2025-10-08T07:11:08.905589",
+      "execution_duration": 69.87633061408997,
+      "input_provided": {
+        "query": "most popular programming languages 2025"
+      },
+      "output_generated": "[{'title': '20 Most Popular Programming Languages in 2025 - Index.dev', 'url': 'https://www.index.dev/blog/most-popular-programming-languages-', 'content': '|  |  |  |  |\\n ---  --- |\\n| Rank (Feb 2025) | Programming Language | Ratings | Change in Ratings (in 1 year) |\\n| 1 | Python | 23.88% | +8.72% |\\n| 2 | C++ | 11.37% | +0.84% |\\n| 3 | Java | 10.66% | +1.79% |\\n| 4 | C | 9.84% | -1.14% |\\n| 5 | C# | 4.12% | -3.41% |\\n| 6 | JavaScript | 3.78% | +0.61% |\\n| 7 | SQL | 2.87% | +1.04% |\\n| 8 | Go | 2.26% | +0.53% |\\n| 9 | Delphi/Object Pascal | 2.18% | +0.78% |\\n| 10 | Visual Basic | 2.04% | +0.52% |\\n| 11 | Fortran | 1.75% | +0.35% | [...] ### 1. Python is still the most popular language\\n\\n Python remains the undisputed leader, with a massive +8.72% increase in ratings. This suggests that:\\n It continues to be the go-to language for AI, data science, automation, and web development.\\n Its simplicity and vast ecosystem make it appealing to both beginners and professionals.\\n The rise o",
+      "contribution_score": 0.8999999999999999,
+      "output_used_in_final": true,
+      "confidence": null,
+      "error_occurred": false,
+      "error_message": null
+    }
+  ],
+  "source_attributions": [
+    {
+      "source_type": "web_search",
+      "source_identifier": "smart_search",
+      "information_extracted": "[{'title': '20 Most Popular Programming Languages in 2025 - Index.dev', 'url': 'https://www.index.dev/blog/most-popular-programming-languages-', 'content': '|  |  |  |  |\\n ---  --- |\\n| Rank (Feb 202",
+      "relevance_score": 0.7,
+      "timestamp": "2025-10-08T07:11:08.905589",
+      "metadata": {}
+    }
+  ],
+  "tool_usage_summary": {
+    "total_tools_invoked": 1,
+    "unique_tools_used": 1,
+    "tool_invocation_counts": {
+      "smart_search": 1
+    },
+    "tool_type_distribution": {
+      "search": 1
+    },
+    "average_execution_times": {
+      "smart_search": 69.87633061408997
+    },
+    "tool_success_rates": {
+      "smart_search": 100.0
+    },
+    "most_used_tool": "smart_search",
+    "total_execution_time": 69.87633061408997
+  },
+  "answer_composition": {
+    "smart_search": 100.0
+  },
+  "total_execution_time": 168.141361,
+  "metadata": {
+    "agent_type": "react"
+  }
+}
