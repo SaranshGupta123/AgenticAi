@@ -13,7 +13,6 @@ export default function RAGPipelineUI() {
   const [agentType, setAgentType] = useState("react");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // ✅ Auto-close sidebar on resizing to desktop view
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
@@ -27,7 +26,6 @@ export default function RAGPipelineUI() {
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="flex flex-col flex-1 bg-white shadow-xl overflow-hidden">
-        {/* Header with menu button */}
         <Header
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -35,7 +33,6 @@ export default function RAGPipelineUI() {
         />
 
         <div className="flex flex-1 min-h-0 overflow-hidden relative">
-          {/* ✅ Sidebar (mobile + desktop) */}
           <div
             className={`
               fixed z-40 inset-y-0 left-0 transform bg-white border-r border-slate-200 p-4
@@ -48,7 +45,6 @@ export default function RAGPipelineUI() {
             <Sidebar agentType={agentType} setAgentType={setAgentType} />
           </div>
 
-          {/* ✅ Overlay (visible on mobile when sidebar open) */}
           {sidebarOpen && (
             <div
               className="fixed inset-0 bg-black/30 z-30 lg:hidden"
@@ -56,7 +52,6 @@ export default function RAGPipelineUI() {
             ></div>
           )}
 
-          {/* ✅ Main content area */}
           <div className="flex-1 min-h-0 overflow-hidden p-4 sm:p-6 lg:p-8">
             <div className="h-full flex flex-col min-h-0">
               {activeTab === "chat" && (

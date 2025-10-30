@@ -9,7 +9,6 @@ type Props = {
 export const Sidebar: React.FC<Props> = ({ agentType, setAgentType }) => {
   return (
     <div className="flex flex-col justify-between h-full space-y-6">
-      {/* ================== CONFIGURATION CARD ================== */}
       <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
         <h3 className="font-semibold text-slate-900 mb-4 flex items-center space-x-2">
           <Settings className="w-4 h-4" />
@@ -30,8 +29,6 @@ export const Sidebar: React.FC<Props> = ({ agentType, setAgentType }) => {
           </select>
         </div>
       </div>
-
-      {/* ================== SYSTEM STATUS ================== */}
       <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
         <h3 className="font-semibold text-slate-900 mb-4">System Status</h3>
         <div className="space-y-3 text-sm">
@@ -52,7 +49,6 @@ export const Sidebar: React.FC<Props> = ({ agentType, setAgentType }) => {
         </div>
       </div>
 
-      {/* ================== AVAILABLE TOOLS ================== */}
       <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
         <h3 className="font-semibold text-slate-900 mb-3 flex items-center space-x-2">
           <Settings className="w-4 h-4" />
