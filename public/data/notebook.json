@@ -1,0 +1,649 @@
+{
+  "root_node_id": "node_0",
+  "nodes": [
+    {
+      "id": "node_0",
+      "label": "Dietary patterns and climate Mitigation",
+      "level": 0,
+      "node_type": "root",
+      "importance": 10,
+      "color": "#FF6B6B",
+      "icon": null,
+      "description": "Root topic connecting diet and climate impact",
+      "keywords": [
+        "diet",
+        "climate",
+        "emissions"
+      ]
+    },
+    {
+      "id": "node_1",
+      "label": "Emission Reduction Strategies",
+      "level": 1,
+      "node_type": "concept",
+      "importance": 8,
+      "color": "#4ECDC4",
+      "icon": null,
+      "description": "Key approaches to lower dietary emissions",
+      "keywords": [
+        "reduction",
+        "policy",
+        "meat"
+      ]
+    },
+    {
+      "id": "node_2",
+      "label": "Dietary Impact Analysis",
+      "level": 1,
+      "node_type": "concept",
+      "importance": 8,
+      "color": "#4ECDC4",
+      "icon": null,
+      "description": "Comparing diets' climate footprints",
+      "keywords": [
+        "analysis",
+        "comparison",
+        "data"
+      ]
+    },
+    {
+      "id": "node_3",
+      "label": "Planetary Health Diet",
+      "level": 1,
+      "node_type": "concept",
+      "importance": 8,
+      "color": "#4ECDC4",
+      "icon": null,
+      "description": "Balanced diet for health and sustainability",
+      "keywords": [
+        "planetary",
+        "health",
+        "sustainability"
+      ]
+    },
+    {
+      "id": "node_4",
+      "label": "Global Emissions and Food Systems",
+      "level": 1,
+      "node_type": "concept",
+      "importance": 8,
+      "color": "#4ECDC4",
+      "icon": null,
+      "description": "International impact of dietary choices",
+      "keywords": [
+        "global",
+        "emissions",
+        "deforestation"
+      ]
+    },
+    {
+      "id": "node_5",
+      "label": "Health and Dietary Patterns",
+      "level": 1,
+      "node_type": "concept",
+      "importance": 8,
+      "color": "#4ECDC4",
+      "icon": null,
+      "description": "Diet's role in chronic disease prevention",
+      "keywords": [
+        "health",
+        "disease",
+        "aging"
+      ]
+    },
+    {
+      "id": "node_6",
+      "label": "Climate Resilience in Agriculture",
+      "level": 1,
+      "node_type": "concept",
+      "importance": 8,
+      "color": "#4ECDC4",
+      "icon": null,
+      "description": "Sustainable farming practices",
+      "keywords": [
+        "agriculture",
+        "resilience",
+        "millets"
+      ]
+    },
+    {
+      "id": "node_7",
+      "label": "80/20 Rule in Emissions",
+      "level": 2,
+      "node_type": "detail",
+      "importance": 7,
+      "color": "#45B7D1",
+      "icon": null,
+      "description": "Major reductions from high-meat shifts",
+      "keywords": [
+        "80/20",
+        "emissions",
+        "meat"
+      ]
+    },
+    {
+      "id": "node_8",
+      "label": "High-Meat vs Low-Meat Diets",
+      "level": 2,
+      "node_type": "detail",
+      "importance": 7,
+      "color": "#45B7D1",
+      "icon": null,
+      "description": "Annual emission differences",
+      "keywords": [
+        "high-meat",
+        "low-meat",
+        "emissions"
+      ]
+    },
+    {
+      "id": "node_9",
+      "label": "Vegan Diet Benefits",
+      "level": 2,
+      "node_type": "detail",
+      "importance": 7,
+      "color": "#45B7D1",
+      "icon": null,
+      "description": "Long-term emission reductions",
+      "keywords": [
+        "vegan",
+        "emissions",
+        "benefits"
+      ]
+    },
+    {
+      "id": "node_10",
+      "label": "Ruminant Meat Reduction",
+      "level": 2,
+      "node_type": "detail",
+      "importance": 7,
+      "color": "#45B7D1",
+      "icon": null,
+      "description": "Policy focus on dairy and meat",
+      "keywords": [
+        "ruminant",
+        "policy",
+        "reduction"
+      ]
+    },
+    {
+      "id": "node_11",
+      "label": "Imported Emissions",
+      "level": 2,
+      "node_type": "detail",
+      "importance": 7,
+      "color": "#45B7D1",
+      "icon": null,
+      "description": "Global land-use impacts",
+      "keywords": [
+        "imported",
+        "emissions",
+        "deforestation"
+      ]
+    },
+    {
+      "id": "node_12",
+      "label": "Consumption-Based Accounting",
+      "level": 2,
+      "node_type": "detail",
+      "importance": 7,
+      "color": "#45B7D1",
+      "icon": null,
+      "description": "Holistic emission tracking",
+      "keywords": [
+        "accounting",
+        "consumption",
+        "emissions"
+      ]
+    },
+    {
+      "id": "node_13",
+      "label": "Cardiovascular Disease Prevention",
+      "level": 2,
+      "node_type": "detail",
+      "importance": 7,
+      "color": "#45B7D1",
+      "icon": null,
+      "description": "Vegetarian diets and health",
+      "keywords": [
+        "cardiovascular",
+        "vegetarian",
+        "health"
+      ]
+    },
+    {
+      "id": "node_14",
+      "label": "Millet Cultivation",
+      "level": 2,
+      "node_type": "detail",
+      "importance": 7,
+      "color": "#45B7D1",
+      "icon": null,
+      "description": "Climate-resilient crop alternatives",
+      "keywords": [
+        "millet",
+        "climate",
+        "resilience"
+      ]
+    },
+    {
+      "id": "node_15",
+      "label": "Water-Efficient Irrigation",
+      "level": 3,
+      "node_type": "insight",
+      "importance": 6,
+      "color": "#F39C12",
+      "icon": null,
+      "description": "Reducing water waste in farming",
+      "keywords": [
+        "irrigation",
+        "water",
+        "efficiency"
+      ]
+    },
+    {
+      "id": "node_16",
+      "label": "Flexitarian Shifts",
+      "level": 3,
+      "node_type": "example",
+      "importance": 6,
+      "color": "#9B59B6",
+      "icon": null,
+      "description": "Broad population dietary changes",
+      "keywords": [
+        "flexitarian",
+        "policy",
+        "shift"
+      ]
+    },
+    {
+      "id": "node_17",
+      "label": "Calcium and Vitamin D",
+      "level": 3,
+      "node_type": "insight",
+      "importance": 6,
+      "color": "#F39C12",
+      "icon": null,
+      "description": "Nutrient needs in older adults",
+      "keywords": [
+        "calcium",
+        "vitamin",
+        "aging"
+      ]
+    },
+    {
+      "id": "node_18",
+      "label": "Iron Absorption Strategies",
+      "level": 3,
+      "node_type": "insight",
+      "importance": 6,
+      "color": "#F39C12",
+      "icon": null,
+      "description": "Plant-based iron optimization",
+      "keywords": [
+        "iron",
+        "absorption",
+        "vitaminC"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "node_0",
+      "to": "node_1",
+      "relationship_type": "contains",
+      "weight": 1.0,
+      "label": null
+    },
+    {
+      "from": "node_1",
+      "to": "node_2",
+      "relationship_type": "contains",
+      "weight": 1.0,
+      "label": null
+    },
+    {
+      "from": "node_2",
+      "to": "node_3",
+      "relationship_type": "contains",
+      "weight": 1.0,
+      "label": null
+    },
+    {
+      "from": "node_3",
+      "to": "node_4",
+      "relationship_type": "contains",
+      "weight": 1.0,
+      "label": null
+    },
+    {
+      "from": "node_4",
+      "to": "node_5",
+      "relationship_type": "contains",
+      "weight": 1.0,
+      "label": null
+    },
+    {
+      "from": "node_5",
+      "to": "node_6",
+      "relationship_type": "contains",
+      "weight": 1.0,
+      "label": null
+    },
+    {
+      "from": "node_6",
+      "to": "node_7",
+      "relationship_type": "contains",
+      "weight": 1.0,
+      "label": null
+    },
+    {
+      "from": "node_7",
+      "to": "node_8",
+      "relationship_type": "contains",
+      "weight": 1.0,
+      "label": null
+    },
+    {
+      "from": "node_8",
+      "to": "node_9",
+      "relationship_type": "contains",
+      "weight": 1.0,
+      "label": null
+    },
+    {
+      "from": "node_9",
+      "to": "node_10",
+      "relationship_type": "contains",
+      "weight": 1.0,
+      "label": null
+    },
+    {
+      "from": "node_10",
+      "to": "node_11",
+      "relationship_type": "contains",
+      "weight": 1.0,
+      "label": null
+    },
+    {
+      "from": "node_11",
+      "to": "node_12",
+      "relationship_type": "contains",
+      "weight": 1.0,
+      "label": null
+    },
+    {
+      "from": "node_12",
+      "to": "node_13",
+      "relationship_type": "contains",
+      "weight": 1.0,
+      "label": null
+    },
+    {
+      "from": "node_13",
+      "to": "node_14",
+      "relationship_type": "contains",
+      "weight": 1.0,
+      "label": null
+    },
+    {
+      "from": "node_14",
+      "to": "node_15",
+      "relationship_type": "contains",
+      "weight": 1.0,
+      "label": null
+    },
+    {
+      "from": "node_15",
+      "to": "node_16",
+      "relationship_type": "contains",
+      "weight": 1.0,
+      "label": null
+    },
+    {
+      "from": "node_16",
+      "to": "node_17",
+      "relationship_type": "contains",
+      "weight": 1.0,
+      "label": null
+    },
+    {
+      "from": "node_17",
+      "to": "node_18",
+      "relationship_type": "contains",
+      "weight": 1.0,
+      "label": null
+    }
+  ],
+  "clusters": [
+    {
+      "cluster_id": "cluster_0",
+      "theme": "Emission Reduction Strategies",
+      "node_ids": [
+        "node_1",
+        "node_2",
+        "node_3",
+        "node_4",
+        "node_5",
+        "node_6",
+        "node_7",
+        "node_8",
+        "node_9",
+        "node_10",
+        "node_11",
+        "node_12",
+        "node_13",
+        "node_14",
+        "node_15",
+        "node_16",
+        "node_17",
+        "node_18"
+      ],
+      "color": "#FF6B6B"
+    },
+    {
+      "cluster_id": "cluster_1",
+      "theme": "Dietary Impact Analysis",
+      "node_ids": [
+        "node_2",
+        "node_3",
+        "node_4",
+        "node_5",
+        "node_6",
+        "node_7",
+        "node_8",
+        "node_9",
+        "node_10",
+        "node_11",
+        "node_12",
+        "node_13",
+        "node_14",
+        "node_15",
+        "node_16",
+        "node_17",
+        "node_18"
+      ],
+      "color": "#4ECDC4"
+    },
+    {
+      "cluster_id": "cluster_2",
+      "theme": "Planetary Health Diet",
+      "node_ids": [
+        "node_3",
+        "node_4",
+        "node_5",
+        "node_6",
+        "node_7",
+        "node_8",
+        "node_9",
+        "node_10",
+        "node_11",
+        "node_12",
+        "node_13",
+        "node_14",
+        "node_15",
+        "node_16",
+        "node_17",
+        "node_18"
+      ],
+      "color": "#45B7D1"
+    },
+    {
+      "cluster_id": "cluster_3",
+      "theme": "Global Emissions and Food Systems",
+      "node_ids": [
+        "node_4",
+        "node_5",
+        "node_6",
+        "node_7",
+        "node_8",
+        "node_9",
+        "node_10",
+        "node_11",
+        "node_12",
+        "node_13",
+        "node_14",
+        "node_15",
+        "node_16",
+        "node_17",
+        "node_18"
+      ],
+      "color": "#96CEB4"
+    },
+    {
+      "cluster_id": "cluster_4",
+      "theme": "Health and Dietary Patterns",
+      "node_ids": [
+        "node_5",
+        "node_6",
+        "node_7",
+        "node_8",
+        "node_9",
+        "node_10",
+        "node_11",
+        "node_12",
+        "node_13",
+        "node_14",
+        "node_15",
+        "node_16",
+        "node_17",
+        "node_18"
+      ],
+      "color": "#FFEAA7"
+    },
+    {
+      "cluster_id": "cluster_5",
+      "theme": "Climate Resilience in Agriculture",
+      "node_ids": [
+        "node_6",
+        "node_7",
+        "node_8",
+        "node_9",
+        "node_10",
+        "node_11",
+        "node_12",
+        "node_13",
+        "node_14",
+        "node_15",
+        "node_16",
+        "node_17",
+        "node_18"
+      ],
+      "color": "#DFE6E9"
+    }
+  ],
+  "statistics": {
+    "total_nodes": 19,
+    "total_edges": 18,
+    "max_depth": 3,
+    "avg_branching_factor": 1.0,
+    "node_distribution": {
+      "0": 1,
+      "1": 6,
+      "2": 8,
+      "3": 4
+    },
+    "cluster_count": 6,
+    "generation_time": 39.8
+  },
+  "metadata": {
+    "topic": "Dietary patterns and climate Mitigation",
+    "generation_timestamp": "2025-11-04T10:57:17.176054",
+    "source_text_length": 15131,
+    "focus_areas": null,
+    "depth_preference": "balanced",
+    "max_nodes_limit": 50,
+    "max_depth_limit": 5,
+    "generation_attempts": 1,
+    "source_domain": "Medical",
+    "domain_collection": "Medical_documents",
+    "domain_data_path": "dataset/Medical",
+    "sources": [
+      "Food Security, Climate Resilience, and Consumption.pdf",
+      "Planetary Health Diet Research Overview.pdf",
+      "Vegetarian Diets and Aging Disease Prevention.pdf",
+      "Dietary Carbon Footprint Research.pdf",
+      "India's Food Policy_ Health and Environment.pdf"
+    ],
+    "source_details": [
+      {
+        "source": "Dietary Carbon Footprint Research.pdf",
+        "page": 9,
+        "content_length": 1998
+      },
+      {
+        "source": "Dietary Carbon Footprint Research.pdf",
+        "page": 7,
+        "content_length": 1976
+      },
+      {
+        "source": "Vegetarian Diets and Aging Disease Prevention.pdf",
+        "page": 0,
+        "content_length": 1992
+      },
+      {
+        "source": "India's Food Policy_ Health and Environment.pdf",
+        "page": 8,
+        "content_length": 1315
+      },
+      {
+        "source": "Vegetarian Diets and Aging Disease Prevention.pdf",
+        "page": 16,
+        "content_length": 1988
+      },
+      {
+        "source": "Planetary Health Diet Research Overview.pdf",
+        "page": 18,
+        "content_length": 1995
+      },
+      {
+        "source": "Food Security, Climate Resilience, and Consumption.pdf",
+        "page": 12,
+        "content_length": 1997
+      },
+      {
+        "source": "Planetary Health Diet Research Overview.pdf",
+        "page": 11,
+        "content_length": 1277
+      }
+    ],
+    "num_documents_used": 8,
+    "num_documents_requested": 20,
+    "content_length": 15131,
+    "query_topic": "Dietary patterns and climate Mitigation"
+  },
+  "layout_suggestions": {
+    "recommended_layout": "radial",
+    "node_spacing": {
+      "horizontal": 200,
+      "vertical": 100
+    },
+    "canvas_size": {
+      "width": 1200,
+      "height": 800
+    },
+    "zoom_level": 1.0,
+    "show_edge_labels": true,
+    "cluster_visualization": true
+  }
+}

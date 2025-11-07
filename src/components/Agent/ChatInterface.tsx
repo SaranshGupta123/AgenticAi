@@ -1,24 +1,46 @@
 import React, { useState, useEffect } from "react";
 import { MessageSquare, Search, Shield, Clock, Zap } from "lucide-react";
-import { fetchChatResponse } from "@/api/api";
+import { fetchChatResponse } from "../../api/api";
 
 export const ChatInterface = () => {
   const [query, setQuery] = useState("");
-
-  const [chats, setChats] = useState([
-    {
-      question: "What are the latest updates from OpenAI?",
-      answer:
-        "OpenAI recently made headlines with its $6.5 billion acquisition of io Products Inc. co-founded by Jony Ive. The company is also exploring AI hardware collaborations and has updated ChatGPT with new features like Pulse integration and PayPal shopping. CEO Sam Altman mentioned plans for future updates, expanding the AI ecosystem further.",
-      metadata: {
-        total_time: 4.21,
-        agent_type: "react",
-      },
-      safe: true,
-    },
-  ]);
-
+  const [chats, setChats] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const defaultChat = {
+    question: "What are the latest updates from OpenAI?",
+    answer:
+      "OpenAI recently made headlines with its $6.5 billion acquisition of io Products Inc. co-founded by Jony Ive. The company is also exploring AI hardware collaborations and has updated ChatGPT with new features like Pulse integration and PayPal shopping. CEO Sam Altman mentioned plans for future updates, expanding the AI ecosystem further.",
+    metadata: {
+      total_time: 4.21,
+      agent_type: "react",
+    },
+    safe: true,
+  };
+
+  useEffect(() => {
+    const savedChats = localStorage.getItem("agentic_chat_history");
+    if (savedChats) {
+      try {
+        const parsed = JSON.parse(savedChats);
+        setChats([defaultChat, ...parsed]);
+      } catch {
+        console.warn("⚠️ Failed to parse stored chat history.");
+        setChats([defaultChat]);
+      }
+    } else {
+      setChats([defaultChat]);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (chats.length > 1) {
+      localStorage.setItem(
+        "agentic_chat_history",
+        JSON.stringify(chats.slice(1))
+      );
+    }
+  }, [chats]);
 
   const handleSubmit = async () => {
     if (!query.trim() || loading) return;
@@ -26,15 +48,14 @@ export const ChatInterface = () => {
 
     try {
       const data = await fetchChatResponse(query);
-      setChats((prev) => [
-        ...prev,
-        {
-          question: query,
-          answer: data.final_answer,
-          metadata: data.metadata,
-          safe: data.safety_check?.is_safe ?? true,
-        },
-      ]);
+      const newChat = {
+        question: query,
+        answer: data.final_answer,
+        metadata: data.metadata,
+        safe: data.safety_check?.is_safe ?? true,
+      };
+
+      setChats((prev) => [...prev, newChat]);
       setQuery("");
     } catch (err) {
       console.error("Fetch error:", err);
@@ -43,8 +64,7 @@ export const ChatInterface = () => {
       setLoading(false);
     }
   };
-
-  const handleKey = (e) => {
+  const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
@@ -53,9 +73,7 @@ export const ChatInterface = () => {
 
   useEffect(() => {
     const chatContainer = document.getElementById("chat-scroll");
-    if (chatContainer) {
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
+    if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
   }, [chats, loading]);
 
   return (
@@ -86,7 +104,6 @@ export const ChatInterface = () => {
               </div>
             </div>
 
-            {/* AI response */}
             <div className="flex justify-start">
               <div className="bg-slate-100 rounded-2xl rounded-tl-sm px-5 py-4 max-w-3xl shadow-sm">
                 {chat.safe && (
@@ -103,12 +120,12 @@ export const ChatInterface = () => {
                 <div className="flex items-center gap-4 mt-4 pt-2 border-t border-slate-200 text-xs text-slate-500">
                   <div className="flex items-center space-x-1">
                     <Clock className="w-3 h-3" />
-                    <span>{chat.metadata?.total_time}s</span>
+                    <span>{chat.metadata?.total_time?.toFixed(2) ?? "—"}s</span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <Zap className="w-3 h-3" />
                     <span className="capitalize">
-                      {chat.metadata?.agent_type}
+                      {chat.metadata?.agent_type ?? "N/A"}
                     </span>
                   </div>
                 </div>

@@ -1,0 +1,650 @@
+{
+  "root_node_id": "node_0",
+  "nodes": [
+    {
+      "id": "node_0",
+      "label": "Discuss what these sources say about Dietary Patterns and Climate Mitigation, in the larger context of Food Systems: Carbon Footprint, Resilience, and Policy.",
+      "level": 0,
+      "node_type": "root",
+      "importance": 10,
+      "color": "#FF6B6B",
+      "icon": null,
+      "description": "Root topic description",
+      "keywords": [
+        "dietary patterns",
+        "climate mitigation",
+        "food systems"
+      ]
+    },
+    {
+      "id": "node_1",
+      "label": "Carbon Footprint of Diets",
+      "level": 1,
+      "node_type": "concept",
+      "importance": 9,
+      "color": "#4ECDC4",
+      "icon": null,
+      "description": "Comparing plant vs. animal-based diets",
+      "keywords": [
+        "carbon footprint",
+        "diet comparison"
+      ]
+    },
+    {
+      "id": "node_2",
+      "label": "India's Low-Carbon Diet",
+      "level": 2,
+      "node_type": "detail",
+      "importance": 8,
+      "color": "#45B7D1",
+      "icon": null,
+      "description": "Pulses as primary protein source",
+      "keywords": [
+        "India",
+        "plant-based",
+        "CO2 emissions"
+      ]
+    },
+    {
+      "id": "node_3",
+      "label": "Global Meat Consumption Impact",
+      "level": 2,
+      "node_type": "detail",
+      "importance": 7,
+      "color": "#45B7D1",
+      "icon": null,
+      "description": "Beef driving deforestation in Latin America",
+      "keywords": [
+        "meat",
+        "deforestation",
+        "global emissions"
+      ]
+    },
+    {
+      "id": "node_4",
+      "label": "Resilience of Local Food Systems",
+      "level": 1,
+      "node_type": "concept",
+      "importance": 9,
+      "color": "#4ECDC4",
+      "icon": null,
+      "description": "Benefits of eating local",
+      "keywords": [
+        "local food",
+        "resilience",
+        "sustainability"
+      ]
+    },
+    {
+      "id": "node_5",
+      "label": "Reduced Transportation Emissions",
+      "level": 2,
+      "node_type": "detail",
+      "importance": 8,
+      "color": "#45B7D1",
+      "icon": null,
+      "description": "Lower food miles and carbon footprint",
+      "keywords": [
+        "food miles",
+        "transport",
+        "emissions"
+      ]
+    },
+    {
+      "id": "node_6",
+      "label": "Economic and Resilience Benefits",
+      "level": 2,
+      "node_type": "detail",
+      "importance": 7,
+      "color": "#45B7D1",
+      "icon": null,
+      "description": "Supporting small farmers and buffer against shocks",
+      "keywords": [
+        "local economy",
+        "resilience",
+        "farmers"
+      ]
+    },
+    {
+      "id": "node_7",
+      "label": "Dietary Diversity and Resilience",
+      "level": 1,
+      "node_type": "concept",
+      "importance": 8,
+      "color": "#4ECDC4",
+      "icon": null,
+      "description": "Nutrition and agricultural resilience link",
+      "keywords": [
+        "diet diversity",
+        "resilience",
+        "nutrition"
+      ]
+    },
+    {
+      "id": "node_8",
+      "label": "India's Diet Vulnerability",
+      "level": 2,
+      "node_type": "detail",
+      "importance": 7,
+      "color": "#45B7D1",
+      "icon": null,
+      "description": "Low diversity despite low carbon footprint",
+      "keywords": [
+        "India",
+        "diet diversity",
+        "vulnerability"
+      ]
+    },
+    {
+      "id": "node_9",
+      "label": "Diversified Farming Resilience",
+      "level": 2,
+      "node_type": "detail",
+      "importance": 7,
+      "color": "#45B7D1",
+      "icon": null,
+      "description": "Crops diversification against climate shocks",
+      "keywords": [
+        "diversified farming",
+        "climate resilience",
+        "crops"
+      ]
+    },
+    {
+      "id": "node_10",
+      "label": "Policy and Climate Adaptation",
+      "level": 1,
+      "node_type": "concept",
+      "importance": 9,
+      "color": "#4ECDC4",
+      "icon": null,
+      "description": "Policy frameworks for climate resilience",
+      "keywords": [
+        "policy",
+        "climate adaptation",
+        "agriculture"
+      ]
+    },
+    {
+      "id": "node_11",
+      "label": "Andhra Pradesh SAPCC",
+      "level": 2,
+      "node_type": "example",
+      "importance": 8,
+      "color": "#9B59B6",
+      "icon": null,
+      "description": "State Action Plan on Climate Change",
+      "keywords": [
+        "SAPCC",
+        "Andhra Pradesh",
+        "climate policy"
+      ]
+    },
+    {
+      "id": "node_12",
+      "label": "Sustainable Farming Promotion",
+      "level": 3,
+      "node_type": "detail",
+      "importance": 7,
+      "color": "#45B7D1",
+      "icon": null,
+      "description": "Organic farming and chemical reduction",
+      "keywords": [
+        "organic farming",
+        "sustainability",
+        "chemicals"
+      ]
+    },
+    {
+      "id": "node_13",
+      "label": "Climate-Resilient Crop Development",
+      "level": 3,
+      "node_type": "detail",
+      "importance": 7,
+      "color": "#45B7D1",
+      "icon": null,
+      "description": "Heat/drought-resistant crop varieties",
+      "keywords": [
+        "crop development",
+        "resilience",
+        "variety"
+      ]
+    },
+    {
+      "id": "node_14",
+      "label": "Water Management Strategies",
+      "level": 3,
+      "node_type": "detail",
+      "importance": 7,
+      "color": "#45B7D1",
+      "icon": null,
+      "description": "Micro-irrigation and water conservation",
+      "keywords": [
+        "water management",
+        "micro-irrigation",
+        "conservation"
+      ]
+    },
+    {
+      "id": "node_15",
+      "label": "Context-Specific Policies",
+      "level": 2,
+      "node_type": "insight",
+      "importance": 8,
+      "color": "#F39C12",
+      "icon": null,
+      "description": "Tailored strategies for agro-climatic zones",
+      "keywords": [
+        "context-specific",
+        "policies",
+        "agro-climatic"
+      ]
+    },
+    {
+      "id": "node_16",
+      "label": "LCA for Carbon Measurement",
+      "level": 1,
+      "node_type": "concept",
+      "importance": 8,
+      "color": "#4ECDC4",
+      "icon": null,
+      "description": "Life Cycle Assessment methodology",
+      "keywords": [
+        "LCA",
+        "carbon measurement",
+        "environmental impact"
+      ]
+    },
+    {
+      "id": "node_17",
+      "label": "Global Perspective on Emissions",
+      "level": 2,
+      "node_type": "detail",
+      "importance": 7,
+      "color": "#45B7D1",
+      "icon": null,
+      "description": "Consumption-based accounting for global impacts",
+      "keywords": [
+        "global emissions",
+        "consumption",
+        "accounting"
+      ]
+    },
+    {
+      "id": "node_18",
+      "label": "Food Security and Climate Nexus",
+      "level": 1,
+      "node_type": "concept",
+      "importance": 9,
+      "color": "#4ECDC4",
+      "icon": null,
+      "description": "India's food security challenges",
+      "keywords": [
+        "food security",
+        "climate nexus",
+        "India"
+      ]
+    },
+    {
+      "id": "node_19",
+      "label": "Food Security Pillars",
+      "level": 2,
+      "node_type": "detail",
+      "importance": 8,
+      "color": "#45B7D1",
+      "icon": null,
+      "description": "Availability, access, utilization, and stability",
+      "keywords": [
+        "food security",
+        "pillars",
+        "availability"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "node_0",
+      "to": "node_1",
+      "relationship_type": "contains",
+      "weight": 1,
+      "label": null
+    },
+    {
+      "from": "node_1",
+      "to": "node_2",
+      "relationship_type": "contains",
+      "weight": 1,
+      "label": null
+    },
+    {
+      "from": "node_2",
+      "to": "node_3",
+      "relationship_type": "contains",
+      "weight": 1,
+      "label": null
+    },
+    {
+      "from": "node_3",
+      "to": "node_4",
+      "relationship_type": "contains",
+      "weight": 1,
+      "label": null
+    },
+    {
+      "from": "node_4",
+      "to": "node_5",
+      "relationship_type": "contains",
+      "weight": 1,
+      "label": null
+    },
+    {
+      "from": "node_5",
+      "to": "node_6",
+      "relationship_type": "contains",
+      "weight": 1,
+      "label": null
+    },
+    {
+      "from": "node_6",
+      "to": "node_7",
+      "relationship_type": "contains",
+      "weight": 1,
+      "label": null
+    },
+    {
+      "from": "node_7",
+      "to": "node_8",
+      "relationship_type": "contains",
+      "weight": 1,
+      "label": null
+    },
+    {
+      "from": "node_8",
+      "to": "node_9",
+      "relationship_type": "contains",
+      "weight": 1,
+      "label": null
+    },
+    {
+      "from": "node_9",
+      "to": "node_10",
+      "relationship_type": "contains",
+      "weight": 1,
+      "label": null
+    },
+    {
+      "from": "node_10",
+      "to": "node_11",
+      "relationship_type": "contains",
+      "weight": 1,
+      "label": null
+    },
+    {
+      "from": "node_11",
+      "to": "node_12",
+      "relationship_type": "contains",
+      "weight": 1,
+      "label": null
+    },
+    {
+      "from": "node_12",
+      "to": "node_13",
+      "relationship_type": "contains",
+      "weight": 1,
+      "label": null
+    },
+    {
+      "from": "node_13",
+      "to": "node_14",
+      "relationship_type": "contains",
+      "weight": 1,
+      "label": null
+    },
+    {
+      "from": "node_14",
+      "to": "node_15",
+      "relationship_type": "contains",
+      "weight": 1,
+      "label": null
+    },
+    {
+      "from": "node_15",
+      "to": "node_16",
+      "relationship_type": "contains",
+      "weight": 1,
+      "label": null
+    },
+    {
+      "from": "node_16",
+      "to": "node_17",
+      "relationship_type": "contains",
+      "weight": 1,
+      "label": null
+    },
+    {
+      "from": "node_17",
+      "to": "node_18",
+      "relationship_type": "contains",
+      "weight": 1,
+      "label": null
+    },
+    {
+      "from": "node_18",
+      "to": "node_19",
+      "relationship_type": "contains",
+      "weight": 1,
+      "label": null
+    }
+  ],
+  "clusters": [
+    {
+      "cluster_id": "cluster_0",
+      "theme": "Carbon Footprint of Diets",
+      "node_ids": [
+        "node_1",
+        "node_2",
+        "node_3",
+        "node_4",
+        "node_5",
+        "node_6",
+        "node_7",
+        "node_8",
+        "node_9",
+        "node_10",
+        "node_11",
+        "node_12",
+        "node_13",
+        "node_14",
+        "node_15",
+        "node_16",
+        "node_17",
+        "node_18",
+        "node_19"
+      ],
+      "color": "#FF6B6B"
+    },
+    {
+      "cluster_id": "cluster_1",
+      "theme": "Resilience of Local Food Systems",
+      "node_ids": [
+        "node_4",
+        "node_5",
+        "node_6",
+        "node_7",
+        "node_8",
+        "node_9",
+        "node_10",
+        "node_11",
+        "node_12",
+        "node_13",
+        "node_14",
+        "node_15",
+        "node_16",
+        "node_17",
+        "node_18",
+        "node_19"
+      ],
+      "color": "#4ECDC4"
+    },
+    {
+      "cluster_id": "cluster_2",
+      "theme": "Dietary Diversity and Resilience",
+      "node_ids": [
+        "node_7",
+        "node_8",
+        "node_9",
+        "node_10",
+        "node_11",
+        "node_12",
+        "node_13",
+        "node_14",
+        "node_15",
+        "node_16",
+        "node_17",
+        "node_18",
+        "node_19"
+      ],
+      "color": "#45B7D1"
+    },
+    {
+      "cluster_id": "cluster_3",
+      "theme": "Policy and Climate Adaptation",
+      "node_ids": [
+        "node_10",
+        "node_11",
+        "node_12",
+        "node_13",
+        "node_14",
+        "node_15",
+        "node_16",
+        "node_17",
+        "node_18",
+        "node_19"
+      ],
+      "color": "#96CEB4"
+    },
+    {
+      "cluster_id": "cluster_4",
+      "theme": "LCA for Carbon Measurement",
+      "node_ids": [
+        "node_16",
+        "node_17",
+        "node_18",
+        "node_19"
+      ],
+      "color": "#FFEAA7"
+    },
+    {
+      "cluster_id": "cluster_5",
+      "theme": "Food Security and Climate Nexus",
+      "node_ids": [
+        "node_18",
+        "node_19"
+      ],
+      "color": "#DFE6E9"
+    }
+  ],
+  "statistics": {
+    "total_nodes": 20,
+    "total_edges": 19,
+    "max_depth": 3,
+    "avg_branching_factor": 1,
+    "node_distribution": {
+      "0": 1,
+      "1": 6,
+      "2": 10,
+      "3": 3
+    },
+    "cluster_count": 6,
+    "generation_time": 30.91
+  },
+  "metadata": {
+    "topic": "Discuss what these sources say about Dietary Patterns and Climate Mitigation, in the larger context of Food Systems: Carbon Footprint, Resilience, and Policy.",
+    "generation_timestamp": "2025-11-06T10:23:57.293014",
+    "source_text_length": 15733,
+    "focus_areas": null,
+    "depth_preference": "balanced",
+    "max_nodes_limit": 50,
+    "max_depth_limit": 5,
+    "generation_attempts": 1,
+    "source_domain": "Medical",
+    "domain_collection": "Medical_documents",
+    "domain_data_path": "dataset/Medical",
+    "sources": [
+      "Food Security, Climate Resilience, and Consumption.pdf",
+      "Food Miles, Local Diets, and India.pdf",
+      "Dietary Carbon Footprint Research.pdf"
+    ],
+    "source_details": [
+      {
+        "source": "Food Security, Climate Resilience, and Consumption.pdf",
+        "page": 14,
+        "content_length": 1998
+      },
+      {
+        "source": "Dietary Carbon Footprint Research.pdf",
+        "page": 0,
+        "content_length": 1997
+      },
+      {
+        "source": "Dietary Carbon Footprint Research.pdf",
+        "page": 7,
+        "content_length": 1976
+      },
+      {
+        "source": "Food Security, Climate Resilience, and Consumption.pdf",
+        "page": 1,
+        "content_length": 1997
+      },
+      {
+        "source": "Food Security, Climate Resilience, and Consumption.pdf",
+        "page": 1,
+        "content_length": 1995
+      },
+      {
+        "source": "Food Miles, Local Diets, and India.pdf",
+        "page": 12,
+        "content_length": 1990
+      },
+      {
+        "source": "Food Security, Climate Resilience, and Consumption.pdf",
+        "page": 9,
+        "content_length": 1995
+      },
+      {
+        "source": "Dietary Carbon Footprint Research.pdf",
+        "page": 14,
+        "content_length": 1187
+      }
+    ],
+    "num_documents_used": 8,
+    "num_documents_requested": 20,
+    "content_length": 15733,
+    "query_topic": "Discuss what these sources say about Dietary Patterns and Climate Mitigation, in the larger context of Food Systems: Carbon Footprint, Resilience, and Policy.",
+    "generation_time_seconds": 31.778030157089233,
+    "usage_instructions": {
+      "visualization": "Use the Mermaid diagram with https://mermaid.live or any Mermaid-compatible viewer",
+      "json_structure": "The JSON contains full node/edge data with metadata for programmatic use",
+      "switching_domains": "Use /select-domain to analyze different domain databases",
+      "available_endpoints": {
+        "export": "GET /api/rag/mindmap/export/{generation_id} - Export previous mind maps",
+        "visualize": "POST /api/rag/mindmap/visualize - Get Mermaid visualization",
+        "query_with_mindmap": "POST /api/rag/doc_question?generate_mindmap=true - Get answer + mind map"
+      }
+    }
+  },
+  "layout_suggestions": {
+    "recommended_layout": "radial",
+    "node_spacing": {
+      "horizontal": 200,
+      "vertical": 100
+    },
+    "canvas_size": {
+      "width": 1200,
+      "height": 800
+    },
+    "zoom_level": 1,
+    "show_edge_labels": true,
+    "cluster_visualization": true
+  }
+}

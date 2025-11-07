@@ -1,0 +1,77 @@
+{
+  "answer": "### **Contrast Between PDCAAS and DIAAS Protein Metrics**\n\n#### **1. Definitions and Purpose**  \n- **PDCAAS (Protein Digestibility Corrected Amino Acid Score)**:  \n  - Adopted in 1993 as the standard metric for assessing protein quality.  \n  - Compares a protein’s amino acid profile to a reference pattern (based on human requirements) and adjusts the score using **fecal digestibility** data from animal models.  \n  - **Limitation**: Scores are \"truncated\" at 1.0, masking differences between high-quality and good-quality proteins (e.g., whey vs. soy).  \n\n- **DIAAS (Digestible Indispensable Amino Acid Score)**:  \n  - Introduced by the UN Food and Agriculture Organization (FAO) in 2013 as a replacement for PDCAAS.  \n  - Measures **digestibility of individual essential amino acids (EAAs)** at the **ileum** (end of the small intestine), the true site of amino acid absorption.  \n  - **Advantage**: Scores are not truncated, allowing for a more accurate ranking of protein quality.  \n\n---\n\n#### **2. Key Differences in Methodology**  \n\n| **Feature**               | **PDCAAS**                                                                 | **DIAAS**                                                                 |\n|--------------------------|----------------------------------------------------------------------------|---------------------------------------------------------------------------|\n| **Digestibility Measurement** | Uses **fecal digestibility** (measures amino acids remaining in feces).     | Uses **ileal digestibility** (measures amino acids absorbed at the ileum). |\n| **Truncation**           | Scores are capped at **1.0**, regardless of actual quality.                | **No truncation**; scores reflect true biological value (e.g., whey = 1.09, soy = 0.90). |\n| **Amino Acid Assessment** | Evaluates the **whole protein** as a single entity.                        | Assesses **individual EAAs** (e.g., lysine, methionine) for digestibility. |\n| **Reference Pattern**    | Based on **human requirements** for EAAs.                                  | Also based on human requirements but with more precise ileal data.        |\n| **Limitations**          | Overestimates protein value due to **bacterial absorption in the large intestine**. | Provides a **more accurate reflection** of amino acid bioavailability.     |\n\n---\n\n#### **3. Impact on Protein Classification**  \n- **PDCAAS**:  \n  - **Truncation Example**: Whey Protein Isolate and Soy Protein Isolate both score **1.0**, obscuring their true differences in biological value.  \n  - **Inaccurate Digestibility**: Fecal data may overestimate protein quality by counting amino acids absorbed by gut bacteria as \"digested\" by the host.  \n\n- **DIAAS**:  \n  - **Clearer Hierarchy**:  \n    - **Excellent/High Quality** (≥1.0): Animal proteins (e.g., pork = 1.17, whey = 1.09).  \n    - **Good Quality** (0.75–0.99): High-quality plant proteins (e.g., soy = 0.90, tofu = 0.97).  \n    - **Lower Quality** (<0.75): Cereal grains (e.g., wheat = 0.40–0.48) and some legumes (e.g., cooked kidney beans = 0.59).  \n  - **Example**: Soy Protein Isolate scores **0.90** (\"Good\"), while Whey Protein Isolate scores **1.09** (\"Excellent\"), reflecting their actual amino acid availability.  \n\n---\n\n#### **4. Specific Examples from Context**  \n- **Whey Protein Isolate**:  \n  - **PDCAAS**: 1.0 (capped).  \n  - **DIAAS**: 1.09 (accurate reflection of high quality).  \n- **Soy Protein Isolate**:  \n  - **PDCAAS**: 0.98 (capped at 1.0).  \n  - **DIAAS**: 0.90 (\"Good\" quality).  \n- **Cooked Rice**:  \n  - **PDCAAS**: 0.50–0.62.  \n  - **DIAAS**: 0.60 (limited by lysine).  \n\n---\n\n#### **5. Scientific Rationale for DIAAS Superiority**  \n- **Precision**: DIAAS measures **individual EAA digestibility**, ensuring no single limiting amino acid skews the overall score.  \n- **Biological Relevance**: Ileal digestibility reflects **true absorption** in humans, unlike fecal data, which includes bacterial metabolism.  \n- **No Truncation**: Allows for **distinguishing between high-quality and good-quality proteins**, critical for plant-based diets (e.g., soy, pea, chickpea).  \n\n---\n\n#### **6. Supporting Sources**  \n- **PDCAAS Limitations**:  \n  - Truncation and inaccurate digestibility (Section 3.2, Context).  \n  - Examples from Table 2 (e.g., whey vs. soy).  \n- **DIAAS Advantages**:  \n  - Ileal digestibility and non-truncation (Section 3.3, Context).  \n  - Classification tiers (Excellent/High, Good, No claim) (Section 3.3, Context).  \n\nThis contrast highlights DIAAS as a **more accurate, scientifically rigorous metric** for evaluating protein quality, particularly for plant-based sources.",
+  "retrieved_context": [
+    {
+      "source": "Plant Protein for Age-Related Muscle Loss.pdf",
+      "page": 5,
+      "content_snippet": "The  shift  to  DIAAS  is  critical  for  a  fair  assessment  of  plant  proteins.  For  example,  under  \nPDCAAS,\n \nWhey\n \nProtein\n \nIsolate\n \nand\n \nSoy\n \nProtein\n \nIsolate\n \nappear\n \nnearly\n \nidentical\n \n(1.0\n \nvs.\n \n0.98).\n \nUnder\n \nDIAAS,\n \na\n \nclearer\n \ndistinction\n \nemerges:\n \nWhey\n \nProtein\n...",
+      "rerank_score": 4.198026657104492,
+      "doc_type": "technical_doc"
+    },
+    {
+      "source": "Plant Protein for Age-Related Muscle Loss.pdf",
+      "page": 4,
+      "content_snippet": "For  decades,  the  standard  for  assessing  protein  quality  was  the  Protein  Digestibility  \nCorrected\n \nAmino\n \nAcid\n \nScore\n \n(PDCAAS)\n,\n \nadopted\n \nin\n \n1993.\n \nThis\n \nmethod\n \ncompares\n \na\n \nprotein's\n \namino\n \nacid\n \nprofile\n \nto\n \na\n \nreference\n \npattern\n \nand\n \nthen\n \n\"corrects\"\n \nthis\n...",
+      "rerank_score": 2.431558609008789,
+      "doc_type": "general"
+    },
+    {
+      "source": "Plant Protein for Age-Related Muscle Loss.pdf",
+      "page": 4,
+      "content_snippet": "Metric  Recommendation  Rationale  /  Context  Supporting  Sources  Per-Meal  Leucine  2.5–3.0  g  The  \"leucine  trigger\"  threshold  required  per  meal  to  activate  the  mTORC1  signaling  pathway  for  MPS.  \n \n    \nSection  3:  Quantifying  Protein  Quality:  From  Amino  \nAcid\n \nProfiles\n \nt...",
+      "rerank_score": 1.723055362701416,
+      "doc_type": "general"
+    },
+    {
+      "source": "Plant Protein for Age-Related Muscle Loss.pdf",
+      "page": 6,
+      "content_snippet": "Protein  Source  Category  PDCAAS  DIAAS  (Older  Child/Adult)  \nLimiting  Amino  Acid  \nSupporting  Sources  Cooked  Rice  Plant  (Grain)  0.50  -  0.62  0.60  Lysine   Wheat  Plant  (Grain)  0.42  -  0.46  0.40  -  0.48  Lysine               \nSection  4:  The  Plant-Based  Arsenal:  Evaluating  Ke...",
+      "rerank_score": 1.1943402290344238,
+      "doc_type": "general"
+    },
+    {
+      "source": "Plant Protein for Age-Related Muscle Loss.pdf",
+      "page": 5,
+      "content_snippet": "and\n \ncooked\n \nrice\n \n(0.60),\n \nwhich\n \nare\n \nlimited\n \nby\n \nlysine.\n This  data  demonstrates  that  while  animal  proteins  generally  hold  the  top  position,  high-quality  \nplant\n \nproteins\n \nlike\n \nsoy,\n \npea,\n \nand\n \nchickpea\n \nare\n \nscientifically\n \nclassified\n \nas\n \n\"good\n \nquality\"\n \npro...",
+      "rerank_score": 1.0748435258865356,
+      "doc_type": "technical_doc"
+    },
+    {
+      "source": "Plant Protein for Age-Related Muscle Loss.pdf",
+      "page": 6,
+      "content_snippet": "1  cup  (~164  g)  ~14.5  g  1.0–1.3  g  ~1.9  -  2.5   \nBlack/Navy  Beans  (cooked)  \n1  cup  (~180  g)  ~15  g  1.3  g  ~1.9   \nPumpkin  Seeds  \n1  oz  (28  g)  ~9  g  0.7–0.8  g  ~3.1  -  3.6   \nPea/Rice  Protein  Blend  \n1  scoop  (~30  g)  ~24  g  1.7–2.0  g  ~1.25  -  1.5   \n      This  analys...",
+      "rerank_score": -3.562195301055908,
+      "doc_type": "general"
+    },
+    {
+      "source": "Plant Protein for Age-Related Muscle Loss.pdf",
+      "page": 11,
+      "content_snippet": "22.\n \nLeucine:\n \nthe\n \nmuscle\n \npowerhouse\n \n-\n \nVegan\n \nEasy,\n \nhttps://www.veganeasy.org/discover/vegan-fitness/leucine/\n \n23.\n \nVegan\n \nComplete\n \nProteins:\n \n13\n \nPlant-Based\n \nOptions\n \n-\n \nHealthline,\n \nhttps://www.healthline.com/nutrition/complete-protein-for-vegans\n \n24.\n \nEating\n \na\n \nvarie...",
+      "rerank_score": -3.823035717010498,
+      "doc_type": "general"
+    },
+    {
+      "source": "Plant Protein for Age-Related Muscle Loss.pdf",
+      "page": 7,
+      "content_snippet": "●  Soy  Protein  Isolate  (SPI):  As  a  concentrated  powder,  SPI  is  a  powerful  anabolic  tool.  A  \nsingle\n \n30-40\n \ng\n \nserving\n \ncan\n \ndeliver\n \n2.0-3.0\n \ng\n \nof\n \nleucine,\n \nmaking\n \nit\n \nfunctionally\n \nequivalent\n \nto\n \nwhey\n \nprotein\n \nfor\n \nstimulating\n \nMPS\n \nwhen\n \nleucine\n \ncontent\n ...",
+      "rerank_score": -6.294712543487549,
+      "doc_type": "technical_doc"
+    }
+  ],
+  "metadata": {
+    "query": "Contrast PDCAAS and DIAAS protein metrics.?",
+    "active_domain": "Medical",
+    "collection_name": "Medical_documents",
+    "data_path": "dataset/Medical",
+    "query_timestamp": "2025-11-06T08:59:40.978201",
+    "total_time": 23.16568088531494,
+    "num_sources": 8,
+    "initial_k": 15,
+    "final_top_n": 8,
+    "reranking_enabled": true,
+    "answer_length": 4660,
+    "mindmap_generated": false,
+    "mindmap_config": null
+  },
+  "mindmap": null
+}

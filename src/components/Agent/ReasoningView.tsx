@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Search, Shield, Clock, Zap, GitBranch } from "lucide-react";
+import { fetchExplainabilityChatResponse } from "../../api/api";
 
 export const ReasoningView: React.FC = () => {
   const [query, setQuery] = useState("");
@@ -62,30 +63,64 @@ export const ReasoningView: React.FC = () => {
     },
   ]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchExplainabilityData = async (customQuery: string) => {
     setLoading(true);
+    setError(null);
     try {
-      const res = await fetch("/data/explainability_response.json");
-      if (!res.ok) throw new Error("Failed to fetch explainability data");
-      const data = await res.json();
+      const data = await fetchExplainabilityChatResponse(customQuery);
+
+      // prefer final_answer, fallback to final_decision
+      const finalText =
+        data.final_answer ??
+        data.final_decision ??
+        data.final_decision_text ??
+        "No answer.";
+
+      // agent_steps vs reasoning_steps naming differences
+      const steps =
+        data.agent_steps ??
+        data.reasoning_steps ??
+        data.chain_of_thought?.reasoning_steps ??
+        data.reasoning_steps_full ??
+        [];
+
+      // metadata/time fields (some responses use different keys)
+      const metadata = data.metadata ??
+        data.explainability_results?.summary ??
+        data?.explainability_results ?? {
+          total_time:
+            data.total_execution_time ??
+            data.total_reasoning_time ??
+            data.metadata?.total_time,
+        };
 
       setChats((prev) => [
         ...prev,
         {
           question: customQuery,
-          answer: data.final_decision,
+          answer: finalText,
           metadata: {
-            total_time: data.total_reasoning_time,
-            agent_type: data.agent_type,
+            total_time:
+              metadata.total_execution_time ??
+              metadata.total_reasoning_time ??
+              metadata.total_time ??
+              data.metadata?.total_execution_time ??
+              data.metadata?.total_reasoning_time ??
+              data.metadata?.total_time ??
+              0,
+            agent_type: data.metadata?.agent_type ?? data.agent_type ?? "react",
           },
-          reasoning_steps: data.reasoning_steps,
+          reasoning_steps: steps,
+          explainability_results:
+            data.explainability_results ?? data.explainability_results ?? null,
           safe: true,
         },
       ]);
-    } catch (error) {
-      console.error("Error fetching explainability data:", error);
-      alert("Failed to fetch reasoning trace.");
+    } catch (err: any) {
+      console.error("Error fetching explainability data:", err);
+      setError(err.message || "Failed to fetch reasoning trace.");
     } finally {
       setLoading(false);
     }
@@ -121,6 +156,12 @@ export const ReasoningView: React.FC = () => {
       </div>
 
       <div id="explain-scroll" className="flex-1 p-6 overflow-y-auto space-y-6">
+        {error && (
+          <div className="text-red-600 text-sm bg-red-50 p-3 rounded">
+            {error}
+          </div>
+        )}
+
         {chats.map((chat, index) => (
           <div key={index} className="space-y-3">
             <div className="flex justify-end">
@@ -144,7 +185,7 @@ export const ReasoningView: React.FC = () => {
                   {chat.answer}
                 </p>
 
-                {chat.reasoning_steps && (
+                {chat.reasoning_steps && chat.reasoning_steps.length > 0 && (
                   <div className="space-y-3 border-t border-slate-200 pt-3">
                     <h3 className="text-sm font-semibold text-slate-700 mb-2">
                       Reasoning Steps:
@@ -156,14 +197,32 @@ export const ReasoningView: React.FC = () => {
                       >
                         <div className="flex justify-between text-xs text-slate-500 mb-1">
                           <span>
-                            Step {step.step_number}: {step.step_type}
+                            Step {step.step_number ?? idx + 1}:{" "}
+                            {step.step_type ??
+                              step.action ??
+                              step.action?.toString() ??
+                              "step"}
                           </span>
                           <Clock className="w-3 h-3" />
                         </div>
-                        <p className="text-slate-800 mb-1">{step.reasoning}</p>
+                        <p className="text-slate-800 mb-1">
+                          {step.reasoning ??
+                            step.thought ??
+                            step.observation ??
+                            ""}
+                        </p>
                         {step.output_data && (
                           <p className="text-slate-600 italic text-xs">
-                            {JSON.stringify(step.output_data).slice(0, 100)}...
+                            {JSON.stringify(step.output_data).slice(0, 200)}
+                            {JSON.stringify(step.output_data).length > 200
+                              ? "..."
+                              : ""}
+                          </p>
+                        )}
+                        {step.observation && !step.reasoning && (
+                          <p className="text-slate-600 italic text-xs">
+                            {String(step.observation).slice(0, 200)}
+                            {String(step.observation).length > 200 ? "..." : ""}
                           </p>
                         )}
                       </div>
@@ -174,7 +233,9 @@ export const ReasoningView: React.FC = () => {
                 <div className="flex items-center gap-4 mt-4 pt-2 border-t border-slate-200 text-xs text-slate-500">
                   <div className="flex items-center space-x-1">
                     <Clock className="w-3 h-3" />
-                    <span>{chat.metadata?.total_time.toFixed(2)}s</span>
+                    <span>
+                      {Number(chat.metadata?.total_time ?? 0).toFixed(2)}s
+                    </span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <Zap className="w-3 h-3" />

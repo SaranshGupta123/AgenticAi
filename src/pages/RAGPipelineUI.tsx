@@ -8,7 +8,7 @@ import {
 
 import { Header, Sidebar } from "../components/layout";
 
-export default function RAGPipelineUI() {
+export default function RAGPipelineUI({ goToNotebook }) {
   const [activeTab, setActiveTab] = useState("chat");
   const [agentType, setAgentType] = useState("react");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -29,7 +29,8 @@ export default function RAGPipelineUI() {
         <Header
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          onMenuClick={() => setSidebarOpen((prev) => !prev)}
+          onSidebarToggle={() => setSidebarOpen((prev) => !prev)}
+          onNotebookOpen={goToNotebook}
         />
 
         <div className="flex flex-1 min-h-0 overflow-hidden relative">
@@ -54,26 +55,10 @@ export default function RAGPipelineUI() {
 
           <div className="flex-1 min-h-0 overflow-hidden p-4 sm:p-6 lg:p-8">
             <div className="h-full flex flex-col min-h-0">
-              {activeTab === "chat" && (
-                <div className="flex-1 min-h-0 overflow-auto">
-                  <ChatInterface />
-                </div>
-              )}
-              {activeTab === "evaluation" && (
-                <div className="flex-1 min-h-0 overflow-auto">
-                  <EvaluationMetrics />
-                </div>
-              )}
-              {activeTab === "reasoning" && (
-                <div className="flex-1 min-h-0 overflow-hidden">
-                  <ReasoningView />
-                </div>
-              )}
-              {activeTab === "safety" && (
-                <div className="flex-1 min-h-0 overflow-auto">
-                  <SafetyGuardView />
-                </div>
-              )}
+              {activeTab === "chat" && <ChatInterface />}
+              {activeTab === "evaluation" && <EvaluationMetrics />}
+              {activeTab === "reasoning" && <ReasoningView />}
+              {activeTab === "safety" && <SafetyGuardView />}
             </div>
           </div>
         </div>
