@@ -91,7 +91,7 @@ export async function selectDomain(domainName) {
   if (!res.ok) throw new Error("Failed to select domain");
   return res.json();
 }
-export async function askRagQuestion(query, generateMindmap) {
+export async function askRagQuestion(query, generateMindmap = false) {
   const url = `${BASE_URL}/rag/api/rag/doc_question?query=${encodeURIComponent(
     query
   )}&generate_mindmap=${generateMindmap ? "true" : "false"}`;
@@ -100,12 +100,22 @@ export async function askRagQuestion(query, generateMindmap) {
     method: "POST",
     headers: { Accept: "application/json" },
   });
-
   if (!res.ok) throw new Error("RAG request failed");
-  return res.json();
+
+  const data = await res.json();
+
+  return {
+    answer: data.answer ?? "",
+    retrieved_context: data.context ?? data.sources ?? [],
+    metadata: {
+      active_domain: data.domain ?? data.active_domain ?? "Unknown",
+      query: query,
+      total_time: data.latency ?? data.time_taken ?? "N/A",
+    },
+    mindmap: data.mindmap ?? null,
+  };
 }
 
-// ✅ Mindmap API
 // export async function generateMindmap(topic) {
 //   const res = await fetch(`${BASE_URL}/rag/api/rag/mindmap/full_vectorstore`, {
 //     method: "POST",
@@ -147,3 +157,25 @@ export async function generateMindmap(topic) {
     throw err;
   }
 }
+
+export async function fetchFAQ() {
+  const res = await fetch("/data/faq.json");
+  return res.json();
+}
+
+export async function fetchComparativeAnalysis() {
+  const res = await fetch("/data/comparative_analysis.json");
+  return res.json();
+}
+
+async function loadJSON(name) {
+  const res = await fetch(`/data/${name}.json`);
+  if (!res.ok) throw new Error(`${name}.json not found`);
+  return res.json();
+}
+
+export const fetchTutorial = () => loadJSON("tutorial");
+export const fetchTechnicalReport = () => loadJSON("technical_report");
+export const fetchBlogPost = () => loadJSON("blog_post");
+export const fetchStudyGuide = () => loadJSON("study_guide");
+export const fetchBriefing = () => loadJSON("briefing");

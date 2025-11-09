@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
-  Upload,
   Link as LinkIcon,
   Trash2,
   Send,
@@ -9,7 +8,6 @@ import {
   Network,
   FileText,
   BookOpen,
-  HelpCircle,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -17,10 +15,24 @@ import {
   askRagQuestion,
   generateMindmap,
   fetchLocalNotebookData,
+  fetchFAQ,
+  fetchComparativeAnalysis,
+  fetchTutorial,
+  fetchTechnicalReport,
+  fetchBlogPost,
+  fetchStudyGuide,
+  fetchBriefing,
 } from "../api/api";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import MindmapNotebookLM from "./MindmapNotebookLM";
+import AnswerDetails from "../components/AnswerDetails";
+import {
+  SearchModal,
+  AnswerModal,
+  ToolCard,
+} from "../components/ContentToolView";
+import ResultCardSimple from "../components/ResultCardSimple";
 
 type Source = {
   id: string;
@@ -28,7 +40,6 @@ type Source = {
   title: string;
   href?: string;
 };
-
 type Message = {
   role: "user" | "assistant";
   text: string;
@@ -36,10 +47,86 @@ type Message = {
   metadata?: any;
 };
 
-type Props = {
-  goBack: () => void;
-  title?: string;
+type Splitter = {
+  splitRegex: RegExp;
+  addPrefix?: (text: string) => string;
 };
+
+function scoreBestMatch(blocks: string[], query: string) {
+  const q = query.toLowerCase().trim();
+  if (!q) return null;
+  const parts = q.split(/\s+/).filter((w) => w.length > 3);
+  let best: { block: string; score: number } | null = null;
+  for (const b of blocks) {
+    const t = b.toLowerCase();
+    const score = parts.reduce((s, w) => (t.includes(w) ? s + 1 : s), 0);
+    if (!best || score > best.score) best = { block: b, score };
+  }
+  return best && best.score > 0 ? best.block.trim() : null;
+}
+
+function useContentTool(fetcher: () => Promise<any>, splitter: Splitter) {
+  const [data, setData] = useState<any | null>(null);
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState<any | null>(null);
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [showAnswerModal, setShowAnswerModal] = useState(false);
+  const [showCard, setShowCard] = useState(false);
+
+  const open = async () => {
+    const d = await fetcher();
+    setData(d);
+    setQuestion("");
+    setAnswer("");
+    setShowSearchModal(true);
+  };
+
+  const search = () => {
+    if (!data) return;
+
+    let finalContent = "";
+    if (Array.isArray(data.sections)) {
+      finalContent = data.sections
+        .map((s) => `## ${s.heading}\n\n${s.content}`)
+        .join("\n\n");
+    } else if (typeof data.content === "string") {
+      finalContent = data.content.trim();
+    } else if (typeof data.text === "string") {
+      finalContent = data.text.trim();
+    } else {
+      finalContent = JSON.stringify(data, null, 2);
+    }
+
+    setAnswer({
+      content: finalContent,
+      metadata: data.metadata ?? null,
+      sources: data.sources ?? [],
+      citations: data.citations ?? [],
+      quality_metrics: data.quality_metrics ?? null,
+    });
+
+    setShowSearchModal(false);
+    setShowAnswerModal(true);
+    setShowCard(true);
+  };
+
+  return {
+    data,
+    question,
+    setQuestion,
+    answer,
+    showSearchModal,
+    setShowSearchModal,
+    showAnswerModal,
+    setShowAnswerModal,
+    showCard,
+    setShowCard,
+    open,
+    search,
+  };
+}
+
+type Props = { goBack: () => void; title?: string };
 
 export default function NotebookWorkspace({ goBack, title }: Props) {
   const [sources, setSources] = useState<Source[]>([]);
@@ -53,11 +140,46 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
   const [mindmapData, setMindmapData] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [mindmapReady, setMindmapReady] = useState(false);
+  const [showMindmapViewer, setShowMindmapViewer] = useState(false);
   const [showMindmapCreateModal, setShowMindmapCreateModal] = useState(false);
   const [mindmapTopic, setMindmapTopic] = useState("");
   const [mindmapLoading, setMindmapLoading] = useState(false);
 
-  const [studioTab, setStudioTab] = useState<"tools" | "mindmap">("tools"); // ✅ NEW
+  const [studioTab, setStudioTab] = useState<"tools" | "mindmap">("tools");
+
+  const faq = useContentTool(fetchFAQ, {
+    splitRegex: /##\s+/g,
+    addPrefix: (t) => "## " + t,
+  });
+
+  const comparative = useContentTool(fetchComparativeAnalysis, {
+    splitRegex: /\n#+\s+/g,
+  });
+
+  const tutorial = useContentTool(fetchTutorial, {
+    splitRegex: /##\s+/g,
+    addPrefix: (t) => "## " + t,
+  });
+
+  const report = useContentTool(fetchTechnicalReport, {
+    splitRegex: /\n#+\s+/g,
+  });
+
+  const blog = useContentTool(fetchBlogPost, {
+    splitRegex: /##\s+/g,
+    addPrefix: (t) => "## " + t,
+  });
+
+  const study = useContentTool(fetchStudyGuide, {
+    splitRegex: /##\s+/g,
+    addPrefix: (t) => "## " + t,
+  });
+
+  const briefing = useContentTool(fetchBriefing, {
+    splitRegex: /##\s+/g,
+    addPrefix: (t) => "## " + t,
+  });
 
   const sendMessage = async () => {
     const text = input.trim();
@@ -69,7 +191,6 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
 
     try {
       const res = await askRagQuestion(text);
-
       setMessages((prev) => [
         ...prev,
         {
@@ -79,14 +200,9 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
           metadata: res.metadata ?? null,
         },
       ]);
-
-      if (res.mindmap) {
-        setMindmapData(res.mindmap?.mindmap ?? res.mindmap);
-      }
+      if (res.mindmap) setMindmapData(res.mindmap?.mindmap ?? res.mindmap);
     } catch {
-      console.log("⚠️ API failed → Using offline JSON");
       const offline = await fetchLocalNotebookData(title ?? "default");
-
       setMessages((prev) => [
         ...prev,
         {
@@ -108,17 +224,18 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
     try {
       const data = await generateMindmap(mindmapTopic);
       setMindmapData(data);
+
+      setMindmapReady(true);
       setShowMindmapCreateModal(false);
-    } catch (err) {
-      console.error("Mindmap Error:", err);
+      setShowMindmapViewer(true);
     } finally {
       setMindmapLoading(false);
     }
   };
 
   return (
-    <div className="h-screen w-screen bg-[#1B1F24] text-white flex flex-col">
-      <header className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+    <div className="h-screen w-screen bg-gradient-to-br from-[#0B0E12] via-[#13171D] to-[#1B1F24] text-white flex flex-col">
+      <header className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#0D1014]/70 backdrop-blur-md shadow-md shadow-black/40">
         <h1 className="text-[20px] font-semibold">{title ?? "Notebook"}</h1>
         <button
           onClick={goBack}
@@ -197,8 +314,8 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
                 <div
                   className={`text-sm max-w-[80%] px-3 py-2 rounded-lg ${
                     m.role === "user"
-                      ? "bg-blue-600 ml-auto text-white"
-                      : "bg-[#2B2F36] text-gray-200"
+                      ? "bg-blue-600 ml-auto text-white shadow-lg shadow-blue-900/40"
+                      : "bg-[#23272F] text-gray-200 border border-white/5 shadow-md shadow-black/30"
                   }`}
                 >
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -275,33 +392,17 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
             </div>
           </div>
         </section>
-
         <div
           className={`transition-all duration-300 ${
             collapseStudio ? "w-0" : "w-[360px]"
-          } overflow-hidden`}
+          } border-l border-white/10 overflow-hidden`}
         >
           {!collapseStudio && (
             <aside className="h-full p-4 flex flex-col">
-              {/* TAB BUTTONS */}
-              <div className="flex gap-2 border-b border-white/10 pb-2 mb-3">
-                <button
-                  onClick={() => setStudioTab("tools")}
-                  className={`px-3 py-1 rounded-md text-sm ${
-                    studioTab === "tools" ? "bg-blue-600" : "bg-[#2B2F36]"
-                  }`}
-                >
-                  Tools
-                </button>
-
-                <button
-                  onClick={() => mindmapData && setStudioTab("mindmap")}
-                  className={`px-3 py-1 rounded-md text-sm ${
-                    studioTab === "mindmap" ? "bg-blue-600" : "bg-[#2B2F36]"
-                  }`}
-                  disabled={!mindmapData}
-                >
-                  Mindmap
+              <div className="flex justify-between items-center border-b border-white/10 pb-2 mb-3">
+                <h2 className="text-sm text-gray-300">Studio</h2>
+                <button onClick={() => setCollapseStudio(true)}>
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
                 </button>
               </div>
 
@@ -312,49 +413,128 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
                     label="Mind Map"
                     onClick={() => setShowMindmapCreateModal(true)}
                   />
-                  <ToolCard icon={Mic} label="Audio Overview" />
-                  <ToolCard icon={Video} label="Video Overview" />
-                  <ToolCard icon={FileText} label="Reports" />
-                  <ToolCard icon={BookOpen} label="Flashcards" />
-                  <ToolCard icon={HelpCircle} label="Quiz" />
+                  <ToolCard
+                    icon={Mic}
+                    label="Comparative Analysis"
+                    onClick={comparative.open}
+                  />
+                  <ToolCard icon={Video} label="FAQ" onClick={faq.open} />
+                  <ToolCard
+                    icon={BookOpen}
+                    label="Tutorial"
+                    onClick={tutorial.open}
+                  />
+                  <ToolCard
+                    icon={FileText}
+                    label="Technical Report"
+                    onClick={report.open}
+                  />
+                  <ToolCard
+                    icon={BookOpen}
+                    label="Blog Post"
+                    onClick={blog.open}
+                  />
+                  <ToolCard
+                    icon={FileText}
+                    label="Study Guide"
+                    onClick={study.open}
+                  />
+                  <ToolCard
+                    icon={FileText}
+                    label="Briefing"
+                    onClick={briefing.open}
+                  />
                 </div>
               )}
 
-              {studioTab === "mindmap" && (
-                <div className="flex-1 flex justify-center items-center">
-                  <button
-                    onClick={() => setShowMindmapCreateModal(true)}
-                    className="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-500"
-                  >
-                    View Mindmap
-                  </button>
-                </div>
+              {faq.showCard && (
+                <ResultCardSimple
+                  title="FAQ Results Ready"
+                  onClick={() => faq.setShowAnswerModal(true)}
+                />
+              )}
+              {comparative.showCard && (
+                <ResultCardSimple
+                  title="Comparative Insights Ready"
+                  onClick={() => comparative.setShowAnswerModal(true)}
+                />
+              )}
+              {tutorial.showCard && (
+                <ResultCardSimple
+                  title="Tutorial Result Ready"
+                  onClick={() => tutorial.setShowAnswerModal(true)}
+                />
+              )}
+              {report.showCard && (
+                <ResultCardSimple
+                  title="Technical Report Result Ready"
+                  onClick={() => report.setShowAnswerModal(true)}
+                />
+              )}
+              {blog.showCard && (
+                <ResultCardSimple
+                  title="Blog Content Ready"
+                  onClick={() => blog.setShowAnswerModal(true)}
+                />
+              )}
+              {study.showCard && (
+                <ResultCardSimple
+                  title="Study Guide Ready"
+                  onClick={() => study.setShowAnswerModal(true)}
+                />
+              )}
+              {briefing.showCard && (
+                <ResultCardSimple
+                  title="Briefing Ready"
+                  onClick={() => briefing.setShowAnswerModal(true)}
+                />
+              )}
+              {mindmapReady && (
+                <ResultCardSimple
+                  title="Mindmap Ready"
+                  onClick={() => setShowMindmapViewer(true)}
+                />
               )}
             </aside>
           )}
         </div>
+
+        {collapseStudio && (
+          <button
+            onClick={() => setCollapseStudio(false)}
+            className="w-6 flex justify-center items-center border-l border-white/10"
+          >
+            <ChevronLeft className="w-4 h-4 text-gray-400" />
+          </button>
+        )}
       </div>
-      {(showMindmapCreateModal || studioTab === "mindmap") && mindmapData && (
-        <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="w-[90vw] h-[85vh] bg-[#1E2228] border border-white/10 rounded-xl relative p-3">
+
+      {showMindmapViewer && mindmapData && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm overflow-auto p-6">
+          <div className="w-[90vw] min-h-[85vh] bg-[#1E2228] border border-white/10 rounded-xl relative p-3 flex flex-col mx-auto shadow-2xl">
             <button
-              onClick={() => setShowMindmapCreateModal(false)}
-              className="absolute top-4 right-4 text-white text-2xl hover:text-red-400"
+              onClick={() => {
+                setShowMindmapViewer(false);
+                setShowMindmapCreateModal(false);
+                setStudioTab("tools");
+              }}
+              className="absolute top-4 right-4 text-white text-2xl hover:text-red-400 z-50"
             >
               ✕
             </button>
-            <MindmapNotebookLM data={mindmapData} />
+
+            <div className="flex-1 overflow-hidden rounded-lg">
+              <MindmapNotebookLM data={mindmapData} />
+            </div>
           </div>
         </div>
       )}
-
       {showMindmapCreateModal && (
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-[#1E2228] border border-white/10 rounded-xl p-6 w-[380px] space-y-4">
             <h3 className="text-sm text-gray-200 font-semibold">
               Generate Mind Map
             </h3>
-
             <input
               value={mindmapTopic}
               onChange={(e) => setMindmapTopic(e.target.value)}
@@ -362,7 +542,6 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
               className="w-full px-3 py-2 bg-[#2B2F36] border border-white/10 rounded-lg text-sm outline-none"
               onKeyDown={(e) => e.key === "Enter" && handleMindmapGenerate()}
             />
-
             <button
               onClick={handleMindmapGenerate}
               disabled={mindmapLoading}
@@ -370,7 +549,6 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
             >
               {mindmapLoading ? "Generating..." : "Generate"}
             </button>
-
             <button
               onClick={() => setShowMindmapCreateModal(false)}
               className="w-full py-2 rounded-lg bg-[#33383F] hover:bg-[#3E4550]"
@@ -380,20 +558,22 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
           </div>
         </div>
       )}
-    </div>
-  );
-}
 
-function ToolCard({ icon: Icon, label, onClick }: any) {
-  return (
-    <button
-      onClick={onClick}
-      className="rounded-xl bg-[#1E2228] border border-white/10 hover:bg-[#262B33] px-3 py-3 flex items-center gap-3 transition"
-    >
-      <div className="p-2 rounded-lg bg-white/5 border border-white/10">
-        <Icon className="w-4 h-4 text-gray-200" />
-      </div>
-      <span className="text-sm text-gray-200">{label}</span>
-    </button>
+      <SearchModal tool={faq} title="FAQ Search" />
+      <SearchModal tool={comparative} title="Comparative Analysis" />
+      <SearchModal tool={tutorial} title="Tutorial Search" />
+      <SearchModal tool={report} title="Technical Report Search" />
+      <SearchModal tool={blog} title="Blog Search" />
+      <SearchModal tool={study} title="Study Guide Search" />
+      <SearchModal tool={briefing} title="Briefing Search" />
+
+      <AnswerModal tool={faq} title="FAQ Result" />
+      <AnswerModal tool={comparative} title="Comparison Result" />
+      <AnswerModal tool={tutorial} title="Tutorial Result" />
+      <AnswerModal tool={report} title="Technical Report Result" />
+      <AnswerModal tool={blog} title="Blog Result" />
+      <AnswerModal tool={study} title="Study Guide Result" />
+      <AnswerModal tool={briefing} title="Briefing Result" />
+    </div>
   );
 }
