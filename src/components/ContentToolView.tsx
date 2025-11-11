@@ -8,32 +8,33 @@ export function SearchModal({ tool, title }: any) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="w-[600px] bg-[#1E2228] border border-white/10 rounded-xl p-5 relative">
+      <div className="w-[600px] bg-[#1E2228] border border-white/10 rounded-2xl p-6 relative shadow-2xl">
         <button
           onClick={() => tool.setShowSearchModal(false)}
-          className="absolute top-3 right-4 text-xl text-gray-300 hover:text-red-400"
+          className="absolute top-4 right-4 text-2xl text-gray-300 hover:text-red-400 p-1 rounded-full transition"
         >
           ✕
         </button>
-        <h2 className="text-lg font-semibold text-white mb-4">{title}</h2>
+        <h2 className="text-xl font-bold text-white mb-4">{title}</h2>
 
         <input
           value={tool.question}
           onChange={(e) => tool.setQuestion(e.target.value)}
           placeholder="Ask something..."
-          className="w-full px-3 py-2 bg-[#2B2F36] border border-white/10 rounded-lg text-sm outline-none focus:ring-2 focus:ring-blue-500 text-white"
+          className="w-full px-4 py-3 bg-[#2B2F36] border border-white/10 rounded-xl text-base outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white transition-all duration-150"
         />
 
-        <div className="mt-4 flex justify-end gap-3">
+        <div className="mt-6 flex justify-end gap-3">
           <button
             onClick={() => tool.setShowSearchModal(false)}
-            className="px-4 py-2 text-sm font-medium rounded-lg bg-[#33383F] text-gray-300 hover:bg-[#3E4550] transition"
+            className="px-5 py-2.5 text-sm font-medium rounded-xl bg-[#33383F] text-gray-300 hover:bg-[#3E4550] transition"
           >
             Cancel
           </button>
           <button
             onClick={tool.search}
-            className="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-500 transition"
+            disabled={!tool.question.trim()}
+            className="px-5 py-2.5 text-sm font-medium rounded-xl bg-blue-600 text-white hover:bg-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Search
           </button>
@@ -48,16 +49,16 @@ export function AnswerModal({ tool, title }: any) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="w-[650px] bg-[#14171C]/90 rounded-xl border border-white/10 shadow-xl shadow-black/60 p-6 relative backdrop-blur-md">
+      <div className="w-[700px] max-h-[90vh] flex flex-col bg-[#14171C] rounded-2xl border border-blue-500/20 shadow-2xl shadow-black/60 p-6 relative backdrop-blur-md">
         <button
           onClick={() => tool.setShowAnswerModal(false)}
-          className="absolute top-3 right-4 text-xl text-gray-300 hover:text-red-400"
+          className="absolute top-4 right-4 text-2xl text-gray-300 hover:text-red-400 p-1 rounded-full transition"
         >
           ✕
         </button>
-        <h2 className="text-lg font-semibold text-white mb-4">{title}</h2>
+        <h2 className="text-xl font-bold text-white mb-4">{title}</h2>
 
-        <div className="text-gray-300 text-sm leading-relaxed border border-white/10 rounded-lg p-4 max-h-[80vh] overflow-y-scroll space-y-4">
+        <div className="flex-1 h-0 overflow-y-auto text-gray-300 text-sm leading-relaxed border border-gray-700/50 rounded-xl p-5 space-y-4 bg-[#1A1D22]">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
             {tool.answer?.content ?? "No content available."}
           </ReactMarkdown>
@@ -73,12 +74,12 @@ export function ToolCard({ icon: Icon, label, onClick }: any) {
   return (
     <button
       onClick={onClick}
-      className="rounded-xl bg-[#1A1D22]/70 backdrop-blur-sm border border-white/10
-      hover:border-blue-500/40 hover:bg-[#23272F]
-      px-4 py-6 text-white text-center flex flex-col items-center justify-center space-y-2 transition-all duration-200"
+      className="rounded-2xl bg-[#1A1D22]/70 backdrop-blur-sm border border-gray-700/50
+      hover:border-blue-500/70 hover:bg-[#252A33]
+      px-4 py-6 text-white text-center flex flex-col items-center justify-center space-y-2 transition-all duration-300 hover:scale-[1.03] shadow-lg hover:shadow-blue-900/40"
     >
-      <Icon size={24} className="text-blue-400" />
-      <span className="text-sm font-medium">{label}</span>
+      <Icon size={28} className="text-blue-500" />
+      <span className="text-sm font-semibold">{label}</span>
     </button>
   );
 }

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { generateMindmap } from "../api/api";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+
 type MindmapNode = {
   id: string;
   label: string;
@@ -56,6 +57,7 @@ type MindmapData = {
     [key: string]: any;
   };
 };
+
 function buildTree(data: MindmapData): MindmapNode | null {
   const { nodes, edges, root_node_id, clusters } = data;
   const nodeMap = new Map<string, MindmapNode>();
@@ -160,9 +162,9 @@ const StatCard = ({
   label: string;
   value: string | number;
 }) => (
-  <div className="bg-[#2B2F36] rounded-xl p-3 border border-gray-700 shadow-inner">
-    <p className="text-gray-400 font-medium">{label}</p>
-    <p className="text-white font-extrabold text-2xl mt-1">{value}</p>
+  <div className="bg-[#2B2F36] rounded-xl p-4 border border-blue-500/20 shadow-xl shadow-black/30 hover:shadow-blue-900/40 transition-shadow">
+    <p className="text-gray-400 font-medium text-sm">{label}</p>
+    <p className="text-blue-300 font-extrabold text-3xl mt-1">{value}</p>
   </div>
 );
 
@@ -173,9 +175,13 @@ const MetadataItem = ({
   label: string;
   value: string | number | undefined | null;
 }) => (
-  <p className="text-gray-300 text-sm flex justify-between">
-    <span className="text-gray-500 font-semibold">{label}:</span>
-    <span className="truncate max-w-[70%]">{value?.toString() || "N/A"}</span>
+  <p className="text-gray-300 text-sm flex justify-between items-start">
+    <span className="text-gray-500 font-medium w-1/3 flex-shrink-0">
+      {label}:
+    </span>
+    <span className="text-white font-mono max-w-[65%] text-right break-words">
+      {value?.toString() || "N/A"}
+    </span>
   </p>
 );
 
@@ -204,8 +210,10 @@ function StatisticsPanel({
       </div>
 
       {metadata && (
-        <div className="bg-[#2B2F36] rounded-xl p-4 mb-6 text-sm space-y-2 border border-gray-700">
-          <p className="text-gray-400 font-bold mb-2">Topic Information</p>
+        <div className="bg-[#2B2F36] rounded-xl p-4 mb-6 text-sm space-y-3 border border-gray-700">
+          <p className="text-gray-400 font-bold mb-2 text-base">
+            Topic Information
+          </p>
           <MetadataItem label="Topic" value={metadata.topic} />
           <MetadataItem label="Source Domain" value={metadata.source_domain} />
           <MetadataItem
@@ -224,23 +232,23 @@ function StatisticsPanel({
       )}
       {clusters.length > 0 && (
         <div className="pt-4 border-t border-white/10">
-          <p className="text-gray-300 text-sm mb-3 font-bold">
+          <p className="text-gray-300 text-base mb-3 font-bold">
             Cluster Legend:
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {clusters.map((cluster) => (
               <div
                 key={cluster.cluster_id}
-                className="flex items-center gap-2 text-xs bg-[#2B2F36] p-2 rounded-lg border border-gray-700"
+                className="flex items-center gap-2 text-xs bg-[#2B2F36] p-3 rounded-xl border border-gray-700 hover:shadow-lg transition duration-200"
               >
                 <div
-                  className="w-3 h-3 rounded-full flex-shrink-0 shadow-lg"
+                  className="w-4 h-4 rounded-full flex-shrink-0 shadow-lg"
                   style={{ backgroundColor: cluster.color }}
                 />
-                <span className="text-gray-300 font-semibold flex-1 truncate">
+                <span className="text-gray-300 font-semibold flex-1 truncate text-sm">
                   {cluster.theme}
                 </span>
-                <span className="text-gray-500 font-mono text-[10px] bg-black/20 px-1 rounded">
+                <span className="text-gray-500 font-mono text-[10px] bg-black/20 px-2 py-0.5 rounded-full border border-white/10">
                   {cluster.node_ids.length} Concepts
                 </span>
               </div>
@@ -269,23 +277,47 @@ function TreeNodeView({
   const nodeCluster = clusters.find((c) => c.node_ids?.includes(node.id));
 
   const getNodeStyle = () => {
+    const baseStyle =
+      "px-4 py-3 rounded-2xl text-sm transition-all duration-200 flex items-center gap-2 min-w-[250px] max-w-[450px] border-b-2 hover:opacity-90 transform hover:scale-[1.01] cursor-pointer";
+
     if (node.isClusterTheme) {
-      return "bg-gradient-to-r from-blue-700 to-blue-900 text-white font-extrabold shadow-2xl border-blue-400";
+      return (
+        baseStyle +
+        "bg-blue-800 text-white font-extrabold shadow-2xl shadow-blue-900/60 border-blue-400/80 transform hover:scale-[1.02]"
+      );
     }
 
     switch (node.node_type) {
       case "root":
-        return "bg-gradient-to-r from-red-500 to-red-700 text-white font-bold shadow-xl border-red-400";
+        return (
+          baseStyle +
+          "bg-gradient-to-r from-red-600 to-red-800 text-white font-black shadow-xl border-red-400/80 transform hover:scale-[1.03]"
+        );
       case "concept":
-        return "bg-gradient-to-r from-teal-500 to-teal-700 text-white font-semibold shadow-lg border-teal-400";
+        return (
+          baseStyle +
+          "bg-[#33383F] text-gray-200 font-semibold border border-white/20 shadow-lg hover:border-teal-400/80"
+        );
       case "example":
-        return "bg-gradient-to-r from-purple-500 to-purple-700 text-white font-medium shadow-lg border-purple-400";
+        return (
+          baseStyle +
+          "bg-[#252A33] text-gray-300 font-medium border border-white/10 shadow-md hover:border-purple-400/80"
+        );
       case "insight":
-        return "bg-gradient-to-r from-orange-500 to-orange-700 text-white font-medium shadow-lg border-orange-400";
+        return (
+          baseStyle +
+          "bg-[#33383F] text-gray-200 font-medium border border-white/20 shadow-lg hover:border-orange-400/80"
+        );
       case "detail":
-        return "bg-gradient-to-r from-gray-600 to-gray-700 text-gray-200 font-medium shadow-lg border-gray-400";
+        return (
+          baseStyle +
+          "bg-[#1A1D22] text-gray-400 font-normal border border-white/5 shadow-sm hover:border-gray-500/80"
+        );
       default:
-        return "bg-[#2B2F36] text-gray-200 border border-white/20 hover:border-blue-400 shadow-md";
+        return (
+          baseStyle +
+          "bg-[#2B2F36] text-gray-200 border border-white/20 hover:border-blue-400/80 shadow-md"
+        );
     }
   };
 
@@ -296,10 +328,10 @@ function TreeNodeView({
       <div className="flex-shrink-0 relative">
         <button
           onClick={() => hasChildren && toggle(node.id)}
-          className={`px-4 py-3 rounded-xl text-sm transition-all duration-200 flex items-center gap-2 min-w-[250px] max-w-[450px] border-b-2 hover:opacity-90 ${getNodeStyle()}`}
+          className={getNodeStyle()}
         >
           {hasChildren && (
-            <span className="flex-shrink-0 transform transition-transform duration-200">
+            <span className="flex-shrink-0 transform transition-transform duration-200 text-white">
               {isExpanded ? (
                 <ChevronDown size={18} />
               ) : (
@@ -310,13 +342,13 @@ function TreeNodeView({
           <span className="flex-1 text-left line-clamp-2">{node.label}</span>
 
           {node.importance && (
-            <span className="px-2 py-0.5 bg-black/30 rounded-full text-xs font-extrabold text-yellow-300">
+            <span className="px-2 py-0.5 bg-black/30 rounded-full text-xs font-extrabold text-yellow-300 border border-yellow-300/30">
               {node.importance}
             </span>
           )}
         </button>
 
-        <div className="mt-1 flex flex-col gap-1 pl-1">
+        <div className="mt-2 flex flex-col gap-1 pl-2">
           <div className="flex flex-wrap gap-1.5">
             {node.node_type && (
               <span className="px-2 py-0.5 bg-white/10 rounded-full text-[10px] text-gray-300 font-medium">
@@ -325,7 +357,7 @@ function TreeNodeView({
             )}
             {!node.isClusterTheme && nodeCluster && (
               <div
-                className="px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1"
+                className="px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 border border-white/20"
                 style={{
                   backgroundColor: clusterColor + "22",
                   color: clusterColor,
@@ -338,7 +370,7 @@ function TreeNodeView({
           </div>
 
           {node.keywords && node.keywords.length > 0 && (
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1 mt-1">
               {node.keywords.slice(0, 3).map((kw, idx) => (
                 <span
                   key={idx}
@@ -351,7 +383,7 @@ function TreeNodeView({
           )}
 
           {node.description && (
-            <p className="mt-1 text-[11px] text-gray-400 italic max-w-[450px] leading-tight">
+            <p className="mt-1 text-[11px] text-gray-400 italic max-w-[450px] leading-snug p-2 bg-[#1A1D22] rounded-lg border border-white/10">
               {node.description}
             </p>
           )}
@@ -359,7 +391,8 @@ function TreeNodeView({
       </div>
 
       {isExpanded && hasChildren && (
-        <div className="flex-1 border-l-2 border-white/10 ml-2 pl-4">
+        // Enhanced connection line for better visual flow
+        <div className="flex-1 border-l-4 border-blue-600/50 ml-6 pl-6">
           {node.children.map((child) => (
             <TreeNodeView
               key={child.id}
@@ -433,7 +466,7 @@ export default function MindmapNotebookLM() {
 
   if (loading) {
     return (
-      <div className="w-full h-96 flex flex-col items-center justify-center text-gray-400 bg-gradient-to-br from-[#0B0E12] via-[#13171D] to-[#1B1F24] rounded-xl">
+      <div className="w-full h-96 flex flex-col items-center justify-center text-gray-400 bg-gradient-to-br from-[#0B0E12] via-[#13171D] to-[#1B1F24] rounded-xl shadow-xl">
         <Loader className="animate-spin text-blue-500" size={32} />
         <p className="mt-4 text-lg">Loading Knowledge Graph...</p>
       </div>
@@ -442,7 +475,7 @@ export default function MindmapNotebookLM() {
 
   if (error) {
     return (
-      <div className="w-full h-96 flex items-center justify-center text-red-400 bg-gradient-to-br from-[#0B0E12] via-[#13171D] to-[#1B1F24] rounded-xl p-8">
+      <div className="w-full h-96 flex items-center justify-center text-red-400 bg-gradient-to-br from-[#0B0E12] via-[#13171D] to-[#1B1F24] rounded-xl p-8 shadow-xl">
         <p className="text-xl font-semibold">🚨 Error: {error}</p>
       </div>
     );
@@ -450,7 +483,7 @@ export default function MindmapNotebookLM() {
 
   if (!root || !data) {
     return (
-      <div className="w-full h-96 flex items-center justify-center text-gray-400 bg-gradient-to-br from-[#0B0E12] via-[#13171D] to-[#1B1F24] rounded-xl p-8">
+      <div className="w-full h-96 flex items-center justify-center text-gray-400 bg-gradient-to-br from-[#0B0E12] via-[#13171D] to-[#1B1F24] rounded-xl p-8 shadow-xl">
         <p className="text-lg">
           No mind map data available or root node could not be constructed.
         </p>
@@ -459,14 +492,14 @@ export default function MindmapNotebookLM() {
   }
 
   return (
-    <div className="w-full bg-gradient-to-br from-[#0B0E12] via-[#13171D] to-[#1B1F24] text-white flex flex-col font-sans rounded-xl p-6 shadow-2xl">
+    <div className="w-full bg-[#13171D] text-white flex flex-col font-sans rounded-2xl p-6 shadow-2xl border border-gray-700/50">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between pb-4 border-b border-white/10">
         <div className="mb-4 md:mb-0">
-          <h2 className="text-2xl font-extrabold text-white">
-            Mind Map Explorer (Clustered View)
+          <h2 className="text-3xl font-extrabold text-blue-400">
+            Knowledge Map Explorer
           </h2>
           {data.metadata?.topic && (
-            <p className="text-sm text-gray-400 mt-1 italic">
+            <p className="text-base text-gray-400 mt-1 italic font-light">
               Topic: {data.metadata.topic}
             </p>
           )}
@@ -474,26 +507,26 @@ export default function MindmapNotebookLM() {
         <div className="flex gap-3 flex-wrap">
           <button
             onClick={() => setShowStats(!showStats)}
-            className="flex items-center gap-1 px-4 py-2 text-sm rounded-full bg-[#2B2F36] border border-white/10 hover:bg-[#33383F] transition duration-150"
+            className="flex items-center gap-1 px-4 py-2 text-sm rounded-xl bg-[#2B2F36] border border-white/10 hover:bg-[#33383F] transition-all duration-200"
           >
             {showStats ? <EyeOff size={16} /> : <Eye size={16} />}
             {showStats ? "Hide Stats" : "Show Stats"}
           </button>
           <button
             onClick={expandAll}
-            className="px-4 py-2 text-sm rounded-full bg-blue-600 hover:bg-blue-500 font-semibold shadow-md transition duration-150"
+            className="px-4 py-2 text-sm rounded-xl bg-blue-600 hover:bg-blue-500 font-semibold shadow-md shadow-blue-900/40 transition-all duration-200"
           >
             Expand All
           </button>
           <button
             onClick={collapseAll}
-            className="px-4 py-2 text-sm rounded-full bg-[#2B2F36] border border-white/10 hover:border-gray-500 transition duration-150"
+            className="px-4 py-2 text-sm rounded-xl bg-[#2B2F36] border border-white/10 hover:border-gray-500 transition-all duration-200"
           >
             Collapse All
           </button>
         </div>
       </div>
-      <div className="py-4">
+      <div className="py-6">
         {showStats && data.statistics && (
           <StatisticsPanel
             statistics={data.statistics}
@@ -503,9 +536,9 @@ export default function MindmapNotebookLM() {
         )}
 
         {/* Tree Visualization */}
-        <div className="bg-[#1E2228] border border-white/10 rounded-2xl p-6 shadow-2xl h-[80vh] relative overflow-auto">
+        <div className="bg-[#1E2228] border border-white/10 rounded-2xl p-6 shadow-2xl h-[80vh] relative overflow-hidden">
           <h3 className="text-xl font-bold text-gray-200 mb-4 border-b border-white/10 pb-2">
-            Knowledge Graph View (Pan + Zoom Enabled)
+            Interactive Graph View
           </h3>
 
           <TransformWrapper

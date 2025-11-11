@@ -1,58 +1,102 @@
 import React, { useState, useEffect } from "react";
 import { MessageSquare, Search, Shield, Clock, Zap } from "lucide-react";
-import { fetchChatResponse } from "../../api/api";
+import { fetchChatResponse, fetchDeepResearchResponse } from "../../api/api";
+import ReactMarkdown from "react-markdown";
 
-export const ChatInterface = () => {
+export const ChatInterface = ({ mode = "normal" }) => {
   const [query, setQuery] = useState("");
   const [chats, setChats] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const defaultChat = {
-    question: "What are the latest updates from OpenAI?",
-    answer:
-      "OpenAI recently made headlines with its $6.5 billion acquisition of io Products Inc. co-founded by Jony Ive. The company is also exploring AI hardware collaborations and has updated ChatGPT with new features like Pulse integration and PayPal shopping. CEO Sam Altman mentioned plans for future updates, expanding the AI ecosystem further.",
-    metadata: {
-      total_time: 4.21,
-      agent_type: "react",
-    },
-    safe: true,
-  };
+  const defaultChat =
+    mode === "deep_research"
+      ? {
+          question: "What topic should we investigate in depth?",
+          answer:
+            "Deep Research mode allows multi-step reasoning, evidence gathering, structured analysis, and long-form synthesis. Ask a topic and I will begin the investigation.",
+          metadata: { total_time: 0, agent_type: "deep_research" },
+          safe: true,
+        }
+      : {
+          question: "What are the latest updates from OpenAI?",
+          answer:
+            "OpenAI recently made headlines with its $6.5 billion acquisition of io Products Inc., co-founded by Jony Ive. The company is exploring AI hardware collaborations and new ChatGPT improvements.",
+          metadata: { total_time: 4.21, agent_type: "react" },
+          safe: true,
+        };
 
   useEffect(() => {
-    const savedChats = localStorage.getItem("agentic_chat_history");
+    const storageKey =
+      mode === "deep_research"
+        ? "agentic_chat_history_deep"
+        : "agentic_chat_history_react";
+
+    const savedChats = localStorage.getItem(storageKey);
+
     if (savedChats) {
       try {
         const parsed = JSON.parse(savedChats);
         setChats([defaultChat, ...parsed]);
       } catch {
-        console.warn("⚠️ Failed to parse stored chat history.");
         setChats([defaultChat]);
       }
     } else {
       setChats([defaultChat]);
     }
-  }, []);
+  }, [mode]);
 
   useEffect(() => {
+    const storageKey =
+      mode === "deep_research"
+        ? "agentic_chat_history_deep"
+        : "agentic_chat_history_react";
+
     if (chats.length > 1) {
-      localStorage.setItem(
-        "agentic_chat_history",
-        JSON.stringify(chats.slice(1))
-      );
+      localStorage.setItem(storageKey, JSON.stringify(chats.slice(1)));
     }
-  }, [chats]);
+  }, [chats, mode]);
 
   const handleSubmit = async () => {
     if (!query.trim() || loading) return;
     setLoading(true);
 
     try {
-      const data = await fetchChatResponse(query);
+      const data =
+        mode === "deep_research"
+          ? await fetchDeepResearchResponse(query)
+          : await fetchChatResponse(query);
+
+      // ✅ SHORTEN RESPONSE ONLY IN REACT MODE
+      let formattedAnswer = data.answer;
+      if (mode === "normal") {
+        // Normalize whitespace & convert to lines
+        const cleaned = formattedAnswer
+          .replace(/\n+/g, "\n")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        // Break into meaningful bullet-like sentences
+        let points = cleaned
+          .replace(/[\•\-–]/g, "") // remove bullet symbols
+          .split(/\. |\n|;/)
+          .map((p) => p.trim())
+          .filter((p) => p.length > 8); // remove junk short lines
+
+        // Sort by relevance (longer sentences first looks more structured)
+        points = points.sort((a, b) => b.length - a.length);
+
+        // Take top 3 lines & format nicely
+        formattedAnswer = points
+          .slice(0, 3)
+          .map((p) => `• ${p}`)
+          .join("\n");
+      }
+
       const newChat = {
         question: query,
-        answer: data.final_answer,
+        answer: formattedAnswer,
         metadata: data.metadata,
-        safe: data.safety_check?.is_safe ?? true,
+        safe: data.safe ?? true,
       };
 
       setChats((prev) => [...prev, newChat]);
@@ -64,6 +108,7 @@ export const ChatInterface = () => {
       setLoading(false);
     }
   };
+
   const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -90,12 +135,6 @@ export const ChatInterface = () => {
       </div>
 
       <div id="chat-scroll" className="flex-1 p-6 overflow-y-auto space-y-6">
-        {chats.length === 0 && !loading && (
-          <div className="flex items-center justify-center h-full text-slate-500 text-sm">
-            Ask something to begin the chat.
-          </div>
-        )}
-
         {chats.map((chat, index) => (
           <div key={index} className="space-y-3">
             <div className="flex justify-end">
@@ -115,7 +154,13 @@ export const ChatInterface = () => {
                   </div>
                 )}
 
-                <p className="text-slate-800 leading-relaxed">{chat.answer}</p>
+                <div className="text-slate-800 leading-relaxed whitespace-pre-line prose prose-slate max-w-none">
+                  {mode === "deep_research" ? (
+                    <ReactMarkdown>{chat.answer}</ReactMarkdown>
+                  ) : (
+                    chat.answer
+                  )}
+                </div>
 
                 <div className="flex items-center gap-4 mt-4 pt-2 border-t border-slate-200 text-xs text-slate-500">
                   <div className="flex items-center space-x-1">

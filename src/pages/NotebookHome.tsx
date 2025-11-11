@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { fetchDomains } from "../api/api";
-
+import { fetchDomains, selectDomain } from "../api/api";
 export default function NotebookHome({ goBack, openNotebook }) {
   const [domains, setDomains] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -44,23 +43,39 @@ export default function NotebookHome({ goBack, openNotebook }) {
     }
   }, []);
 
+  // const handleOpen = async (domain: string) => {
+  //   try {
+  //     const res = await fetch(`/api/rag/api/rag/select-domain`, {
+  //       method: "POST",
+  //       headers: {
+  //         Accept: "application/json",
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({ domain_name: domain }),
+  //     });
+
+  //     const result = await res.json();
+  //     setAlertMsg(result?.message || "✅ Domain Selected");
+  //     setTimeout(() => setAlertMsg(null), 3000);
+
+  //     openNotebook(domain);
+  //   } catch {
+  //     setAlertMsg("❌ Failed to switch domain");
+  //     setTimeout(() => setAlertMsg(null), 3000);
+  //   }
+  // };
+
   const handleOpen = async (domain: string) => {
     try {
-      const res = await fetch(`/api/rag/api/rag/select-domain`, {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ domain_name: domain }),
-      });
+      const result = await selectDomain(domain);
 
-      const result = await res.json();
-      setAlertMsg(result?.message || "✅ Domain Selected");
-      setTimeout(() => setAlertMsg(null), 3000);
+      setAlertMsg(result?.message || `✅ Switched to ${domain}`);
+      setTimeout(() => setAlertMsg(null), 1500);
 
+      // ✅ NOW NAVIGATE
       openNotebook(domain);
-    } catch {
+    } catch (err) {
+      console.error("Domain Switch Error:", err);
       setAlertMsg("❌ Failed to switch domain");
       setTimeout(() => setAlertMsg(null), 3000);
     }
