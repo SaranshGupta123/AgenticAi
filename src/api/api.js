@@ -1,7 +1,7 @@
 // const BASE_URL =
 //   "https://see-qualifications-parallel-reaches.trycloudflare.com";
 
-const BASE_URL = "  https://eb974b7a5ea5.ngrok-free.app";
+const BASE_URL = "https://123ae95f82ef.ngrok-free.app";
 
 export async function fetchChatResponse(query) {
   try {
@@ -136,7 +136,6 @@ export async function askRagQuestion(query, generateMindmap = false) {
 
   return {
     answer: data.answer ?? "",
-    // ✅ FIXED HERE
     retrieved_context:
       data.retrieved_context ?? data.context ?? data.sources ?? [],
     metadata: {
@@ -223,10 +222,10 @@ export async function fetchDeepResearchResponse(query) {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
-        "ngrok-skip-browser-warning": "true", // ✅ REQUIRED FOR NGROK
+        "ngrok-skip-browser-warning": "true",
       },
       body: JSON.stringify({
-        query: query, // ✅ REQUIRED FIELD
+        query: query,
         use_crag: false,
         agent_type: "deep_research",
         include_steps: true,
@@ -253,5 +252,237 @@ export async function fetchDeepResearchResponse(query) {
   } catch (error) {
     console.error("🚨 fetchDeepResearchResponse Error:", error);
     throw error;
+  }
+}
+
+const defaultHeaders = {
+  "Content-Type": "application/json",
+  Accept: "application/json",
+  "ngrok-skip-browser-warning": "true",
+};
+
+async function handleResponse(response, type) {
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`❌ ${type} API Error:`, errorText);
+    throw new Error(`Request failed with status ${response.status}`);
+  }
+
+  const data = await response.json();
+  console.log(`✅ ${type} API Response:`, data);
+  return data;
+}
+export async function fetchBriefingFromAPI(domain, topic) {
+  const cleanTopic = topic?.trim() || "AI developments overview";
+  console.log("📤 Fetching briefing for:", cleanTopic);
+
+  const url = `${BASE_URL}/rag/api/rag/generate/briefing?topic=${encodeURIComponent(
+    cleanTopic
+  )}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: defaultHeaders,
+    body: JSON.stringify({
+      tone: "professional",
+      target_audience: "executives",
+      num_sources: 5,
+      include_citations: true,
+      multi_stage: false,
+    }),
+  });
+
+  const data = await handleResponse(response, "Briefing");
+  return formatResponse(data, domain);
+}
+
+export async function fetchFAQFromAPI(domain, topic) {
+  const cleanTopic = topic?.trim() || "Frequently Asked Questions";
+  console.log("📤 Fetching FAQ for:", cleanTopic);
+
+  const url = `${BASE_URL}/rag/api/rag/generate/faq?topic=${encodeURIComponent(
+    cleanTopic
+  )}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: defaultHeaders,
+    body: JSON.stringify({
+      tone: "informative",
+      target_audience: "general",
+      num_sources: 5,
+      include_citations: true,
+      multi_stage: false,
+    }),
+  });
+
+  const data = await handleResponse(response, "FAQ");
+  return formatResponse(data, domain);
+}
+
+export async function fetchComparativeAnalysisFromAPI(domain, topic) {
+  const cleanTopic = topic?.trim() || "Comparison Study";
+  console.log("📤 Fetching Comparative Analysis for:", cleanTopic);
+
+  const url = `${BASE_URL}/rag/api/rag/generate/comparative-analysis?topic=${encodeURIComponent(
+    cleanTopic
+  )}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: defaultHeaders,
+    body: JSON.stringify({
+      tone: "analytical",
+      target_audience: "researchers",
+      num_sources: 5,
+      include_citations: true,
+      multi_stage: false,
+    }),
+  });
+
+  const data = await handleResponse(response, "Comparative Analysis");
+  return formatResponse(data, domain);
+}
+export async function fetchTutorialFromAPI(domain, topic) {
+  const cleanTopic = topic?.trim() || "Step-by-Step Tutorial";
+  console.log("📤 Fetching Tutorial for:", cleanTopic);
+
+  const url = `${BASE_URL}/rag/api/rag/generate/tutorial?topic=${encodeURIComponent(
+    cleanTopic
+  )}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: defaultHeaders,
+    body: JSON.stringify({
+      tone: "educational",
+      target_audience: "students",
+      num_sources: 5,
+      include_citations: true,
+      multi_stage: false,
+    }),
+  });
+
+  const data = await handleResponse(response, "Tutorial");
+  return formatResponse(data, domain);
+}
+
+export async function fetchTechnicalReportFromAPI(domain, topic) {
+  const cleanTopic = topic?.trim() || "Technical Summary";
+  console.log("📤 Fetching Technical Report for:", cleanTopic);
+
+  const url = `${BASE_URL}/rag/api/rag/generate/technical-report?topic=${encodeURIComponent(
+    cleanTopic
+  )}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: defaultHeaders,
+    body: JSON.stringify({
+      tone: "formal",
+      target_audience: "engineers",
+      num_sources: 5,
+      include_citations: true,
+      multi_stage: false,
+    }),
+  });
+
+  const data = await handleResponse(response, "Technical Report");
+  return formatResponse(data, domain);
+}
+
+export async function fetchBlogPostFromAPI(domain, topic) {
+  const cleanTopic = topic?.trim() || "Blog Post";
+  console.log("📤 Fetching Blog Post for:", cleanTopic);
+
+  const url = `${BASE_URL}/rag/api/rag/generate/blog-post?topic=${encodeURIComponent(
+    cleanTopic
+  )}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: defaultHeaders,
+    body: JSON.stringify({
+      tone: "conversational",
+      target_audience: "general",
+      num_sources: 5,
+      include_citations: false,
+      multi_stage: false,
+    }),
+  });
+
+  const data = await handleResponse(response, "Blog Post");
+  return formatResponse(data, domain);
+}
+
+export async function fetchStudyGuideFromAPI(domain, topic) {
+  const cleanTopic = topic?.trim() || "Study Material";
+  console.log("📤 Fetching Study Guide for:", cleanTopic);
+
+  const url = `${BASE_URL}/rag/api/rag/generate/study-guide?topic=${encodeURIComponent(
+    cleanTopic
+  )}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: defaultHeaders,
+    body: JSON.stringify({
+      tone: "educational",
+      target_audience: "students",
+      num_sources: 5,
+      include_citations: true,
+      multi_stage: false,
+    }),
+  });
+
+  const data = await handleResponse(response, "Study Guide");
+  return formatResponse(data, domain);
+}
+
+function formatResponse(data, domain) {
+  return {
+    answer: data.content ?? data.answer ?? "",
+    retrieved_context: data.sources ?? data.retrieved_context ?? [],
+    metadata: {
+      active_domain: data.metadata?.source_domain ?? domain,
+      total_time: data.metadata?.total_time ?? "N/A",
+    },
+    mindmap: data.mindmap ?? null,
+  };
+}
+
+export async function fetchNotebookAnswerFromAPI(domain, question) {
+  try {
+    console.log("📡 Fetching notebook answer from API:", question);
+
+    const url = `${BASE_URL}/rag/api/rag/doc_question?query=${encodeURIComponent(
+      question
+    )}`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "ngrok-skip-browser-warning": "true",
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ Notebook API Error:", errorText);
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("✅ Notebook API Response:", data);
+
+    return {
+      answer: data.answer ?? "",
+      retrieved_context:
+        data.retrieved_context ?? data.context ?? data.sources ?? [],
+      metadata: {
+        active_domain: data.domain ?? data.active_domain ?? domain,
+        query: question,
+        total_time: data.latency ?? data.time_taken ?? "N/A",
+      },
+      mindmap: data.mindmap ?? null,
+    };
+  } catch (err) {
+    console.error("🚨 fetchNotebookAnswerFromAPI Error:", err);
+    throw err;
   }
 }

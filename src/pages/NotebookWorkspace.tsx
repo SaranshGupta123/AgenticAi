@@ -19,15 +19,16 @@ import {
 } from "lucide-react";
 import {
   generateMindmap,
-  fetchLocalNotebookData,
-  fetchFAQ,
-  fetchComparativeAnalysis,
-  fetchTutorial,
-  fetchTechnicalReport,
-  fetchBlogPost,
-  fetchStudyGuide,
-  fetchBriefing,
+  fetchFAQFromAPI,
+  fetchComparativeAnalysisFromAPI,
+  fetchTutorialFromAPI,
+  fetchTechnicalReportFromAPI,
+  fetchBlogPostFromAPI,
+  fetchStudyGuideFromAPI,
+  fetchBriefingFromAPI,
+  fetchNotebookAnswerFromAPI,
 } from "../api/api";
+
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import MindmapNotebookLM from "./MindmapNotebookLM";
@@ -65,40 +66,41 @@ function useContentTool(fetcher: () => Promise<any>, splitter: Splitter) {
   const [showCard, setShowCard] = useState(false);
 
   const open = async () => {
-    const d = await fetcher();
-    setData(d);
-    setQuestion("");
-    setAnswer("");
-    setShowSearchModal(true);
-  };
+    try {
+      const d = await fetcher();
+      setData(d);
+      setQuestion("");
 
-  const search = () => {
-    if (!data) return;
+      setTimeout(() => {
+        let finalContent = "";
 
-    let finalContent = "";
-    if (Array.isArray(data.sections)) {
-      finalContent = data.sections
-        .map((s) => `## ${s.heading}\n\n${s.content}`)
-        .join("\n\n");
-    } else if (typeof data.content === "string") {
-      finalContent = data.content.trim();
-    } else if (typeof data.text === "string") {
-      finalContent = data.text.trim();
-    } else {
-      finalContent = JSON.stringify(data, null, 2);
+        if (Array.isArray(d.sections)) {
+          finalContent = d.sections
+            .map((s) => `## ${s.heading}\n\n${s.content}`)
+            .join("\n\n");
+        } else if (typeof d.content === "string") {
+          finalContent = d.content.trim();
+        } else if (typeof d.text === "string") {
+          finalContent = d.text.trim();
+        } else {
+          finalContent = JSON.stringify(d, null, 2);
+        }
+
+        setAnswer({
+          content: finalContent,
+          metadata: d.metadata ?? null,
+          sources: d.sources ?? [],
+          citations: d.citations ?? [],
+          quality_metrics: d.quality_metrics ?? null,
+        });
+
+        setShowSearchModal(false);
+        setShowAnswerModal(true);
+        setShowCard(true);
+      }, 100);
+    } catch (err) {
+      console.error("⚠️ Error in open():", err);
     }
-
-    setAnswer({
-      content: finalContent,
-      metadata: data.metadata ?? null,
-      sources: data.sources ?? [],
-      citations: data.citations ?? [],
-      quality_metrics: data.quality_metrics ?? null,
-    });
-
-    setShowSearchModal(false);
-    setShowAnswerModal(true);
-    setShowCard(true);
   };
 
   return {
@@ -113,7 +115,6 @@ function useContentTool(fetcher: () => Promise<any>, splitter: Splitter) {
     showCard,
     setShowCard,
     open,
-    search,
   };
 }
 
@@ -230,32 +231,161 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
   const [mindmapTopic, setMindmapTopic] = useState("");
   const [mindmapLoading, setMindmapLoading] = useState(false);
 
-  const faq = useContentTool(fetchFAQ, {
-    splitRegex: /##\s+/g,
-    addPrefix: (t) => "## " + t,
-  });
-  const comparative = useContentTool(fetchComparativeAnalysis, {
-    splitRegex: /\n#+\s+/g,
-  });
-  const tutorial = useContentTool(fetchTutorial, {
-    splitRegex: /##\s+/g,
-    addPrefix: (t) => "## " + t,
-  });
-  const report = useContentTool(fetchTechnicalReport, {
-    splitRegex: /\n#+\s+/g,
-  });
-  const blog = useContentTool(fetchBlogPost, {
-    splitRegex: /##\s+/g,
-    addPrefix: (t) => "## " + t,
-  });
-  const study = useContentTool(fetchStudyGuide, {
-    splitRegex: /##\s+/g,
-    addPrefix: (t) => "## " + t,
-  });
-  const briefing = useContentTool(fetchBriefing, {
-    splitRegex: /##\s+/g,
-    addPrefix: (t) => "## " + t,
-  });
+  const [showBriefingModal, setShowBriefingModal] = useState(false);
+  const [briefingTopic, setBriefingTopic] = useState("");
+  const [briefingLoading, setBriefingLoading] = useState(false);
+  const [showFAQModal, setShowFAQModal] = useState(false);
+  const [faqTopic, setFAQTopic] = useState("");
+  const [faqLoading, setFAQLoading] = useState(false);
+
+  const [showComparativeModal, setShowComparativeModal] = useState(false);
+  const [comparativeTopic, setComparativeTopic] = useState("");
+  const [comparativeLoading, setComparativeLoading] = useState(false);
+
+  const [showTutorialModal, setShowTutorialModal] = useState(false);
+  const [tutorialTopic, setTutorialTopic] = useState("");
+  const [tutorialLoading, setTutorialLoading] = useState(false);
+
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportTopic, setReportTopic] = useState("");
+  const [reportLoading, setReportLoading] = useState(false);
+
+  const [showBlogModal, setShowBlogModal] = useState(false);
+  const [blogTopic, setBlogTopic] = useState("");
+  const [blogLoading, setBlogLoading] = useState(false);
+
+  const [showStudyModal, setShowStudyModal] = useState(false);
+  const [studyTopic, setStudyTopic] = useState("");
+  const [studyLoading, setStudyLoading] = useState(false);
+
+  const currentDomain = title || "Medical";
+
+  const faq = useContentTool(
+    async () => {
+      const response = await fetchFAQFromAPI(
+        currentDomain,
+        "Frequently Asked Questions"
+      );
+      return {
+        content: response.answer,
+        metadata: response.metadata,
+        sources: response.retrieved_context,
+        citations: [],
+        quality_metrics: null,
+      };
+    },
+    { splitRegex: /##\s+/g, addPrefix: (t) => "## " + t }
+  );
+
+  const comparative = useContentTool(
+    async () => {
+      const response = await fetchComparativeAnalysisFromAPI(
+        currentDomain,
+        "Comparison Study"
+      );
+      return {
+        content: response.answer,
+        metadata: response.metadata,
+        sources: response.retrieved_context,
+        citations: [],
+        quality_metrics: null,
+      };
+    },
+    { splitRegex: /\n#+\s+/g }
+  );
+
+  const tutorial = useContentTool(
+    async () => {
+      const response = await fetchTutorialFromAPI(
+        currentDomain,
+        "Step by Step Tutorial"
+      );
+      return {
+        content: response.answer,
+        metadata: response.metadata,
+        sources: response.retrieved_context,
+        citations: [],
+        quality_metrics: null,
+      };
+    },
+    { splitRegex: /##\s+/g, addPrefix: (t) => "## " + t }
+  );
+
+  const report = useContentTool(
+    async () => {
+      const response = await fetchTechnicalReportFromAPI(
+        currentDomain,
+        "Detailed Technical Report"
+      );
+      return {
+        content: response.answer,
+        metadata: response.metadata,
+        sources: response.retrieved_context,
+        citations: [],
+        quality_metrics: null,
+      };
+    },
+    { splitRegex: /\n#+\s+/g }
+  );
+
+  const blog = useContentTool(
+    async () => {
+      const response = await fetchBlogPostFromAPI(
+        currentDomain,
+        "Write a Blog Post"
+      );
+      return {
+        content: response.answer,
+        metadata: response.metadata,
+        sources: response.retrieved_context,
+        citations: [],
+        quality_metrics: null,
+      };
+    },
+    { splitRegex: /##\s+/g, addPrefix: (t) => "## " + t }
+  );
+
+  const study = useContentTool(
+    async () => {
+      const response = await fetchStudyGuideFromAPI(
+        currentDomain,
+        "Create Study Guide"
+      );
+      return {
+        content: response.answer,
+        metadata: response.metadata,
+        sources: response.retrieved_context,
+        citations: [],
+        quality_metrics: null,
+      };
+    },
+    { splitRegex: /##\s+/g, addPrefix: (t) => "## " + t }
+  );
+
+  const briefing = useContentTool(
+    async () => {
+      const currentDomain = title || "Medical";
+      const topic = briefingTopic.trim() || "AI developments overview";
+
+      setBriefingLoading(true);
+      try {
+        const response = await fetchBriefingFromAPI(currentDomain, topic);
+        return {
+          content: response.answer,
+          metadata: response.metadata,
+          sources: response.retrieved_context,
+          citations: [],
+          quality_metrics: null,
+        };
+      } finally {
+        setBriefingLoading(false);
+      }
+    },
+    {
+      splitRegex: /##\s+/g,
+      addPrefix: (t) => "## " + t,
+    }
+  );
 
   const sendMessage = async () => {
     const text = input.trim();
@@ -266,18 +396,16 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
     setMessages((prev) => [...prev, { role: "user", text }]);
 
     try {
-      const offline = await fetchLocalNotebookData("Medical");
+      const currentDomain = title || "Medical";
 
-      if (!offline) {
-        throw new Error("Failed to load Medical.json");
-      }
+      const response = await fetchNotebookAnswerFromAPI(currentDomain, text);
 
       if (
-        offline.retrieved_context &&
-        Array.isArray(offline.retrieved_context)
+        response.retrieved_context &&
+        Array.isArray(response.retrieved_context)
       ) {
         setSources((prev) => {
-          const normalized = offline.retrieved_context.map((src, index) => ({
+          const normalized = response.retrieved_context.map((src, index) => ({
             id: `src-${Date.now()}-${index}`,
             type: "file" as const,
             title: src.source || "Unknown Document",
@@ -285,37 +413,36 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
           }));
 
           const combinedSources = [...prev, ...normalized];
-          const uniqueSourcesMap = new Map();
-          for (const source of combinedSources) {
-            if (!uniqueSourcesMap.has(source.title)) {
-              uniqueSourcesMap.set(source.title, source);
-            }
+          const uniqueMap = new Map();
+          for (const s of combinedSources) {
+            if (!uniqueMap.has(s.title)) uniqueMap.set(s.title, s);
           }
 
-          return Array.from(uniqueSourcesMap.values());
+          return Array.from(uniqueMap.values());
         });
       }
 
+      // --- Add Assistant Message ---
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          text: offline.answer ?? "⚠️ No answer available.",
-          sources: offline.retrieved_context ?? [],
-          metadata: offline.metadata ?? null,
+          text: response.answer || "⚠️ No answer returned by backend.",
+          sources: response.retrieved_context ?? [],
+          metadata: response.metadata ?? null,
         },
       ]);
 
-      if (offline.mindmap) {
-        setMindmapData(offline.mindmap?.mindmap ?? offline.mindmap);
+      if (response.mindmap) {
+        setMindmapData(response.mindmap);
       }
     } catch (error) {
-      console.error("❌ Error loading local data:", error);
+      console.error("❌ API error:", error);
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          text: "⚠️ Failed to load data. Please ensure Medical.json exists in /public/data/ folder or check your API mock.",
+          text: "⚠️ Failed to fetch data from API. Please check your backend or ngrok link.",
           sources: [],
           metadata: null,
         },
@@ -338,6 +465,143 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       setShowMindmapViewer(true);
     } finally {
       setMindmapLoading(false);
+    }
+  };
+  const renderInputModal = (
+    title,
+    placeholder,
+    topic,
+    setTopic,
+    onGenerate,
+    onCancel,
+    loading
+  ) => (
+    <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-md">
+      <div className="bg-[#10141A] border border-teal-500/30 rounded-2xl p-8 w-[450px] space-y-5 shadow-2xl shadow-teal-900/40">
+        <h3 className="text-2xl text-teal-400 font-bold border-b border-gray-700/50 pb-3">
+          {title}
+        </h3>
+        <p className="text-sm text-gray-400">
+          Enter the topic you want to generate content for.
+        </p>
+        <input
+          value={topic}
+          onChange={(e) => setTopic(e.target.value)}
+          placeholder={placeholder}
+          className="w-full px-4 py-3 bg-[#1A1D24] border border-white/10 rounded-xl text-base outline-none focus:ring-2 focus:ring-teal-500 transition-shadow text-white placeholder-gray-500"
+          onKeyDown={(e) => e.key === "Enter" && onGenerate()}
+        />
+        <button
+          onClick={onGenerate}
+          disabled={!topic.trim() || loading}
+          className="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-base font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.01] shadow-lg shadow-teal-900/60"
+        >
+          {loading ? (
+            <span className="flex items-center justify-center gap-2">
+              <RefreshCw className="w-4 h-4 animate-spin" />
+              Generating...
+            </span>
+          ) : (
+            "Generate"
+          )}
+        </button>
+        <button
+          onClick={onCancel}
+          className="w-full py-3 rounded-xl bg-[#21252C] hover:bg-[#343A45] text-base transition-all duration-200 transform hover:scale-[1.01] text-gray-200"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+  const handleFAQGenerate = async () => {
+    if (!faqTopic.trim()) return;
+    setFAQLoading(true);
+    try {
+      await faq.open();
+      setShowFAQModal(false);
+    } catch (err) {
+      console.error("⚠️ FAQ generation failed:", err);
+    } finally {
+      setFAQLoading(false);
+    }
+  };
+
+  const handleComparativeGenerate = async () => {
+    if (!comparativeTopic.trim()) return;
+    setComparativeLoading(true);
+    try {
+      await comparative.open();
+      setShowComparativeModal(false);
+    } catch (err) {
+      console.error("⚠️ Comparative generation failed:", err);
+    } finally {
+      setComparativeLoading(false);
+    }
+  };
+
+  const handleTutorialGenerate = async () => {
+    if (!tutorialTopic.trim()) return;
+    setTutorialLoading(true);
+    try {
+      await tutorial.open();
+      setShowTutorialModal(false);
+    } catch (err) {
+      console.error("⚠️ Tutorial generation failed:", err);
+    } finally {
+      setTutorialLoading(false);
+    }
+  };
+
+  const handleReportGenerate = async () => {
+    if (!reportTopic.trim()) return;
+    setReportLoading(true);
+    try {
+      await report.open();
+      setShowReportModal(false);
+    } catch (err) {
+      console.error("⚠️ Report generation failed:", err);
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  const handleBlogGenerate = async () => {
+    if (!blogTopic.trim()) return;
+    setBlogLoading(true);
+    try {
+      await blog.open();
+      setShowBlogModal(false);
+    } catch (err) {
+      console.error("⚠️ Blog generation failed:", err);
+    } finally {
+      setBlogLoading(false);
+    }
+  };
+
+  const handleStudyGenerate = async () => {
+    if (!studyTopic.trim()) return;
+    setStudyLoading(true);
+    try {
+      await study.open();
+      setShowStudyModal(false);
+    } catch (err) {
+      console.error("⚠️ Study generation failed:", err);
+    } finally {
+      setStudyLoading(false);
+    }
+  };
+
+  const handleBriefingGenerate = async () => {
+    if (!briefingTopic.trim()) return;
+    setBriefingLoading(true);
+    try {
+      await briefing.open();
+      setShowBriefingModal(false);
+    } catch (err) {
+      console.error("⚠️ Briefing generation failed:", err);
+    } finally {
+      setBriefingLoading(false);
     }
   };
 
@@ -502,39 +766,39 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
                   onClick={() => setShowMindmapCreateModal(true)}
                 />
                 <ToolCard
-                  icon={Scale}
-                  label="Comparative Analysis"
-                  onClick={comparative.open}
-                />
-                <ToolCard
                   icon={MessageCircleQuestion}
                   label="FAQ"
-                  onClick={faq.open}
+                  onClick={() => setShowFAQModal(true)}
+                />
+                <ToolCard
+                  icon={Scale}
+                  label="Comparative Analysis"
+                  onClick={() => setShowComparativeModal(true)}
                 />
                 <ToolCard
                   icon={BookOpen}
                   label="Tutorial"
-                  onClick={tutorial.open}
+                  onClick={() => setShowTutorialModal(true)}
                 />
                 <ToolCard
                   icon={FileText}
                   label="Technical Report"
-                  onClick={report.open}
+                  onClick={() => setShowReportModal(true)}
                 />
                 <ToolCard
                   icon={Feather}
                   label="Blog Post"
-                  onClick={blog.open}
+                  onClick={() => setShowBlogModal(true)}
                 />
                 <ToolCard
                   icon={GraduationCap}
                   label="Study Guide"
-                  onClick={study.open}
+                  onClick={() => setShowStudyModal(true)}
                 />
                 <ToolCard
                   icon={ClipboardList}
                   label="Briefing"
-                  onClick={briefing.open}
+                  onClick={() => setShowBriefingModal(true)}
                 />
               </div>
 
@@ -670,14 +934,106 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
           </div>
         </div>
       )}
-
-      <SearchModal tool={faq} title="FAQ Search" />
-      <SearchModal tool={comparative} title="Comparative Analysis" />
-      <SearchModal tool={tutorial} title="Tutorial Search" />
-      <SearchModal tool={report} title="Technical Report Search" />
-      <SearchModal tool={blog} title="Blog Search" />
-      <SearchModal tool={study} title="Study Guide Search" />
-      <SearchModal tool={briefing} title="Briefing Search" />
+      {showBriefingModal && (
+        <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-md">
+          <div className="bg-[#10141A] border border-teal-500/30 rounded-2xl p-8 w-[450px] space-y-5 shadow-2xl shadow-teal-900/40">
+            <h3 className="text-2xl text-teal-400 font-bold border-b border-gray-700/50 pb-3">
+              Generate Briefing
+            </h3>
+            <p className="text-sm text-gray-400">
+              Enter the topic for which you want to generate an AI-powered
+              briefing summary.
+            </p>
+            <input
+              value={briefingTopic}
+              onChange={(e) => setBriefingTopic(e.target.value)}
+              placeholder="E.g., Healthcare innovation trends"
+              className="w-full px-4 py-3 bg-[#1A1D24] border border-white/10 rounded-xl text-base outline-none focus:ring-2 focus:ring-teal-500 transition-shadow text-white placeholder-gray-500"
+              onKeyDown={(e) => e.key === "Enter" && handleBriefingGenerate()}
+            />
+            <button
+              onClick={handleBriefingGenerate}
+              disabled={!briefingTopic.trim() || briefingLoading}
+              className="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-base font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.01] shadow-lg shadow-teal-900/60"
+            >
+              {briefingLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  Generating Briefing...
+                </span>
+              ) : (
+                "Generate Briefing"
+              )}
+            </button>
+            <button
+              onClick={() => setShowBriefingModal(false)}
+              className="w-full py-3 rounded-xl bg-[#21252C] hover:bg-[#343A45] text-base transition-all duration-200 transform hover:scale-[1.01] text-gray-200"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+      {showFAQModal &&
+        renderInputModal(
+          "Generate FAQ",
+          "E.g., Common questions about healthcare AI",
+          faqTopic,
+          setFAQTopic,
+          handleFAQGenerate,
+          () => setShowFAQModal(false),
+          faqLoading
+        )}
+      {showComparativeModal &&
+        renderInputModal(
+          "Generate Comparative Analysis",
+          "E.g., Compare machine learning models in medicine",
+          comparativeTopic,
+          setComparativeTopic,
+          handleComparativeGenerate,
+          () => setShowComparativeModal(false),
+          comparativeLoading
+        )}
+      {showTutorialModal &&
+        renderInputModal(
+          "Generate Tutorial",
+          "E.g., How to use AI tools in diagnostics",
+          tutorialTopic,
+          setTutorialTopic,
+          handleTutorialGenerate,
+          () => setShowTutorialModal(false),
+          tutorialLoading
+        )}
+      {showReportModal &&
+        renderInputModal(
+          "Generate Technical Report",
+          "E.g., Deep dive on AI-powered diagnosis",
+          reportTopic,
+          setReportTopic,
+          handleReportGenerate,
+          () => setShowReportModal(false),
+          reportLoading
+        )}
+      {showBlogModal &&
+        renderInputModal(
+          "Generate Blog Post",
+          "E.g., Future of AI in healthcare",
+          blogTopic,
+          setBlogTopic,
+          handleBlogGenerate,
+          () => setShowBlogModal(false),
+          blogLoading
+        )}
+      {showStudyModal &&
+        renderInputModal(
+          "Generate Study Guide",
+          "E.g., Study materials for medical AI ethics",
+          studyTopic,
+          setStudyTopic,
+          handleStudyGenerate,
+          () => setShowStudyModal(false),
+          studyLoading
+        )}
 
       <AnswerModal tool={faq} title="FAQ Result" />
       <AnswerModal tool={comparative} title="Comparison Result" />

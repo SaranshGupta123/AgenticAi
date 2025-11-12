@@ -10,11 +10,7 @@
       "color": "#FF6B6B",
       "icon": null,
       "description": "Root topic description",
-      "keywords": [
-        "dietary patterns",
-        "climate mitigation",
-        "food systems"
-      ]
+      "keywords": ["dietary patterns", "climate mitigation", "food systems"]
     },
     {
       "id": "node_1",
@@ -25,10 +21,7 @@
       "color": "#4ECDC4",
       "icon": null,
       "description": "Comparing plant vs. animal-based diets",
-      "keywords": [
-        "carbon footprint",
-        "diet comparison"
-      ]
+      "keywords": ["carbon footprint", "diet comparison"]
     },
     {
       "id": "node_2",
@@ -39,11 +32,7 @@
       "color": "#45B7D1",
       "icon": null,
       "description": "Pulses as primary protein source",
-      "keywords": [
-        "India",
-        "plant-based",
-        "CO2 emissions"
-      ]
+      "keywords": ["India", "plant-based", "CO2 emissions"]
     },
     {
       "id": "node_3",
@@ -54,11 +43,7 @@
       "color": "#45B7D1",
       "icon": null,
       "description": "Beef driving deforestation in Latin America",
-      "keywords": [
-        "meat",
-        "deforestation",
-        "global emissions"
-      ]
+      "keywords": ["meat", "deforestation", "global emissions"]
     },
     {
       "id": "node_4",
@@ -69,11 +54,7 @@
       "color": "#4ECDC4",
       "icon": null,
       "description": "Benefits of eating local",
-      "keywords": [
-        "local food",
-        "resilience",
-        "sustainability"
-      ]
+      "keywords": ["local food", "resilience", "sustainability"]
     },
     {
       "id": "node_5",
@@ -84,11 +65,7 @@
       "color": "#45B7D1",
       "icon": null,
       "description": "Lower food miles and carbon footprint",
-      "keywords": [
-        "food miles",
-        "transport",
-        "emissions"
-      ]
+      "keywords": ["food miles", "transport", "emissions"]
     },
     {
       "id": "node_6",
@@ -99,11 +76,7 @@
       "color": "#45B7D1",
       "icon": null,
       "description": "Supporting small farmers and buffer against shocks",
-      "keywords": [
-        "local economy",
-        "resilience",
-        "farmers"
-      ]
+      "keywords": ["local economy", "resilience", "farmers"]
     },
     {
       "id": "node_7",
@@ -114,11 +87,7 @@
       "color": "#4ECDC4",
       "icon": null,
       "description": "Nutrition and agricultural resilience link",
-      "keywords": [
-        "diet diversity",
-        "resilience",
-        "nutrition"
-      ]
+      "keywords": ["diet diversity", "resilience", "nutrition"]
     },
     {
       "id": "node_8",
@@ -129,11 +98,7 @@
       "color": "#45B7D1",
       "icon": null,
       "description": "Low diversity despite low carbon footprint",
-      "keywords": [
-        "India",
-        "diet diversity",
-        "vulnerability"
-      ]
+      "keywords": ["India", "diet diversity", "vulnerability"]
     },
     {
       "id": "node_9",
@@ -144,11 +109,7 @@
       "color": "#45B7D1",
       "icon": null,
       "description": "Crops diversification against climate shocks",
-      "keywords": [
-        "diversified farming",
-        "climate resilience",
-        "crops"
-      ]
+      "keywords": ["diversified farming", "climate resilience", "crops"]
     },
     {
       "id": "node_10",
@@ -159,11 +120,7 @@
       "color": "#4ECDC4",
       "icon": null,
       "description": "Policy frameworks for climate resilience",
-      "keywords": [
-        "policy",
-        "climate adaptation",
-        "agriculture"
-      ]
+      "keywords": ["policy", "climate adaptation", "agriculture"]
     },
     {
       "id": "node_11",
@@ -174,11 +131,7 @@
       "color": "#9B59B6",
       "icon": null,
       "description": "State Action Plan on Climate Change",
-      "keywords": [
-        "SAPCC",
-        "Andhra Pradesh",
-        "climate policy"
-      ]
+      "keywords": ["SAPCC", "Andhra Pradesh", "climate policy"]
     },
     {
       "id": "node_12",
@@ -189,11 +142,7 @@
       "color": "#45B7D1",
       "icon": null,
       "description": "Organic farming and chemical reduction",
-      "keywords": [
-        "organic farming",
-        "sustainability",
-        "chemicals"
-      ]
+      "keywords": ["organic farming", "sustainability", "chemicals"]
     },
     {
       "id": "node_13",
@@ -204,11 +153,7 @@
       "color": "#45B7D1",
       "icon": null,
       "description": "Heat/drought-resistant crop varieties",
-      "keywords": [
-        "crop development",
-        "resilience",
-        "variety"
-      ]
+      "keywords": ["crop development", "resilience", "variety"]
     },
     {
       "id": "node_14",
@@ -219,11 +164,7 @@
       "color": "#45B7D1",
       "icon": null,
       "description": "Micro-irrigation and water conservation",
-      "keywords": [
-        "water management",
-        "micro-irrigation",
-        "conservation"
-      ]
+      "keywords": ["water management", "micro-irrigation", "conservation"]
     },
     {
       "id": "node_15",
@@ -234,11 +175,7 @@
       "color": "#F39C12",
       "icon": null,
       "description": "Tailored strategies for agro-climatic zones",
-      "keywords": [
-        "context-specific",
-        "policies",
-        "agro-climatic"
-      ]
+      "keywords": ["context-specific", "policies", "agro-climatic"]
     },
     {
       "id": "node_16",
@@ -249,11 +186,7 @@
       "color": "#4ECDC4",
       "icon": null,
       "description": "Life Cycle Assessment methodology",
-      "keywords": [
-        "LCA",
-        "carbon measurement",
-        "environmental impact"
-      ]
+      "keywords": ["LCA", "carbon measurement", "environmental impact"]
     },
     {
       "id": "node_17",
@@ -264,11 +197,7 @@
       "color": "#45B7D1",
       "icon": null,
       "description": "Consumption-based accounting for global impacts",
-      "keywords": [
-        "global emissions",
-        "consumption",
-        "accounting"
-      ]
+      "keywords": ["global emissions", "consumption", "accounting"]
     },
     {
       "id": "node_18",
@@ -279,11 +208,7 @@
       "color": "#4ECDC4",
       "icon": null,
       "description": "India's food security challenges",
-      "keywords": [
-        "food security",
-        "climate nexus",
-        "India"
-      ]
+      "keywords": ["food security", "climate nexus", "India"]
     },
     {
       "id": "node_19",
@@ -294,11 +219,7 @@
       "color": "#45B7D1",
       "icon": null,
       "description": "Availability, access, utilization, and stability",
-      "keywords": [
-        "food security",
-        "pillars",
-        "availability"
-      ]
+      "keywords": ["food security", "pillars", "availability"]
     }
   ],
   "edges": [
@@ -526,21 +447,13 @@
     {
       "cluster_id": "cluster_4",
       "theme": "LCA for Carbon Measurement",
-      "node_ids": [
-        "node_16",
-        "node_17",
-        "node_18",
-        "node_19"
-      ],
+      "node_ids": ["node_16", "node_17", "node_18", "node_19"],
       "color": "#FFEAA7"
     },
     {
       "cluster_id": "cluster_5",
       "theme": "Food Security and Climate Nexus",
-      "node_ids": [
-        "node_18",
-        "node_19"
-      ],
+      "node_ids": ["node_18", "node_19"],
       "color": "#DFE6E9"
     }
   ],
