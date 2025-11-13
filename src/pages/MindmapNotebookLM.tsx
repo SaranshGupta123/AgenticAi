@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 import {
   ChevronRight,
   ChevronDown,
@@ -7,9 +13,11 @@ import {
   Loader,
   Eye,
   EyeOff,
+  ZoomIn,
+  ZoomOut,
+  Maximize2,
 } from "lucide-react";
 import { generateMindmap } from "../api/api";
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 type MindmapNode = {
   id: string;
@@ -22,6 +30,8 @@ type MindmapNode = {
   keywords?: string[];
   children: MindmapNode[];
   isClusterTheme?: boolean;
+  x?: number;
+  y?: number;
 };
 
 type MindmapCluster = {
@@ -260,160 +270,17 @@ function StatisticsPanel({
   );
 }
 
-function TreeNodeView({
-  node,
-  expanded,
-  toggle,
-  clusters,
-}: {
-  node: MindmapNode;
-  expanded: Record<string, boolean>;
-  toggle: (id: string) => void;
-  clusters: MindmapCluster[];
-}) {
-  const isExpanded = expanded[node.id] ?? true;
-  const hasChildren = node.children && node.children.length > 0;
-
-  const nodeCluster = clusters.find((c) => c.node_ids?.includes(node.id));
-
-  const getNodeStyle = () => {
-    const baseStyle =
-      "px-4 py-3 rounded-2xl text-sm transition-all duration-200 flex items-center gap-2 min-w-[250px] max-w-[450px] border-b-2 hover:opacity-90 transform hover:scale-[1.01] cursor-pointer";
-
-    if (node.isClusterTheme) {
-      return (
-        baseStyle +
-        "bg-blue-800 text-white font-extrabold shadow-2xl shadow-blue-900/60 border-blue-400/80 transform hover:scale-[1.02]"
-      );
-    }
-
-    switch (node.node_type) {
-      case "root":
-        return (
-          baseStyle +
-          "bg-gradient-to-r from-red-600 to-red-800 text-white font-black shadow-xl border-red-400/80 transform hover:scale-[1.03]"
-        );
-      case "concept":
-        return (
-          baseStyle +
-          "bg-[#33383F] text-gray-200 font-semibold border border-white/20 shadow-lg hover:border-teal-400/80"
-        );
-      case "example":
-        return (
-          baseStyle +
-          "bg-[#252A33] text-gray-300 font-medium border border-white/10 shadow-md hover:border-purple-400/80"
-        );
-      case "insight":
-        return (
-          baseStyle +
-          "bg-[#33383F] text-gray-200 font-medium border border-white/20 shadow-lg hover:border-orange-400/80"
-        );
-      case "detail":
-        return (
-          baseStyle +
-          "bg-[#1A1D22] text-gray-400 font-normal border border-white/5 shadow-sm hover:border-gray-500/80"
-        );
-      default:
-        return (
-          baseStyle +
-          "bg-[#2B2F36] text-gray-200 border border-white/20 hover:border-blue-400/80 shadow-md"
-        );
-    }
-  };
-
-  const clusterColor = nodeCluster?.color || "#FFFFFF";
-
-  return (
-    <div className="flex items-start gap-3 my-2">
-      <div className="flex-shrink-0 relative">
-        <button
-          onClick={() => hasChildren && toggle(node.id)}
-          className={getNodeStyle()}
-        >
-          {hasChildren && (
-            <span className="flex-shrink-0 transform transition-transform duration-200 text-white">
-              {isExpanded ? (
-                <ChevronDown size={18} />
-              ) : (
-                <ChevronRight size={18} />
-              )}
-            </span>
-          )}
-          <span className="flex-1 text-left line-clamp-2">{node.label}</span>
-
-          {node.importance && (
-            <span className="px-2 py-0.5 bg-black/30 rounded-full text-xs font-extrabold text-yellow-300 border border-yellow-300/30">
-              {node.importance}
-            </span>
-          )}
-        </button>
-
-        <div className="mt-2 flex flex-col gap-1 pl-2">
-          <div className="flex flex-wrap gap-1.5">
-            {node.node_type && (
-              <span className="px-2 py-0.5 bg-white/10 rounded-full text-[10px] text-gray-300 font-medium">
-                {node.node_type.toUpperCase()}
-              </span>
-            )}
-            {!node.isClusterTheme && nodeCluster && (
-              <div
-                className="px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 border border-white/20"
-                style={{
-                  backgroundColor: clusterColor + "22",
-                  color: clusterColor,
-                }}
-              >
-                <Network size={10} strokeWidth={3} />
-                {nodeCluster.theme}
-              </div>
-            )}
-          </div>
-
-          {node.keywords && node.keywords.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-1">
-              {node.keywords.slice(0, 3).map((kw, idx) => (
-                <span
-                  key={idx}
-                  className="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded-full text-[9px] font-mono"
-                >
-                  #{kw}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {node.description && (
-            <p className="mt-1 text-[11px] text-gray-400 italic max-w-[450px] leading-snug p-2 bg-[#1A1D22] rounded-lg border border-white/10">
-              {node.description}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {isExpanded && hasChildren && (
-        // Enhanced connection line for better visual flow
-        <div className="flex-1 border-l-4 border-blue-600/50 ml-6 pl-6">
-          {node.children.map((child) => (
-            <TreeNodeView
-              key={child.id}
-              node={child}
-              expanded={expanded}
-              toggle={toggle}
-              clusters={clusters}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function MindmapNotebookLM() {
+  const svgRef = useRef<SVGSVGElement>(null);
   const [data, setData] = useState<MindmapData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [showStats, setShowStats] = useState(true);
+  const [zoom, setZoom] = useState(0.5);
+  const [transform, setTransform] = useState({ x: 40, y: 467 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     generateMindmap("Food Systems: Carbon Footprint, Resilience, and Policy.")
@@ -421,6 +288,11 @@ export default function MindmapNotebookLM() {
         setData(fetchedData as MindmapData);
         setLoading(false);
         setError(null);
+        const allNodeIds = new Set(fetchedData.nodes.map((n: any) => n.id));
+        fetchedData.clusters?.forEach((c: any) => {
+          allNodeIds.add(`cluster_theme_${c.cluster_id}`);
+        });
+        setExpandedNodes(allNodeIds);
       })
       .catch((err) => {
         console.error("Mindmap Fetch Error:", err);
@@ -435,33 +307,240 @@ export default function MindmapNotebookLM() {
   }, [data]);
 
   useEffect(() => {
-    if (data?.nodes) {
-      const allExpanded: Record<string, boolean> = {};
-      data.nodes.forEach((n) => (allExpanded[n.id] = true));
-      data.clusters.forEach(
-        (c) => (allExpanded[`cluster_theme_${c.cluster_id}`] = true)
-      );
-      setExpanded(allExpanded);
-    }
-  }, [data]);
+    if (!root || !svgRef.current) return;
 
-  const toggle = useCallback((id: string) => {
-    setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
-  }, []);
+    const svg = svgRef.current;
+    svg.innerHTML = "";
+
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.setAttribute(
+      "transform",
+      `translate(${transform.x},${transform.y}) scale(${zoom})`
+    );
+
+    const levelGap = 450;
+    const nodeGap = 90;
+
+    function calculatePositions(
+      node: MindmapNode,
+      x: number,
+      y: number
+    ): number {
+      node.x = x;
+      node.y = y;
+
+      if (
+        !expandedNodes.has(node.id) ||
+        !node.children ||
+        node.children.length === 0
+      ) {
+        return nodeGap;
+      }
+
+      let currentY = y;
+      let totalHeight = 0;
+
+      node.children.forEach((child) => {
+        const childHeight = calculatePositions(child, x + levelGap, currentY);
+        currentY += childHeight;
+        totalHeight += childHeight;
+      });
+
+      node.y = y + (totalHeight - nodeGap) / 2;
+
+      return totalHeight;
+    }
+
+    calculatePositions(root, 0, 0);
+
+    function drawLinks(node: MindmapNode) {
+      if (!expandedNodes.has(node.id) || !node.children) return;
+
+      node.children.forEach((child) => {
+        const path = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "path"
+        );
+
+        const maxChars = 40;
+        const displayLabel =
+          node.label.length > maxChars
+            ? node.label.substring(0, maxChars) + "..."
+            : node.label;
+        const nodeWidth = Math.min(
+          400,
+          Math.max(200, displayLabel.length * 9 + 40)
+        );
+
+        const sourceX = (node.x || 0) + nodeWidth;
+        const sourceY = node.y || 0;
+        const targetX = (child.x || 0) - 18;
+        const targetY = child.y || 0;
+
+        const midX = (sourceX + targetX) / 2;
+
+        const d = `M ${sourceX} ${sourceY}
+                   C ${midX} ${sourceY},
+                     ${midX} ${targetY},
+                     ${targetX} ${targetY}`;
+
+        path.setAttribute("d", d);
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", "#4E5166");
+        path.setAttribute("stroke-width", "2");
+        g.appendChild(path);
+
+        drawLinks(child);
+      });
+    }
+
+    drawLinks(root);
+
+    function drawNodes(node: MindmapNode) {
+      const nodeG = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      nodeG.classList.add("node");
+      nodeG.setAttribute(
+        "transform",
+        `translate(${node.x || 0}, ${node.y || 0})`
+      );
+
+      const maxChars = 40;
+      const displayLabel =
+        node.label.length > maxChars
+          ? node.label.substring(0, maxChars) + "..."
+          : node.label;
+
+      const textWidth = Math.min(
+        400,
+        Math.max(200, displayLabel.length * 9 + 40)
+      );
+
+      const rect = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "rect"
+      );
+      rect.setAttribute("x", "-18");
+      rect.setAttribute("y", "-27.5");
+      rect.setAttribute("width", textWidth.toString());
+      rect.setAttribute("height", "55");
+      rect.setAttribute("rx", "8");
+      rect.setAttribute("ry", "8");
+      rect.setAttribute("fill", node.color || "#4E5166");
+      rect.style.cursor = "pointer";
+      nodeG.appendChild(rect);
+
+      const text = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "text"
+      );
+      text.classList.add("node-name");
+      text.textContent = displayLabel;
+      text.setAttribute("font-size", "18");
+      text.setAttribute("font-family", "Google Sans");
+      text.setAttribute("fill", "white");
+      text.setAttribute("dominant-baseline", "middle");
+      text.style.pointerEvents = "none";
+      nodeG.appendChild(text);
+
+      if (node.children && node.children.length > 0) {
+        const circle = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "circle"
+        );
+        circle.setAttribute("r", "12");
+        circle.setAttribute("fill-opacity", "1");
+        circle.setAttribute("transform", `translate(${textWidth}, 0)`);
+        circle.setAttribute("fill", node.color || "#4E5166");
+        circle.style.cursor = "pointer";
+
+        const expandText = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "text"
+        );
+        expandText.classList.add("expand-symbol");
+        expandText.textContent = expandedNodes.has(node.id) ? "<" : ">";
+        expandText.setAttribute("transform", `translate(${textWidth}, 0)`);
+        expandText.setAttribute("font-size", "20");
+        expandText.setAttribute("text-anchor", "middle");
+        expandText.setAttribute("font-family", "Google Sans");
+        expandText.setAttribute("fill", "white");
+        expandText.setAttribute("dominant-baseline", "middle");
+        expandText.style.pointerEvents = "none";
+
+        circle.addEventListener("click", (e) => {
+          e.stopPropagation();
+          toggleNode(node.id);
+        });
+
+        nodeG.appendChild(circle);
+        nodeG.appendChild(expandText);
+      }
+
+      g.appendChild(nodeG);
+
+      if (expandedNodes.has(node.id) && node.children) {
+        node.children.forEach((child) => drawNodes(child));
+      }
+    }
+
+    drawNodes(root);
+    svg.appendChild(g);
+  }, [root, expandedNodes, zoom, transform]);
+
+  const toggleNode = (nodeId: string) => {
+    setExpandedNodes((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(nodeId)) {
+        newSet.delete(nodeId);
+      } else {
+        newSet.add(nodeId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.1, 3));
+  const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.1, 0.1));
+  const handleReset = () => {
+    setZoom(0.5);
+    setTransform({ x: 40, y: 467 });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging) {
+      setTransform({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      });
+    }
+  };
+
+  const handleMouseUp = () => setIsDragging(false);
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const delta = e.deltaY > 0 ? -0.05 : 0.05;
+    setZoom((prev) => Math.max(0.1, Math.min(3, prev + delta)));
+  };
 
   const expandAll = () => {
     if (!data?.nodes) return;
-    const allExpanded: Record<string, boolean> = {};
-    data.nodes.forEach((n) => (allExpanded[n.id] = true));
-    data.clusters.forEach(
-      (c) => (allExpanded[`cluster_theme_${c.cluster_id}`] = true)
+    const allExpanded = new Set(data.nodes.map((n) => n.id));
+    data.clusters.forEach((c) =>
+      allExpanded.add(`cluster_theme_${c.cluster_id}`)
     );
-    setExpanded(allExpanded);
+    setExpandedNodes(allExpanded);
   };
 
   const collapseAll = () => {
     if (!data?.root_node_id) return;
-    setExpanded({ [data.root_node_id]: true });
+    setExpandedNodes(new Set([data.root_node_id]));
   };
 
   if (loading) {
@@ -535,39 +614,51 @@ export default function MindmapNotebookLM() {
           />
         )}
 
-        {/* Tree Visualization */}
-        <div className="bg-[#1E2228] border border-white/10 rounded-2xl p-6 shadow-2xl h-[80vh] relative overflow-hidden">
+        <div
+          className="bg-[#1E2228] border border-white/10 rounded-2xl p-6 shadow-2xl h-[80vh] relative overflow-hidden"
+          onWheel={handleWheel}
+        >
           <h3 className="text-xl font-bold text-gray-200 mb-4 border-b border-white/10 pb-2">
             Interactive Graph View
           </h3>
 
-          <TransformWrapper
-            initialScale={1}
-            minScale={0.3}
-            maxScale={3}
-            centerOnInit={true}
-            wheel={{ step: 0.1 }}
-            pinch={{ step: 0.1 }}
-            doubleClick={{ disabled: true }}
-            panning={{
-              disabled: false,
-              velocityDisabled: true,
-            }}
-            limitToBounds={false}
-            wrapperClass="cursor-grab active:cursor-grabbing"
-            contentClass="cursor-grab active:cursor-grabbing"
-          >
-            <TransformComponent>
-              <div className="p-4 min-w-max select-none">
-                <TreeNodeView
-                  node={root}
-                  expanded={expanded}
-                  toggle={toggle}
-                  clusters={data.clusters || []}
-                />
-              </div>
-            </TransformComponent>
-          </TransformWrapper>
+          <div className="absolute top-20 right-8 z-10 flex flex-col gap-2">
+            <button
+              onClick={handleZoomIn}
+              className="p-2 bg-[#2B2F36] rounded-lg border border-white/10 hover:bg-[#33383F] transition-all"
+              title="Zoom In"
+            >
+              <ZoomIn size={20} />
+            </button>
+            <button
+              onClick={handleZoomOut}
+              className="p-2 bg-[#2B2F36] rounded-lg border border-white/10 hover:bg-[#33383F] transition-all"
+              title="Zoom Out"
+            >
+              <ZoomOut size={20} />
+            </button>
+            <button
+              onClick={handleReset}
+              className="p-2 bg-[#2B2F36] rounded-lg border border-white/10 hover:bg-[#33383F] transition-all"
+              title="Reset View"
+            >
+              <Maximize2 size={20} />
+            </button>
+          </div>
+
+          <svg
+            ref={svgRef}
+            className="w-full h-full"
+            style={{ cursor: isDragging ? "grabbing" : "grab" }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+          />
+
+          <div className="absolute bottom-4 right-4 bg-[#2B2F36] px-3 py-1 rounded-lg border border-white/10 text-sm">
+            Zoom: {(zoom * 100).toFixed(0)}%
+          </div>
         </div>
       </div>
     </div>

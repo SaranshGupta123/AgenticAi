@@ -40,10 +40,10 @@ export default defineConfig({
     proxy: {
       "/api": {
         target:
-          "https://see-qualifications-parallel-reaches.trycloudflare.com", // ✅ Updated backend URL
+          "https://see-qualifications-parallel-reaches.trycloudflare.com", 
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api/, ""), // removes /api prefix before sending to backend
+        rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },
   },

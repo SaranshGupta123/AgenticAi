@@ -55,7 +55,6 @@ export const Header: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Tabs */}
         <div className="hidden lg:flex items-center space-x-1 sm:space-x-2 bg-slate-100 p-1 rounded-lg">
           {tabs.map(({ id, label, Icon }) => (
             <button

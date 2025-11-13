@@ -3,10 +3,23 @@ import { MessageSquare, Search, Shield, Clock, Zap } from "lucide-react";
 import { fetchChatResponse, fetchDeepResearchResponse } from "../../api/api";
 import ReactMarkdown from "react-markdown";
 
+const loadingTexts = [
+  "Thinking…",
+  "Analyzing information…",
+  "Checking relevant sources…",
+  "Retrieving context…",
+  "Generating answer…",
+];
+
+const longestLoadingText = loadingTexts.reduce((a, b) =>
+  a.length > b.length ? a : b
+);
+
 export const ChatInterface = ({ mode = "normal" }) => {
   const [query, setQuery] = useState("");
   const [chats, setChats] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingIndex, setLoadingIndex] = useState(0);
 
   const defaultChat =
     mode === "deep_research"
@@ -44,6 +57,15 @@ export const ChatInterface = ({ mode = "normal" }) => {
       setChats([defaultChat]);
     }
   }, [mode]);
+  useEffect(() => {
+    if (!loading) return;
+
+    const interval = setInterval(() => {
+      setLoadingIndex((i) => (i + 1) % loadingTexts.length);
+    }, 1200);
+
+    return () => clearInterval(interval);
+  }, [loading]);
 
   useEffect(() => {
     const storageKey =
@@ -58,52 +80,31 @@ export const ChatInterface = ({ mode = "normal" }) => {
 
   const handleSubmit = async () => {
     if (!query.trim() || loading) return;
+
+    const asked = query;
+    setQuery("");
+    setChats((prev) => [
+      ...prev,
+      {
+        question: asked,
+        answer: "",
+        streaming: true,
+        metadata: {},
+        safe: true,
+      },
+    ]);
+
     setLoading(true);
 
     try {
       const data =
         mode === "deep_research"
-          ? await fetchDeepResearchResponse(query)
-          : await fetchChatResponse(query);
+          ? await fetchDeepResearchResponse(asked)
+          : await fetchChatResponse(asked);
 
-      // ✅ SHORTEN RESPONSE ONLY IN REACT MODE
-      let formattedAnswer = data.answer;
-      if (mode === "normal") {
-        // Normalize whitespace & convert to lines
-        const cleaned = formattedAnswer
-          .replace(/\n+/g, "\n")
-          .replace(/\s+/g, " ")
-          .trim();
-
-        // Break into meaningful bullet-like sentences
-        let points = cleaned
-          .replace(/[\•\-–]/g, "") // remove bullet symbols
-          .split(/\. |\n|;/)
-          .map((p) => p.trim())
-          .filter((p) => p.length > 8); // remove junk short lines
-
-        // Sort by relevance (longer sentences first looks more structured)
-        points = points.sort((a, b) => b.length - a.length);
-
-        // Take top 3 lines & format nicely
-        formattedAnswer = points
-          .slice(0, 3)
-          .map((p) => `• ${p}`)
-          .join("\n");
-      }
-
-      const newChat = {
-        question: query,
-        answer: formattedAnswer,
-        metadata: data.metadata,
-        safe: data.safe ?? true,
-      };
-
-      setChats((prev) => [...prev, newChat]);
-      setQuery("");
-    } catch (err) {
-      console.error("Fetch error:", err);
-      alert("Failed to fetch response. Please try again.");
+      streamAnswer(data.answer);
+    } catch (e) {
+      streamAnswer("Error fetching response.");
     } finally {
       setLoading(false);
     }
@@ -120,6 +121,45 @@ export const ChatInterface = ({ mode = "normal" }) => {
     const chatContainer = document.getElementById("chat-scroll");
     if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
   }, [chats, loading]);
+  const streamAnswer = (fullText: string) => {
+    let i = 0;
+    const words = fullText.split(" ");
+
+    const interval = setInterval(() => {
+      setChats((prev) => {
+        const lastMsg = prev[prev.length - 1];
+        const others = prev.slice(0, -1);
+
+        return [
+          ...others,
+          {
+            ...lastMsg,
+            answer: words.slice(0, i).join(" "),
+            streaming: true,
+          },
+        ];
+      });
+
+      i++;
+
+      if (i > words.length) {
+        clearInterval(interval);
+
+        setChats((prev) => {
+          const lastMsg = prev[prev.length - 1];
+          const others = prev.slice(0, -1);
+
+          return [
+            ...others,
+            {
+              ...lastMsg,
+              streaming: false,
+            },
+          ];
+        });
+      }
+    }, 40);
+  };
 
   return (
     <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -137,15 +177,17 @@ export const ChatInterface = ({ mode = "normal" }) => {
       <div id="chat-scroll" className="flex-1 p-6 overflow-y-auto space-y-6">
         {chats.map((chat, index) => (
           <div key={index} className="space-y-3">
-            <div className="flex justify-end">
-              <div className="bg-blue-600 text-white rounded-2xl rounded-tr-sm px-5 py-3 max-w-2xl shadow-md">
-                <p>{chat.question}</p>
+            <div className="w-full flex justify-center mt-24 mb-12">
+              <div className="w-full max-w-[900px] mx-auto flex justify-end px-2">
+                <div className="bg-blue-600 text-white rounded-2xl rounded-tr-sm px-6 py-3 shadow-md">
+                  <p>{chat.question}</p>
+                </div>
               </div>
             </div>
 
-            <div className="flex justify-start">
-              <div className="bg-slate-100 rounded-2xl rounded-tl-sm px-5 py-4 max-w-3xl shadow-sm">
-                {chat.safe && (
+            <div className="w-full flex justify-center">
+              <div className="w-full max-w-[900px] mx-auto">
+                {!chat.streaming && chat.safe && (
                   <div className="inline-flex items-center space-x-1 px-2 py-1 bg-green-50 rounded-full border border-green-100 mb-3 shadow-sm">
                     <Shield className="w-3.5 h-3.5 text-green-600" />
                     <span className="text-xs text-green-700 font-semibold">
@@ -162,29 +204,60 @@ export const ChatInterface = ({ mode = "normal" }) => {
                   )}
                 </div>
 
-                <div className="flex items-center gap-4 mt-4 pt-2 border-t border-slate-200 text-xs text-slate-500">
-                  <div className="flex items-center space-x-1">
-                    <Clock className="w-3 h-3" />
-                    <span>{chat.metadata?.total_time?.toFixed(2) ?? "—"}s</span>
+                {!chat.streaming && (
+                  <div className="w-full flex justify-center">
+                    <div className="w-full max-w-[900px] mx-auto">
+                      <div className="flex items-center gap-4 mt-4 pt-2 border-t border-slate-200 text-xs text-slate-500">
+                        <div className="flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span>
+                            {chat.metadata?.total_time?.toFixed(2) ?? "—"}s
+                          </span>
+                        </div>
+
+                        <div className="flex items-center space-x-1">
+                          <Zap className="w-3 h-3" />
+                          <span className="capitalize">
+                            {chat.metadata?.agent_type ?? "N/A"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <Zap className="w-3 h-3" />
-                    <span className="capitalize">
-                      {chat.metadata?.agent_type ?? "N/A"}
-                    </span>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
         ))}
 
         {loading && (
-          <div className="flex items-center justify-center space-x-3 py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <span className="text-slate-600 text-sm">
-              Processing your query...
-            </span>
+          <div className="w-full flex justify-center mt-4">
+            <div className="w-full max-w-[900px] mx-auto flex gap-3 px-2 py-3">
+              <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold shadow-md">
+                AI
+              </div>
+
+              <div className="bg-slate-100 rounded-2xl rounded-tl-sm px-4 py-3 w-full shadow-sm">
+                <div className="space-y-2">
+                  <div className="h-3 w-3/4 bg-slate-200 rounded animate-pulse"></div>
+                  <div className="h-3 w-2/3 bg-slate-200 rounded animate-pulse"></div>
+                  <div className="h-3 w-1/3 bg-slate-200 rounded animate-pulse"></div>
+                </div>
+
+                <div className="flex items-center gap-2 mt-3 ml-1">
+                  <div
+                    key={loadingIndex}
+                    className="text-slate-500 text-xs italic transition-opacity duration-700 ease-in-out"
+                    style={{ width: `${longestLoadingText.length + 2}ch` }}
+                  >
+                    {loadingTexts[loadingIndex]}
+                  </div>
+                  <span className="h-2 w-2 bg-purple-500 rounded-full animate-bounce"></span>
+                  <span className="h-2 w-2 bg-purple-500 rounded-full animate-bounce delay-150"></span>
+                  <span className="h-2 w-2 bg-purple-500 rounded-full animate-bounce delay-300"></span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

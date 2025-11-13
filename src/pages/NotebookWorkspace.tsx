@@ -421,8 +421,6 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
           return Array.from(uniqueMap.values());
         });
       }
-
-      // --- Add Assistant Message ---
       setMessages((prev) => [
         ...prev,
         {

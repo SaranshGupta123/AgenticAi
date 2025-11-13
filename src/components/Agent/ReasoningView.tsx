@@ -64,6 +64,17 @@ export const ReasoningView: React.FC = () => {
   ]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const loadingTexts = [
+    "Thinking…",
+    "Analyzing information…",
+    "Retrieving context…",
+    "Synthesizing response…",
+    "Generating answer…",
+  ];
+  const longestLoadingText = loadingTexts.reduce((a, b) =>
+    a.length > b.length ? a : b
+  );
+  const [loadingIndex, setLoadingIndex] = useState(0);
 
   const fetchExplainabilityData = async (customQuery: string) => {
     setLoading(true);
@@ -71,22 +82,125 @@ export const ReasoningView: React.FC = () => {
     try {
       const data = await fetchExplainabilityChatResponse(customQuery);
 
-      // prefer final_answer, fallback to final_decision
       const finalText =
         data.final_answer ??
         data.final_decision ??
         data.final_decision_text ??
         "No answer.";
 
-      // agent_steps vs reasoning_steps naming differences
-      const steps =
-        data.agent_steps ??
-        data.reasoning_steps ??
-        data.chain_of_thought?.reasoning_steps ??
-        data.reasoning_steps_full ??
-        [];
+      const reasoningBlocks: any[] = [];
 
-      // metadata/time fields (some responses use different keys)
+      if (data.agent_steps) {
+        reasoningBlocks.push(
+          ...data.agent_steps.map((s) => ({
+            ...s,
+            step_type: s.step_type ?? s.action ?? "agent_step",
+            raw_type: "agent_steps",
+          }))
+        );
+      }
+
+      if (data.explainability_results?.chain_of_thought?.summary) {
+        reasoningBlocks.push({
+          step_type: "cot_summary",
+          reasoning:
+            "Summary of chain-of-thought (aggregated reasoning statistics).",
+          output_data: data.explainability_results.chain_of_thought.summary,
+          raw_type: "cot_summary",
+        });
+      }
+
+      if (data.explainability_results?.chain_of_thought?.visualization) {
+        reasoningBlocks.push({
+          step_type: "cot_visualization",
+          reasoning: "Chain-of-thought visualization (text trace).",
+          output_data:
+            data.explainability_results.chain_of_thought.visualization,
+          raw_type: "cot_visualization",
+        });
+      }
+
+      if (
+        data.explainability_results?.chain_of_thought?.full_trace
+          ?.reasoning_steps
+      ) {
+        reasoningBlocks.push(
+          ...data.explainability_results.chain_of_thought.full_trace.reasoning_steps.map(
+            (s) => ({
+              ...s,
+              step_type: s.step_type ?? "full_trace_step",
+              reasoning: s.reasoning ?? "",
+              output_data: s.output_data,
+              raw_type: "full_trace",
+            })
+          )
+        );
+      }
+
+      if (
+        data.explainability_results?.chain_of_thought?.full_trace
+          ?.final_decision
+      ) {
+        reasoningBlocks.push({
+          step_type: "final_decision",
+          reasoning: "Model’s final reasoning decision.",
+          output_data:
+            data.explainability_results.chain_of_thought.full_trace
+              .final_decision,
+          raw_type: "final_decision",
+        });
+      }
+
+      if (data.explainability_results?.tool_attribution?.full_report) {
+        reasoningBlocks.push({
+          step_type: "tool_attribution_full",
+          reasoning: "Full tool attribution report.",
+          output_data: data.explainability_results.tool_attribution.full_report,
+          raw_type: "tool_attribution_full",
+        });
+      }
+
+      if (data.explainability_results?.tool_attribution?.visual_report) {
+        reasoningBlocks.push({
+          step_type: "tool_attribution_visual",
+          reasoning: "Tool usage visual report.",
+          output_data:
+            data.explainability_results.tool_attribution.visual_report,
+          raw_type: "tool_attribution_visual",
+        });
+      }
+
+      if (
+        data.explainability_results?.tool_attribution?.full_report
+          ?.answer_composition
+      ) {
+        reasoningBlocks.push({
+          step_type: "answer_composition",
+          output_data:
+            data.explainability_results.tool_attribution.full_report
+              .answer_composition,
+          raw_type: "answer_composition",
+        });
+      }
+
+      if (
+        data.explainability_results?.tool_attribution?.full_report
+          ?.source_attributions
+      ) {
+        reasoningBlocks.push({
+          step_type: "source_attributions",
+          output_data:
+            data.explainability_results.tool_attribution.full_report
+              .source_attributions,
+          raw_type: "source_attributions",
+        });
+      }
+
+      const steps = reasoningBlocks.map((s, i) => ({
+        step_number: i + 1,
+        ...s,
+      }));
+
       const metadata = data.metadata ??
         data.explainability_results?.summary ??
         data?.explainability_results ?? {
@@ -128,8 +242,34 @@ export const ReasoningView: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!query.trim() || loading) return;
-    await fetchExplainabilityData(query);
+
+    const asked = query;
     setQuery("");
+    setChats((prev) => [
+      ...prev,
+      {
+        question: asked,
+        answer: "",
+        streaming: true,
+        metadata: {},
+        safe: true,
+      },
+    ]);
+
+    setLoading(true);
+
+    try {
+      const data =
+        mode === "deep_research"
+          ? await fetchDeepResearchResponse(asked)
+          : await fetchChatResponse(asked);
+
+      streamAnswer(data.answer);
+    } catch (e) {
+      streamAnswer("Error fetching response.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -143,6 +283,54 @@ export const ReasoningView: React.FC = () => {
     const container = document.getElementById("explain-scroll");
     if (container) container.scrollTop = container.scrollHeight;
   }, [chats, loading]);
+  useEffect(() => {
+    if (!loading) return;
+
+    const interval = setInterval(() => {
+      setLoadingIndex((i) => (i + 1) % loadingTexts.length);
+    }, 1200);
+
+    return () => clearInterval(interval);
+  }, [loading]);
+  const streamAnswer = (fullText: string) => {
+    let i = 0;
+    const words = fullText.split(" ");
+
+    const interval = setInterval(() => {
+      setChats((prev) => {
+        const lastMsg = prev[prev.length - 1];
+        const others = prev.slice(0, -1);
+
+        return [
+          ...others,
+          {
+            ...lastMsg,
+            answer: words.slice(0, i).join(" "),
+            streaming: true,
+          },
+        ];
+      });
+
+      i++;
+
+      if (i > words.length) {
+        clearInterval(interval);
+
+        setChats((prev) => {
+          const lastMsg = prev[prev.length - 1];
+          const others = prev.slice(0, -1);
+
+          return [
+            ...others,
+            {
+              ...lastMsg,
+              streaming: false,
+            },
+          ];
+        });
+      }
+    }, 40);
+  };
 
   return (
     <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -164,15 +352,17 @@ export const ReasoningView: React.FC = () => {
 
         {chats.map((chat, index) => (
           <div key={index} className="space-y-3">
-            <div className="flex justify-end">
-              <div className="bg-purple-600 text-white rounded-2xl rounded-tr-sm px-5 py-3 max-w-2xl shadow-md">
-                <p>{chat.question}</p>
+            <div className="w-full flex justify-center mt-24 mb-12">
+              <div className="w-full max-w-[900px] mx-auto flex justify-end px-2">
+                <div className="bg-blue-600 text-white rounded-2xl rounded-tr-sm px-6 py-3 shadow-md">
+                  <p>{chat.question}</p>
+                </div>
               </div>
             </div>
 
-            <div className="flex justify-start">
-              <div className="bg-slate-100 rounded-2xl rounded-tl-sm px-5 py-4 max-w-3xl shadow-sm">
-                {chat.safe && (
+            <div className="w-full flex justify-center">
+              <div className="w-full max-w-[900px] mx-auto">
+                {!chat.streaming && chat.safe && (
                   <div className="inline-flex items-center space-x-1 px-2 py-1 bg-green-50 rounded-full border border-green-100 mb-3 shadow-sm">
                     <Shield className="w-3.5 h-3.5 text-green-600" />
                     <span className="text-xs text-green-700 font-semibold">
@@ -190,6 +380,7 @@ export const ReasoningView: React.FC = () => {
                     <h3 className="text-sm font-semibold text-slate-700 mb-2">
                       Reasoning Steps:
                     </h3>
+
                     {chat.reasoning_steps.map((step: any, idx: number) => (
                       <div
                         key={idx}
@@ -205,56 +396,163 @@ export const ReasoningView: React.FC = () => {
                           </span>
                           <Clock className="w-3 h-3" />
                         </div>
-                        <p className="text-slate-800 mb-1">
+
+                        <p className="text-slate-800 mb-2">
                           {step.reasoning ??
                             step.thought ??
                             step.observation ??
                             ""}
                         </p>
-                        {step.output_data && (
-                          <p className="text-slate-600 italic text-xs">
-                            {JSON.stringify(step.output_data).slice(0, 200)}
-                            {JSON.stringify(step.output_data).length > 200
-                              ? "..."
-                              : ""}
-                          </p>
-                        )}
-                        {step.observation && !step.reasoning && (
-                          <p className="text-slate-600 italic text-xs">
-                            {String(step.observation).slice(0, 200)}
-                            {String(step.observation).length > 200 ? "..." : ""}
-                          </p>
-                        )}
+
+                        {(() => {
+                          const formatOutput = (data: any) => {
+                            if (!data) return "";
+
+                            if (typeof data === "string") return data;
+
+                            if (Array.isArray(data)) {
+                              return data
+                                .map((item) =>
+                                  typeof item === "object"
+                                    ? Object.entries(item)
+                                        .map(
+                                          ([k, v]) =>
+                                            `${k}: ${
+                                              typeof v === "object"
+                                                ? formatOutput(v)
+                                                : v
+                                            }`
+                                        )
+                                        .join("\n")
+                                    : String(item)
+                                )
+                                .join("\n\n");
+                            }
+
+                            if (typeof data === "object") {
+                              return Object.entries(data)
+                                .map(([k, v]) => {
+                                  if (typeof v === "object") {
+                                    return `${k}:\n${formatOutput(v)
+                                      .split("\n")
+                                      .map((line) => "  " + line)
+                                      .join("\n")}`;
+                                  }
+                                  return `${k}: ${v}`;
+                                })
+                                .join("\n");
+                            }
+
+                            return String(data);
+                          };
+
+                          const formatted = formatOutput(step.output_data);
+
+                          if (step.raw_type === "cot_visualization") {
+                            return (
+                              <pre className="text-xs bg-purple-50 p-3 rounded border whitespace-pre-wrap overflow-x-auto">
+                                {formatted}
+                              </pre>
+                            );
+                          }
+
+                          if (step.raw_type === "tool_attribution_visual") {
+                            return (
+                              <pre className="text-xs bg-blue-50 p-3 rounded border whitespace-pre-wrap overflow-x-auto">
+                                {formatted}
+                              </pre>
+                            );
+                          }
+
+                          if (step.raw_type === "tool_attribution_full") {
+                            return (
+                              <pre className="text-xs bg-green-50 p-3 rounded border whitespace-pre-wrap overflow-x-auto h-64">
+                                {formatted}
+                              </pre>
+                            );
+                          }
+
+                          if (step.raw_type === "answer_composition") {
+                            return (
+                              <pre className="text-xs bg-yellow-50 p-3 rounded border whitespace-pre-wrap overflow-x-auto">
+                                {formatted}
+                              </pre>
+                            );
+                          }
+
+                          if (step.raw_type === "source_attributions") {
+                            return (
+                              <pre className="text-xs bg-orange-50 p-3 rounded border whitespace-pre-wrap overflow-x-auto">
+                                {formatted}
+                              </pre>
+                            );
+                          }
+
+                          return (
+                            <pre className="text-xs bg-slate-50 p-3 rounded border whitespace-pre-wrap overflow-x-auto">
+                              {formatted}
+                            </pre>
+                          );
+                        })()}
                       </div>
                     ))}
                   </div>
                 )}
 
-                <div className="flex items-center gap-4 mt-4 pt-2 border-t border-slate-200 text-xs text-slate-500">
-                  <div className="flex items-center space-x-1">
-                    <Clock className="w-3 h-3" />
-                    <span>
-                      {Number(chat.metadata?.total_time ?? 0).toFixed(2)}s
-                    </span>
+                {!chat.streaming && (
+                  <div className="w-full flex justify-center">
+                    <div className="w-full max-w-[900px] mx-auto">
+                      <div className="flex items-center gap-4 mt-4 pt-2 border-t border-slate-200 text-xs text-slate-500">
+                        <div className="flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span>
+                            {chat.metadata?.total_time?.toFixed(2) ?? "—"}s
+                          </span>
+                        </div>
+
+                        <div className="flex items-center space-x-1">
+                          <Zap className="w-3 h-3" />
+                          <span className="capitalize">
+                            {chat.metadata?.agent_type ?? "N/A"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <Zap className="w-3 h-3" />
-                    <span className="capitalize">
-                      {chat.metadata?.agent_type}
-                    </span>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
         ))}
 
         {loading && (
-          <div className="flex items-center justify-center space-x-3 py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-            <span className="text-slate-600 text-sm">
-              Fetching explainability trace...
-            </span>
+          <div className="w-full flex justify-center mt-4">
+            <div className="w-full max-w-[900px] mx-auto flex gap-3 px-2 py-3">
+              <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold shadow-md">
+                AI
+              </div>
+
+              <div className="bg-slate-100 rounded-2xl rounded-tl-sm px-4 py-3 w-full shadow-sm">
+                <div className="space-y-2">
+                  <div className="h-3 w-3/4 bg-slate-200 rounded animate-pulse"></div>
+                  <div className="h-3 w-2/3 bg-slate-200 rounded animate-pulse"></div>
+                  <div className="h-3 w-1/3 bg-slate-200 rounded animate-pulse"></div>
+                </div>
+
+                <div className="flex items-center gap-2 mt-3 ml-1">
+                  <div
+                    key={loadingIndex}
+                    className="text-slate-500 text-xs italic transition-opacity duration-700 ease-in-out"
+                    style={{ width: `${longestLoadingText.length + 2}ch` }}
+                  >
+                    {loadingTexts[loadingIndex]}
+                  </div>
+                  <span className="h-2 w-2 bg-purple-500 rounded-full animate-bounce"></span>
+                  <span className="h-2 w-2 bg-purple-500 rounded-full animate-bounce delay-150"></span>
+                  <span className="h-2 w-2 bg-purple-500 rounded-full animate-bounce delay-300"></span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
