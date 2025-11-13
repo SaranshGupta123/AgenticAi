@@ -174,19 +174,19 @@ export const ToolAttributionView: React.FC = () => {
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
             <p>
-              <strong>Total Tools:</strong> "}
+              <strong>Total Tools:</strong>
               {toolSummary.total_tools_invoked || 0}
             </p>
             <p>
-              <strong>Unique Tools:</strong> "}
+              <strong>Unique Tools:</strong>
               {toolSummary.unique_tools_used || 0}
             </p>
             <p>
-              <strong>Most Used Tool:</strong> "}
+              <strong>Most Used Tool:</strong>
               {toolSummary.most_used_tool || "N/A"}
             </p>
             <p>
-              <strong>Tool Success Rate:</strong> "}
+              <strong>Tool Success Rate:</strong>
               {toolSummary.tool_success_rates?.smart_search || 0}%
             </p>
             <p>
