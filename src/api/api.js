@@ -30,7 +30,14 @@ export async function fetchChatResponse(query) {
     console.log("✅ Raw Chat API Response:", data);
 
     return {
-      answer: data.final_answer ?? data.answer ?? "",
+      answer:
+        data.final_answer ??
+        data.answer ??
+        data.final_decision ??
+        data.final_decision_text ??
+        data.report ??
+        data.summary ??
+        JSON.stringify(data, null, 2),
       steps: data.agent_steps ?? [],
       evaluation: data.evaluation_metrics ?? {},
       metadata: data.metadata ?? {},
@@ -468,6 +475,26 @@ export async function fetchNotebookAnswerFromAPI(domain, question) {
     };
   } catch (err) {
     console.error("🚨 fetchNotebookAnswerFromAPI Error:", err);
+    throw err;
+  }
+}
+export async function fetchMindmapFromAPI(topic = "General") {
+  console.log("📤 Fetching mindmap:", topic);
+
+  const url = `${BASE_URL}/rag/api/rag/mindmap/full_vectorstore?topic=${encodeURIComponent(
+    topic
+  )}&max_nodes=50&depth_preference=balanced&num_documents=20&export_mermaid=false`;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: defaultHeaders,
+    });
+
+    const data = await handleResponse(response, "Mindmap");
+    return data.mindmap ?? data;
+  } catch (err) {
+    console.error("🚨 fetchMindmapFromAPI Error:", err);
     throw err;
   }
 }

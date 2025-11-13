@@ -126,12 +126,12 @@ export const SafetyGuardView: React.FC = () => {
               <strong>Explanation:</strong> {explanation}
             </p>
             <p className="mt-1">
-              <strong>Pattern Detected:</strong>{" "}
+              <strong>Pattern Detected:</strong>
               {details?.pattern_check?.detection_method} (
               {details?.pattern_check?.injection_patterns_count} injections)
             </p>
             <p className="mt-1">
-              <strong>Detection Method:</strong>{" "}
+              <strong>Detection Method:</strong>
               {details?.llm_check?.detection_method}
             </p>
           </div>

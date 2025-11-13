@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Search, Shield, Clock, Zap, GitBranch } from "lucide-react";
-import { fetchExplainabilityChatResponse } from "../../api/api";
+import {
+  fetchExplainabilityChatResponse,
+  fetchChatResponse,
+  fetchDeepResearchResponse,
+} from "../../api/api";
 
 export const ReasoningView: React.FC = () => {
   const [query, setQuery] = useState("");
@@ -259,12 +263,7 @@ export const ReasoningView: React.FC = () => {
     setLoading(true);
 
     try {
-      const data =
-        mode === "deep_research"
-          ? await fetchDeepResearchResponse(asked)
-          : await fetchChatResponse(asked);
-
-      streamAnswer(data.answer);
+      await fetchExplainabilityData(asked);
     } catch (e) {
       streamAnswer("Error fetching response.");
     } finally {
@@ -388,7 +387,7 @@ export const ReasoningView: React.FC = () => {
                       >
                         <div className="flex justify-between text-xs text-slate-500 mb-1">
                           <span>
-                            Step {step.step_number ?? idx + 1}:{" "}
+                            Step {step.step_number ?? idx + 1}:
                             {step.step_type ??
                               step.action ??
                               step.action?.toString() ??

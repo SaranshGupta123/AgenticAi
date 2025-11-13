@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { fetchDomains, selectDomain } from "../api/api";
+import { FolderOpen, PlusCircle, RefreshCw } from "lucide-react";
+
 export default function NotebookHome({ goBack, openNotebook }) {
   const [domains, setDomains] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState(false);
   const [alertMsg, setAlertMsg] = useState<string | null>(null);
 
-  const DUMMY_DOMAINS = ["Sample Notebook", "My Notes", "Learning Journal"];
+  const FALLBACK = ["Sample Notebook", "My Notes", "Learning Journal"];
 
   const handleFetch = async () => {
     setLoading(true);
@@ -14,18 +16,14 @@ export default function NotebookHome({ goBack, openNotebook }) {
 
     try {
       const data = await fetchDomains();
-      const newList = Array.isArray(data?.available_domains)
+      const list = Array.isArray(data?.available_domains)
         ? data.available_domains
         : [];
 
-      const merged = Array.from(new Set([...domains, ...newList]));
-
-      setDomains(merged);
-      localStorage.setItem("notebook_domains", JSON.stringify(merged));
+      setDomains(list);
+      localStorage.setItem("notebook_domains", JSON.stringify(list));
     } catch {
-      const merged = Array.from(new Set([...domains, ...DUMMY_DOMAINS]));
-      setDomains(merged);
-      localStorage.setItem("notebook_domains", JSON.stringify(merged));
+      setDomains([]);
       setFetchError(true);
     } finally {
       setLoading(false);
@@ -34,118 +32,112 @@ export default function NotebookHome({ goBack, openNotebook }) {
 
   useEffect(() => {
     const cached = localStorage.getItem("notebook_domains");
+    const parsed = cached ? JSON.parse(cached) : [];
 
-    if (cached) {
-      setDomains(JSON.parse(cached));
-    } else {
-      setDomains(DUMMY_DOMAINS);
-      localStorage.setItem("notebook_domains", JSON.stringify(DUMMY_DOMAINS));
-    }
+    setDomains(Array.isArray(parsed) ? parsed : []);
   }, []);
-
-  // const handleOpen = async (domain: string) => {
-  //   try {
-  //     const res = await fetch(`/api/rag/api/rag/select-domain`, {
-  //       method: "POST",
-  //       headers: {
-  //         Accept: "application/json",
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({ domain_name: domain }),
-  //     });
-
-  //     const result = await res.json();
-  //     setAlertMsg(result?.message || "✅ Domain Selected");
-  //     setTimeout(() => setAlertMsg(null), 3000);
-
-  //     openNotebook(domain);
-  //   } catch {
-  //     setAlertMsg("❌ Failed to switch domain");
-  //     setTimeout(() => setAlertMsg(null), 3000);
-  //   }
-  // };
 
   const handleOpen = async (domain: string) => {
     try {
       const result = await selectDomain(domain);
 
-      setAlertMsg(result?.message || `✅ Switched to ${domain}`);
-      setTimeout(() => setAlertMsg(null), 1500);
+      setAlertMsg(result?.message || `Switched to ${domain}`);
+      setTimeout(() => setAlertMsg(null), 1800);
 
-      // ✅ NOW NAVIGATE
       openNotebook(domain);
-    } catch (err) {
-      console.error("Domain Switch Error:", err);
-      setAlertMsg("❌ Failed to switch domain");
+    } catch {
+      setAlertMsg("Failed to switch domain");
       setTimeout(() => setAlertMsg(null), 3000);
     }
   };
 
   return (
-    <div className="h-screen w-screen bg-[#1B1F24] text-white flex flex-col">
-      <header className="flex items-center justify-between px-8 py-5 border-b border-white/10">
-        <h1 className="text-xl font-semibold tracking-wide">NotebookLM</h1>
+    <div className="h-screen w-screen bg-[#0E1116] text-white flex flex-col">
+      <header className="flex items-center justify-between px-10 py-6 shadow-xl border-b border-[#1C2129] bg-[#14171C]/80 backdrop-blur-xl">
+        <h1 className="text-xl font-semibold tracking-wide text-teal-400 drop-shadow">
+          Notebook Home
+        </h1>
+
         <button
           onClick={goBack}
-          className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 transition-colors text-sm font-medium"
+          className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 transition-colors text-sm font-medium shadow-md"
         >
-          Return to Agentic
+          Back to Agentic
         </button>
       </header>
 
       {alertMsg && (
-        <div className="fixed top-6 right-6 bg-green-600 px-4 py-2 rounded-lg shadow-lg text-sm animate-fade">
+        <div className="fixed top-6 right-6 bg-teal-700 px-4 py-2 rounded-xl shadow-lg text-sm animate-fade-in">
           {alertMsg}
         </div>
       )}
 
-      <div className="flex-1 overflow-auto px-12 py-10">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-gray-400 text-sm">Your Notebooks</h2>
+      <div className="flex-1 px-12 py-10 overflow-y-auto">
+        <div className="mb-10">
+          <h2 className="text-3xl font-semibold text-white/90">
+            Welcome back 👋
+          </h2>
+          <p className="text-gray-400 mt-1">
+            Select a notebook to continue working.
+          </p>
 
           <button
             onClick={handleFetch}
-            className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 rounded-lg"
+            className="mt-4 px-4 py-2 text-sm flex items-center space-x-2 
+              bg-[#1A1F25] border border-[#222830] 
+              hover:border-teal-500 hover:bg-[#1E242C] 
+              rounded-xl transition-all"
           >
-            {loading ? "Fetching…" : "Fetch Domains"}
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            <span>{loading ? "Refreshing…" : "Fetch Domains"}</span>
           </button>
+
+          {fetchError && (
+            <p className="text-red-400 mt-3 text-sm">
+              ⚠ Failed to reach server – showing local cache
+            </p>
+          )}
         </div>
 
-        {domains.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            <div
-              onClick={() => openNotebook("dummy_notebook")}
-              className="h-44 rounded-2xl border border-dashed border-gray-400 bg-[#252A32] p-4 cursor-pointer hover:border-blue-400 hover:bg-[#2F343C] transition-all"
-            >
-              <p className="font-medium text-blue-300">Demo Notebook</p>
-              <p className="text-xs text-gray-400 mt-2">
-                This is a sample notebook. Click to open.
-              </p>
+        <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+          <div
+            onClick={() => openNotebook("Demo Notebook")}
+            className="h-48 bg-[#14171C] border border-[#1F242C] rounded-2xl p-5 cursor-pointer
+                       hover:bg-[#1A1F25] hover:border-teal-500 hover:scale-[1.02]
+                       transition-all duration-300 shadow-lg group"
+          >
+            <div className="p-3 bg-teal-500/20 rounded-xl inline-flex items-center justify-center">
+              <PlusCircle className="w-6 h-6 text-teal-400" />
             </div>
 
-            {domains.map((domain) => (
+            <h3 className="mt-4 text-lg font-semibold text-white group-hover:text-teal-400 transition-colors">
+              Demo Notebook
+            </h3>
+            <p className="text-gray-400 text-sm mt-1">
+              A sample notebook to explore.
+            </p>
+          </div>
+
+          {domains.length > 0 &&
+            domains.map((domain) => (
               <div
                 key={domain}
                 onClick={() => handleOpen(domain)}
-                className="h-44 rounded-2xl border border-gray-600 bg-[#23272E] p-4 cursor-pointer hover:border-blue-500 hover:bg-[#2A2F37] transition-all"
+                className="h-48 bg-[#14171C] border border-[#1F242C] rounded-2xl p-5 cursor-pointer
+                           hover:bg-[#1A1F25] hover:border-teal-500 hover:scale-[1.02]
+                           transition-all duration-300 shadow-lg group"
               >
-                <p className="font-medium">{domain}</p>
-                <p className="text-xs text-gray-400 mt-2">
-                  Click to open this domain
-                </p>
+                <div className="p-3 bg-teal-500/20 rounded-xl inline-flex items-center justify-center">
+                  <FolderOpen className="w-6 h-6 text-teal-400" />
+                </div>
+
+                <h3 className="mt-4 text-lg font-semibold text-white group-hover:text-teal-400 transition-colors">
+                  {domain}
+                </h3>
+                <p className="text-gray-400 text-sm mt-1">Open this notebook</p>
               </div>
             ))}
-
-            {fetchError && (
-              <div className="h-44 rounded-2xl border border-red-600 bg-[#2C1F1F] p-4 text-red-300 flex flex-col justify-center">
-                <p className="font-medium">Error fetching data</p>
-                <p className="text-xs mt-2 text-red-400">
-                  Server did not respond
-                </p>
-              </div>
-            )}
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

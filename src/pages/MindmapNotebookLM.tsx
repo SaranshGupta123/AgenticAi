@@ -507,8 +507,11 @@ export default function MindmapNotebookLM() {
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
+    if (e.button === 0) {
+      e.preventDefault();
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
+    }
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {

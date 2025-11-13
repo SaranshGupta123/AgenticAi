@@ -121,7 +121,11 @@ export const ChatInterface = ({ mode = "normal" }) => {
     const chatContainer = document.getElementById("chat-scroll");
     if (chatContainer) chatContainer.scrollTop = chatContainer.scrollHeight;
   }, [chats, loading]);
-  const streamAnswer = (fullText: string) => {
+  const streamAnswer = (fullText: any) => {
+    if (!fullText || typeof fullText !== "string") {
+      fullText = String(fullText || "No response received.");
+    }
+
     let i = 0;
     const words = fullText.split(" ");
 

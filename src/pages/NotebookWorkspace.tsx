@@ -18,7 +18,7 @@ import {
   Cpu,
 } from "lucide-react";
 import {
-  generateMindmap,
+  fetchMindmapFromAPI,
   fetchFAQFromAPI,
   fetchComparativeAnalysisFromAPI,
   fetchTutorialFromAPI,
@@ -199,11 +199,11 @@ const MessageBubble: React.FC<{ m: Message }> = ({ m }) => {
       {!isUser && m.metadata && (
         <div className="max-w-[80%] bg-[#1A1D24] border border-white/10 rounded-xl p-3 text-xs text-gray-400 space-y-1 shadow-inner shadow-black/20">
           <p>
-            <span className="text-gray-300 font-medium">Domain:</span>{" "}
+            <span className="text-gray-300 font-medium">Domain:</span> "}
             {m.metadata.active_domain}
           </p>
           <p>
-            <span className="text-gray-300 font-medium">Response Time:</span>{" "}
+            <span className="text-gray-300 font-medium">Response Time:</span> "}
             {m.metadata.total_time}s
           </p>
         </div>
@@ -224,6 +224,24 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
   const [enableMindmap, setEnableMindmap] = useState(false);
   const [mindmapData, setMindmapData] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const loadingTexts = [
+    "Thinking…",
+    "Analyzing information…",
+    "Searching notebook…",
+    "Retrieving context…",
+    "Generating answer…",
+  ];
+  const [loadingIndex, setLoadingIndex] = useState(0);
+
+  React.useEffect(() => {
+    if (!isLoading) return;
+
+    const interval = setInterval(() => {
+      setLoadingIndex((i) => (i + 1) % loadingTexts.length);
+    }, 1200);
+
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   const [mindmapReady, setMindmapReady] = useState(false);
   const [showMindmapViewer, setShowMindmapViewer] = useState(false);
@@ -425,12 +443,29 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
         ...prev,
         {
           role: "assistant",
-          text: response.answer || "⚠️ No answer returned by backend.",
+          text: "",
           sources: response.retrieved_context ?? [],
           metadata: response.metadata ?? null,
         },
       ]);
+      const fullText = response.answer || "";
+      const words = fullText.split(" ");
+      let index = 0;
 
+      const interval = setInterval(() => {
+        setMessages((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1].text = words.slice(0, index).join(" ");
+          return updated;
+        });
+
+        index++;
+
+        if (index > words.length) {
+          clearInterval(interval);
+          setIsLoading(false);
+        }
+      }, 40);
       if (response.mindmap) {
         setMindmapData(response.mindmap);
       }
@@ -455,16 +490,28 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
     setMindmapLoading(true);
 
     try {
-      const data = await generateMindmap(mindmapTopic);
+      const data = await fetchMindmapFromAPI(mindmapTopic);
       setMindmapData(data);
 
       setMindmapReady(true);
       setShowMindmapCreateModal(false);
       setShowMindmapViewer(true);
+    } catch (err) {
+      console.error("⚠️ Mindmap API generation failed:", err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: "⚠️ Failed to generate mindmap from API. Check backend logs or ngrok link.",
+          sources: [],
+          metadata: null,
+        },
+      ]);
     } finally {
       setMindmapLoading(false);
     }
   };
+
   const renderInputModal = (
     title,
     placeholder,
@@ -668,7 +715,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
           <div className="flex items-center justify-between border-b border-gray-700/50 pb-3">
             <p className="text-sm text-gray-300 font-medium flex items-center gap-2">
               <Cpu className="w-4 h-4 text-teal-400 animate-pulse" />
-              Chatting with **{title ?? "Notebook"}**{" "}
+              Chatting with **{title ?? "Notebook"}** "}
               <span className="text-xs text-gray-500 font-normal ml-2">
                 (Context: Medical.json)
               </span>
@@ -708,14 +755,27 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
             )}
 
             {isLoading && (
-              <div className="text-gray-300 flex gap-3 items-center ml-2">
-                <RefreshCw
-                  className="w-4 h-4 text-teal-400 animate-spin"
-                  aria-hidden="true"
-                />
-                <span className="text-sm">
-                  Generating intelligent response...
-                </span>
+              <div className="flex items-start gap-3 ml-2 mt-2">
+                <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white font-bold">
+                  AI
+                </div>
+                <div className="bg-[#1D222A] border border-gray-700/50 px-4 py-3 rounded-2xl max-w-[70%] shadow-md">
+                  <div className="space-y-2">
+                    <div className="h-3 w-3/4 bg-gray-600/30 rounded animate-pulse"></div>
+                    <div className="h-3 w-2/3 bg-gray-600/30 rounded animate-pulse"></div>
+                    <div className="h-3 w-1/3 bg-gray-600/30 rounded animate-pulse"></div>
+                  </div>
+
+                  <div className="flex items-center gap-2 mt-3">
+                    <span className="text-xs text-gray-400 italic">
+                      {loadingTexts[loadingIndex]}
+                    </span>
+
+                    <span className="w-2 h-2 bg-teal-500 rounded-full animate-bounce"></span>
+                    <span className="w-2 h-2 bg-teal-500 rounded-full animate-bounce delay-150"></span>
+                    <span className="w-2 h-2 bg-teal-500 rounded-full animate-bounce delay-300"></span>
+                  </div>
+                </div>
               </div>
             )}
           </div>
