@@ -57,12 +57,17 @@ export default function RAGPipelineUI({ goToNotebook }) {
             <div className="h-full flex flex-col min-h-0">
               {activeTab === "chat" &&
                 (agentType === "deep_research" ? (
-                  <ChatInterface mode="deep_research" />
+                  <ChatInterface key="chat-deep" mode="deep_research" />
                 ) : (
-                  <ChatInterface mode="normal" />
+                  <ChatInterface key="chat-react" mode="normal" />
                 ))}
               {activeTab === "evaluation" && <EvaluationMetrics />}
-              {activeTab === "reasoning" && <ReasoningView />}
+              {activeTab === "reasoning" && (
+                <ReasoningView
+                  key={`reason-${agentType}`}
+                  agentType={agentType}
+                />
+              )}
               {activeTab === "safety" && <SafetyGuardView />}
             </div>
           </div>

@@ -107,10 +107,10 @@ export async function fetchNotebookAnswerFromAPI(domain, question) {
 }
 export async function fetchDeepResearchResponse(query) {
   const body = {
-    query,
-    use_crag: false,
+    query: query,
     agent_type: "deep_research",
     include_steps: true,
+    use_crag: false,
   };
 
   const data = await apiPost(
@@ -120,7 +120,12 @@ export async function fetchDeepResearchResponse(query) {
   );
 
   return {
-    answer: data.final_answer ?? data.answer ?? "",
+    answer:
+      data.final_answer ??
+      data.answer ??
+      data.final_decision ??
+      data.final_decision_text ??
+      "No answer.",
     steps: data.agent_steps ?? [],
     evaluation: data.evaluation_metrics ?? {},
     metadata: data.metadata ?? {},
@@ -128,6 +133,7 @@ export async function fetchDeepResearchResponse(query) {
     user_query: query,
   };
 }
+
 function generatorConfig(tone, audience) {
   return {
     tone,
@@ -210,6 +216,15 @@ export async function fetchMindmapFromAPI(topic = "General") {
 
   const data = await apiPost(route, null, "Mindmap");
   return data.mindmap ?? data;
+}
+export async function fetchDeepResearchExplainabilityResponse(query) {
+  const route = `/rag/api/rag/deep-research-with-explainability?query=${encodeURIComponent(
+    query
+  )}&agent_type=deep_research&include_steps=true&use_crag=false`;
+
+  const data = await apiPost(route, null, "Deep Research Explainability");
+
+  return { ...data, user_query: query };
 }
 
 // const BASE_URL = "https://123ae95f82ef.ngrok-free.app";

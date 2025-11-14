@@ -1,8 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Search, Shield, Clock, Zap, GitBranch } from "lucide-react";
-import { fetchExplainabilityChatResponse } from "../../api/api";
+import {
+  fetchExplainabilityChatResponse,
+  fetchDeepResearchExplainabilityResponse,
+} from "../../api/api";
 
-const LS_KEY = "agentic_reasoning_history";
+import ReactMarkdown from "react-markdown";
+
+const LS_REASON_REACT = "agentic_reasoning_react";
+const LS_REASON_DEEP = "agentic_reasoning_deep";
 const loadingTexts = [
   "Thinking…",
   "Analyzing information…",
@@ -24,45 +30,44 @@ type Chat = {
   safe?: boolean;
 };
 
-export const ReasoningView: React.FC = () => {
+export const ReasoningView = ({
+  agentType = "react",
+}: {
+  agentType: "react" | "deep_research";
+}) => {
+  const REASON_KEY =
+    agentType === "deep_research" ? LS_REASON_DEEP : LS_REASON_REACT;
   const [query, setQuery] = useState("");
   const [chats, setChats] = useState<Chat[]>(() => {
     try {
-      const raw = localStorage.getItem(LS_KEY);
-      return raw
-        ? JSON.parse(raw)
-        : [
-            {
-              question: "How does reinforcement learning work in AI?",
-              answer:
-                "Reinforcement Learning (RL) is a method where an agent learns to make decisions by interacting with an environment.",
-              metadata: { total_time: 6.72, agent_type: "react" },
-              reasoning_steps: [
-                {
-                  step_number: 1,
-                  step_type: "query_analysis",
-                  reasoning: "Detected conceptual query.",
-                  input_data: { query: "How does RL work?" },
-                  output_data: {
-                    query_type: "conceptual",
-                    key_terms: ["reinforcement learning", "agent"],
-                  },
-                },
-              ],
-              safe: true,
-            },
-          ];
-    } catch {
-      return [];
-    }
+      const raw = localStorage.getItem(REASON_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+
+    return [
+      {
+        question:
+          agentType === "deep_research"
+            ? "What topic should we investigate with deep reasoning?"
+            : "How does reinforcement learning work in AI?",
+        answer:
+          agentType === "deep_research"
+            ? "Deep reasoning mode is ready. Ask a topic for full explainability steps."
+            : "Reinforcement Learning (RL) is a method where an agent learns to make decisions by interacting with an environment.",
+        metadata: { total_time: 0, agent_type: agentType },
+        reasoning_steps: [],
+        safe: true,
+      },
+    ];
   });
+
   const [loading, setLoading] = useState(false);
   const [loadingIndex, setLoadingIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    localStorage.setItem(LS_KEY, JSON.stringify(chats));
-  }, [chats]);
+    localStorage.setItem(REASON_KEY, JSON.stringify(chats));
+  }, [chats, REASON_KEY]);
 
   useEffect(() => {
     const el = document.getElementById("explain-scroll");
@@ -126,7 +131,11 @@ export const ReasoningView: React.FC = () => {
   const fetchExplainabilityData = async (customQuery: string) => {
     setError(null);
     try {
-      const data = await fetchExplainabilityChatResponse(customQuery);
+      const data =
+        agentType === "deep_research"
+          ? await fetchDeepResearchExplainabilityResponse(customQuery)
+          : await fetchExplainabilityChatResponse(customQuery);
+
       const finalAnswer =
         data.final_answer ??
         data.final_decision ??
@@ -134,6 +143,7 @@ export const ReasoningView: React.FC = () => {
         "No answer.";
 
       const blocks: any[] = [];
+
       if (data.agent_steps) {
         blocks.push(
           ...data.agent_steps.map((step: any, i: number) => ({
@@ -186,13 +196,14 @@ export const ReasoningView: React.FC = () => {
       }
 
       const steps = blocks.map((b, i) => ({ ...b, step_number: i + 1 }));
+
       const metadata = {
         total_time:
           data.metadata?.total_execution_time ??
           data.metadata?.total_reasoning_time ??
           data.metadata?.total_time ??
           0,
-        agent_type: data.metadata?.agent_type ?? "react",
+        agent_type: data.metadata?.agent_type ?? agentType,
       };
 
       setChats((prev) => [
@@ -277,9 +288,9 @@ export const ReasoningView: React.FC = () => {
                   </div>
                 )}
 
-                <p className="text-slate-800 leading-relaxed mb-4">
-                  {chat.answer}
-                </p>
+                <div className="prose prose-slate max-w-none text-slate-800 leading-relaxed mb-4">
+                  <ReactMarkdown>{chat.answer}</ReactMarkdown>
+                </div>
 
                 {chat.reasoning_steps?.length > 0 && (
                   <div className="space-y-3 border-t border-slate-200 pt-3">
