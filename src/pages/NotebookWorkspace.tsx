@@ -199,11 +199,11 @@ const MessageBubble: React.FC<{ m: Message }> = ({ m }) => {
       {!isUser && m.metadata && (
         <div className="max-w-[80%] bg-[#1A1D24] border border-white/10 rounded-xl p-3 text-xs text-gray-400 space-y-1 shadow-inner shadow-black/20">
           <p>
-            <span className="text-gray-300 font-medium">Domain:</span> "}
+            <span className="text-gray-300 font-medium">Domain:</span>
             {m.metadata.active_domain}
           </p>
           <p>
-            <span className="text-gray-300 font-medium">Response Time:</span> "}
+            <span className="text-gray-300 font-medium">Response Time:</span>
             {m.metadata.total_time}s
           </p>
         </div>
@@ -715,7 +715,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
           <div className="flex items-center justify-between border-b border-gray-700/50 pb-3">
             <p className="text-sm text-gray-300 font-medium flex items-center gap-2">
               <Cpu className="w-4 h-4 text-teal-400 animate-pulse" />
-              Chatting with **{title ?? "Notebook"}** "}
+              Chatting with **{title ?? "Notebook"}**
               <span className="text-xs text-gray-500 font-normal ml-2">
                 (Context: Medical.json)
               </span>
