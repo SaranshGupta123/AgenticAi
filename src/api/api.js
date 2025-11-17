@@ -1,4 +1,4 @@
-export const BASE_URL = "https://123ae95f82ef.ngrok-free.app";
+export const BASE_URL = "https://4b57cf056170.ngrok-free.app";
 
 const defaultHeaders = {
   "Content-Type": "application/json",
@@ -352,83 +352,83 @@ export async function fetchDeepResearchExplainabilityResponse(query) {
 //   return res.json();
 // }
 
-// export async function askRagQuestion(query, generateMindmap = false) {
-//   const url = `${BASE_URL}/rag/api/rag/doc_question?query=${encodeURIComponent(
-//     query
-//   )}&generate_mindmap=${generateMindmap ? "true" : "false"}`;
+export async function askRagQuestion(query, generateMindmap = false) {
+  const url = `${BASE_URL}/rag/api/rag/doc_question?query=${encodeURIComponent(
+    query
+  )}&generate_mindmap=${generateMindmap ? "true" : "false"}`;
 
-//   const res = await fetch(url, {
-//     method: "POST",
-//     headers: {
-//       Accept: "application/json",
-//       "ngrok-skip-browser-warning": "true",
-//     },
-//   });
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "ngrok-skip-browser-warning": "true",
+    },
+  });
 
-//   if (!res.ok) throw new Error("RAG request failed");
-//   const data = await res.json();
+  if (!res.ok) throw new Error("RAG request failed");
+  const data = await res.json();
 
-//   return {
-//     answer: data.answer ?? "",
-//     retrieved_context:
-//       data.retrieved_context ?? data.context ?? data.sources ?? [],
-//     metadata: {
-//       active_domain: data.domain ?? data.active_domain ?? "Unknown",
-//       query,
-//       total_time: data.latency ?? data.time_taken ?? "N/A",
-//     },
-//     mindmap: data.mindmap ?? null,
-//   };
-// }
+  return {
+    answer: data.answer ?? "",
+    retrieved_context:
+      data.retrieved_context ?? data.context ?? data.sources ?? [],
+    metadata: {
+      active_domain: data.domain ?? data.active_domain ?? "Unknown",
+      query,
+      total_time: data.latency ?? data.time_taken ?? "N/A",
+    },
+    mindmap: data.mindmap ?? null,
+  };
+}
 
-// export async function fetchLocalNotebookData(notebookName) {
-//   try {
-//     const res = await fetch(`/data/${notebookName}.json`);
-//     if (!res.ok) return null;
-//     return await res.json();
-//   } catch (err) {
-//     console.error("⚠️ fetchLocalNotebookData Error:", err);
-//     return null;
-//   }
-// }
+export async function fetchLocalNotebookData(notebookName) {
+  try {
+    const res = await fetch(`/data/${notebookName}.json`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    console.error("⚠️ fetchLocalNotebookData Error:", err);
+    return null;
+  }
+}
 
-// export async function generateMindmap(topic) {
-//   console.log("📁 Loading mindmap.json from public/data...");
+export async function generateMindmap(topic) {
+  console.log("📁 Loading mindmap.json from public/data...");
 
-//   try {
-//     const res = await fetch(`/data/mindmap.json`);
-//     if (!res.ok) throw new Error("mindmap.json not found in /public/data");
+  try {
+    const res = await fetch(`/data/mindmap.json`);
+    if (!res.ok) throw new Error("mindmap.json not found in /public/data");
 
-//     const data = await res.json();
-//     console.log("✅ Loaded Local Mindmap:", data);
-//     return data;
-//   } catch (err) {
-//     console.error("❌ Local Mindmap Load Error:", err);
-//     throw err;
-//   }
-// }
+    const data = await res.json();
+    console.log("✅ Loaded Local Mindmap:", data);
+    return data;
+  } catch (err) {
+    console.error("❌ Local Mindmap Load Error:", err);
+    throw err;
+  }
+}
 
-// export async function fetchFAQ() {
-//   const res = await fetch("/data/faq.json");
-//   return res.json();
-// }
+export async function fetchFAQ() {
+  const res = await fetch("/data/faq.json");
+  return res.json();
+}
 
-// export async function fetchComparativeAnalysis() {
-//   const res = await fetch("/data/comparative_analysis.json");
-//   return res.json();
-// }
+export async function fetchComparativeAnalysis() {
+  const res = await fetch("/data/comparative_analysis.json");
+  return res.json();
+}
 
-// async function loadJSON(name) {
-//   const res = await fetch(`/data/${name}.json`);
-//   if (!res.ok) throw new Error(`${name}.json not found`);
-//   return res.json();
-// }
+async function loadJSON(name) {
+  const res = await fetch(`/data/${name}.json`);
+  if (!res.ok) throw new Error(`${name}.json not found`);
+  return res.json();
+}
 
-// export const fetchTutorial = () => loadJSON("tutorial");
-// export const fetchTechnicalReport = () => loadJSON("technical_report");
-// export const fetchBlogPost = () => loadJSON("blog_post");
-// export const fetchStudyGuide = () => loadJSON("study_guide");
-// export const fetchBriefing = () => loadJSON("briefing");
+export const fetchTutorial = () => loadJSON("tutorial");
+export const fetchTechnicalReport = () => loadJSON("technical_report");
+export const fetchBlogPost = () => loadJSON("blog_post");
+export const fetchStudyGuide = () => loadJSON("study_guide");
+export const fetchBriefing = () => loadJSON("briefing");
 
 // export async function fetchDeepResearchResponse(query) {
 //   try {
@@ -480,17 +480,17 @@ export async function fetchDeepResearchExplainabilityResponse(query) {
 //   "ngrok-skip-browser-warning": "true",
 // };
 
-// async function handleResponse(response, type) {
-//   if (!response.ok) {
-//     const errorText = await response.text();
-//     console.error(`❌ ${type} API Error:`, errorText);
-//     throw new Error(`Request failed with status ${response.status}`);
-//   }
+async function handleResponse(response, type) {
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`❌ ${type} API Error:`, errorText);
+    throw new Error(`Request failed with status ${response.status}`);
+  }
 
-//   const data = await response.json();
-//   console.log(`✅ ${type} API Response:`, data);
-//   return data;
-// }
+  const data = await response.json();
+  console.log(`✅ ${type} API Response:`, data);
+  return data;
+}
 
 // export async function fetchBriefingFromAPI(domain, topic) {
 //   const cleanTopic = topic?.trim() || "AI developments overview";

@@ -2,6 +2,7 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import AnswerDetails from "./AnswerDetails";
+import MindmapNotebookLM from "../pages/MindmapNotebookLM";
 
 export function SearchModal({ tool, title }: any) {
   if (!tool.showSearchModal) return null;
@@ -64,6 +65,11 @@ export function AnswerModal({ tool, title }: any) {
           </ReactMarkdown>
 
           <AnswerDetails answer={tool.answer} />
+          {title.toLowerCase().includes("mindmap") && tool.answer && (
+            <div className="mt-5 p-3 rounded-xl bg-[#1E2228] border border-gray-700/50">
+              <MindmapNotebookLM data={tool.answer} />
+            </div>
+          )}
         </div>
       </div>
     </div>
