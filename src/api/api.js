@@ -727,3 +727,33 @@ async function handleResponse(response, type) {
 //     throw err;
 //   }
 // }
+export async function fetchLocalPDFsAPI(domain) {
+  try {
+    const DOMAIN_FILE_MAP = {
+      Medical: "medical_pdfs.json",
+      AI_Testing: "ai_testing_sources.json",
+    };
+
+    const filename = DOMAIN_FILE_MAP[domain];
+    if (!filename) throw new Error(`No JSON for ${domain}`);
+
+    const response = await fetch(`/data/${filename}`);
+    if (!response.ok) throw new Error(`JSON missing: ${filename}`);
+
+    const json = await response.json();
+
+    if (json.domain !== domain) return [];
+
+    return (
+      json.source_guides?.map((item) => ({
+        id: item.file_name,
+        title: item.file_name,
+        pdfPath: `/pdfs/${item.file_name}`,
+        source_guide: item.source_guide,
+      })) || []
+    );
+  } catch (err) {
+    console.error("Local PDF API Error:", err);
+    return [];
+  }
+}
