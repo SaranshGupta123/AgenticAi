@@ -1,4 +1,4 @@
-export const BASE_URL = "https://4b57cf056170.ngrok-free.app";
+export const BASE_URL = "https://d3027091cd8f.ngrok-free.app";
 
 const defaultHeaders = {
   "Content-Type": "application/json",

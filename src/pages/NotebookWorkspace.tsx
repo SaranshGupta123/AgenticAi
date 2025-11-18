@@ -116,6 +116,7 @@ function useContentTool(fetcher: () => Promise<any>, splitter: Splitter) {
     showCard,
     setShowCard,
     open,
+    setAnswer,
   };
 }
 
@@ -303,6 +304,89 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
     },
     { splitRegex: /##\s+/g, addPrefix: (t) => "## " + t }
   );
+  const mindmapTool = useContentTool(
+    async () => {
+      const response = await fetchMindmapFromAPI(mindmapTopic);
+      return {
+        content: response.answer || "",
+        metadata: response.metadata,
+        sources: response.retrieved_context,
+      };
+    },
+    { splitRegex: /##\s+/g }
+  );
+
+  const comparative = useContentTool(
+    async () => {
+      const response = await fetchComparativeAnalysisFromAPI(comparativeTopic);
+      return {
+        content: response.content,
+        metadata: response.metadata,
+        sources: response.sources,
+      };
+    },
+    { splitRegex: /##\s+/g }
+  );
+
+  const tutorial = useContentTool(
+    async () => {
+      const response = await fetchTutorialFromAPI(tutorialTopic);
+      return {
+        content: response.content,
+        metadata: response.metadata,
+        sources: response.sources,
+      };
+    },
+    { splitRegex: /##\s+/g }
+  );
+
+  const report = useContentTool(
+    async () => {
+      const response = await fetchTechnicalReportFromAPI(reportTopic);
+      return {
+        content: response.content,
+        metadata: response.metadata,
+        sources: response.sources,
+      };
+    },
+    { splitRegex: /##\s+/g }
+  );
+
+  const blog = useContentTool(
+    async () => {
+      const response = await fetchBlogPostFromAPI(blogTopic);
+      return {
+        content: response.content,
+        metadata: response.metadata,
+        sources: response.sources,
+      };
+    },
+    { splitRegex: /##\s+/g }
+  );
+
+  const study = useContentTool(
+    async () => {
+      const response = await fetchStudyGuideFromAPI(studyTopic);
+      return {
+        content: response.content,
+        metadata: response.metadata,
+        sources: response.sources,
+      };
+    },
+    { splitRegex: /##\s+/g }
+  );
+
+  const briefing = useContentTool(
+    async () => {
+      const response = await fetchBriefingFromAPI(briefingTopic);
+      return {
+        content: response.content,
+        metadata: response.metadata,
+        sources: response.sources,
+      };
+    },
+    { splitRegex: /##\s+/g }
+  );
 
   const sendMessage = async () => {
     const text = input.trim();
@@ -368,24 +452,20 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
 
     try {
       const data = await fetchMindmapFromAPI(mindmapTopic);
-      setMindmapData(data);
 
-      setMindmapReady(true);
-      setShowMindmapCreateModal(false);
-      setShowMindmapViewer(true);
+      mindmapTool.setAnswer({
+        content: data.answer || "",
+        sources: data.sources || [],
+        metadata: data.metadata || null,
+      });
+
+      mindmapTool.setShowCard(true);
+      mindmapTool.setShowAnswerModal(false);
     } catch (err) {
-      console.error("⚠️ Mindmap API generation failed:", err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: "⚠️ Failed to generate mindmap from API. Check backend logs or ngrok link.",
-          sources: [],
-          metadata: null,
-        },
-      ]);
+      console.error("⚠ Mindmap Error", err);
     } finally {
       setMindmapLoading(false);
+      setShowMindmapCreateModal(false);
     }
   };
 
@@ -395,26 +475,17 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
 
     try {
       const data = await fetchBriefingFromAPI(briefingTopic);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: data.content || "",
-          sources: data.sources || [],
-          metadata: data.metadata || null,
-        },
-      ]);
+
+      briefing.setAnswer({
+        content: data.content,
+        sources: data.sources,
+        metadata: data.metadata,
+      });
+
+      briefing.setShowCard(true);
+      briefing.setShowAnswerModal(false);
     } catch (err) {
-      console.error("⚠️ Briefing API generation failed:", err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: "⚠️ Failed to generate briefing from API. Check backend logs or ngrok link.",
-          sources: [],
-          metadata: null,
-        },
-      ]);
+      console.error("⚠ Briefing Error", err);
     } finally {
       setBriefingLoading(false);
       setShowBriefingModal(false);
@@ -427,26 +498,17 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
 
     try {
       const response = await fetchFAQFromAPI(currentDomain, faqTopic);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: response.answer || "",
-          sources: response.retrieved_context || [],
-          metadata: response.metadata || null,
-        },
-      ]);
+
+      faq.setAnswer({
+        content: response.answer,
+        sources: response.retrieved_context,
+        metadata: response.metadata,
+      });
+
+      faq.setShowCard(true);
+      faq.setShowAnswerModal(false);
     } catch (err) {
-      console.error("⚠️ FAQ API generation failed:", err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: "⚠️ Failed to generate FAQ from API. Check backend logs or ngrok link.",
-          sources: [],
-          metadata: null,
-        },
-      ]);
+      console.error("⚠️ FAQ error:", err);
     } finally {
       setFAQLoading(false);
       setShowFAQModal(false);
@@ -459,26 +521,17 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
 
     try {
       const data = await fetchComparativeAnalysisFromAPI(comparativeTopic);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: data.content || "",
-          sources: data.sources || [],
-          metadata: data.metadata || null,
-        },
-      ]);
+
+      comparative.setAnswer({
+        content: data.content,
+        sources: data.sources,
+        metadata: data.metadata,
+      });
+
+      comparative.setShowCard(true);
+      comparative.setShowAnswerModal(false);
     } catch (err) {
-      console.error("⚠️ Comparative Analysis API generation failed:", err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: "⚠️ Failed to generate comparative analysis from API. Check backend logs or ngrok link.",
-          sources: [],
-          metadata: null,
-        },
-      ]);
+      console.error("⚠ Comparative Error", err);
     } finally {
       setComparativeLoading(false);
       setShowComparativeModal(false);
@@ -491,26 +544,17 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
 
     try {
       const data = await fetchTutorialFromAPI(tutorialTopic);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: data.content || "",
-          sources: data.sources || [],
-          metadata: data.metadata || null,
-        },
-      ]);
+
+      tutorial.setAnswer({
+        content: data.content,
+        sources: data.sources,
+        metadata: data.metadata,
+      });
+
+      tutorial.setShowCard(true);
+      tutorial.setShowAnswerModal(false);
     } catch (err) {
-      console.error("⚠️ Tutorial API generation failed:", err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: "⚠️ Failed to generate tutorial from API. Check backend logs or ngrok link.",
-          sources: [],
-          metadata: null,
-        },
-      ]);
+      console.error("⚠ Tutorial Error", err);
     } finally {
       setTutorialLoading(false);
       setShowTutorialModal(false);
@@ -523,26 +567,17 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
 
     try {
       const data = await fetchTechnicalReportFromAPI(reportTopic);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: data.content || "",
-          sources: data.sources || [],
-          metadata: data.metadata || null,
-        },
-      ]);
+
+      report.setAnswer({
+        content: data.content,
+        sources: data.sources,
+        metadata: data.metadata,
+      });
+
+      report.setShowCard(true);
+      report.setShowAnswerModal(false);
     } catch (err) {
-      console.error("⚠️ Technical Report API generation failed:", err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: "⚠️ Failed to generate technical report from API. Check backend logs or ngrok link.",
-          sources: [],
-          metadata: null,
-        },
-      ]);
+      console.error("⚠ Report Error", err);
     } finally {
       setReportLoading(false);
       setShowReportModal(false);
@@ -555,26 +590,17 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
 
     try {
       const data = await fetchBlogPostFromAPI(blogTopic);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: data.content || "",
-          sources: data.sources || [],
-          metadata: data.metadata || null,
-        },
-      ]);
+
+      blog.setAnswer({
+        content: data.content,
+        sources: data.sources,
+        metadata: data.metadata,
+      });
+
+      blog.setShowCard(true);
+      blog.setShowAnswerModal(false);
     } catch (err) {
-      console.error("⚠️ Blog Post API generation failed:", err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: "⚠️ Failed to generate blog post from API. Check backend logs or ngrok link.",
-          sources: [],
-          metadata: null,
-        },
-      ]);
+      console.error("⚠ Blog Error", err);
     } finally {
       setBlogLoading(false);
       setShowBlogModal(false);
@@ -587,26 +613,17 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
 
     try {
       const data = await fetchStudyGuideFromAPI(studyTopic);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: data.content || "",
-          sources: data.sources || [],
-          metadata: data.metadata || null,
-        },
-      ]);
+
+      study.setAnswer({
+        content: data.content,
+        sources: data.sources,
+        metadata: data.metadata,
+      });
+
+      study.setShowCard(true);
+      study.setShowAnswerModal(false);
     } catch (err) {
-      console.error("⚠️ Study Guide API generation failed:", err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: "⚠️ Failed to generate study guide from API. Check backend logs or ngrok link.",
-          sources: [],
-          metadata: null,
-        },
-      ]);
+      console.error("⚠ Study Error", err);
     } finally {
       setStudyLoading(false);
       setShowStudyModal(false);
@@ -932,13 +949,94 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
                 </h3>
 
                 <div className="space-y-3 max-h-[40vh] overflow-y-auto p-2 -m-2">
+                  {mindmapTool.showCard && (
+                    <ResultCardSimple
+                      title="Mindmap Ready"
+                      onClick={() => mindmapTool.setShowAnswerModal(true)}
+                    />
+                  )}
+
                   {faq.showCard && (
                     <ResultCardSimple
                       title="FAQ Results Ready"
                       onClick={() => faq.setShowAnswerModal(true)}
                     />
                   )}
+
+                  {comparative.showCard && (
+                    <ResultCardSimple
+                      title="Comparative Analysis Ready"
+                      onClick={() => comparative.setShowAnswerModal(true)}
+                    />
+                  )}
+
+                  {tutorial.showCard && (
+                    <ResultCardSimple
+                      title="Tutorial Ready"
+                      onClick={() => tutorial.setShowAnswerModal(true)}
+                    />
+                  )}
+
+                  {report.showCard && (
+                    <ResultCardSimple
+                      title="Technical Report Ready"
+                      onClick={() => report.setShowAnswerModal(true)}
+                    />
+                  )}
+
+                  {blog.showCard && (
+                    <ResultCardSimple
+                      title="Blog Post Ready"
+                      onClick={() => blog.setShowAnswerModal(true)}
+                    />
+                  )}
+
+                  {study.showCard && (
+                    <ResultCardSimple
+                      title="Study Guide Ready"
+                      onClick={() => study.setShowAnswerModal(true)}
+                    />
+                  )}
+
+                  {briefing.showCard && (
+                    <ResultCardSimple
+                      title="Briefing Ready"
+                      onClick={() => briefing.setShowAnswerModal(true)}
+                    />
+                  )}
                 </div>
+
+                {mindmapTool.showAnswerModal && (
+                  <AnswerModal tool={mindmapTool} title="Mindmap Result" />
+                )}
+
+                {faq.showAnswerModal && (
+                  <AnswerModal tool={faq} title="FAQ Result" />
+                )}
+
+                {comparative.showAnswerModal && (
+                  <AnswerModal tool={comparative} title="Comparative Result" />
+                )}
+
+                {tutorial.showAnswerModal && (
+                  <AnswerModal tool={tutorial} title="Tutorial" />
+                )}
+
+                {report.showAnswerModal && (
+                  <AnswerModal tool={report} title="Technical Report" />
+                )}
+
+                {blog.showAnswerModal && (
+                  <AnswerModal tool={blog} title="Blog Post" />
+                )}
+
+                {study.showAnswerModal && (
+                  <AnswerModal tool={study} title="Study Guide" />
+                )}
+
+                {briefing.showAnswerModal && (
+                  <AnswerModal tool={briefing} title="Briefing" />
+                )}
               </div>
             </aside>
           </div>
@@ -1116,8 +1214,6 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
           () => setShowStudyModal(false),
           studyLoading
         )}
-
-      <AnswerModal tool={faq} title="FAQ Result" />
     </div>
   );
 }
