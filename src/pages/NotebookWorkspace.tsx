@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from "react";
 import {
-  Link as LinkIcon,
+  LinkIcon,
   Send,
   Scale,
   MessageCircleQuestion,
@@ -119,21 +119,6 @@ function useContentTool(fetcher: () => Promise<any>, splitter: Splitter) {
   };
 }
 
-const SourceItem: React.FC<{ s: Source; onClick: () => void }> = ({
-  s,
-  onClick,
-}) => (
-  <div
-    onClick={onClick}
-    className="flex items-center gap-3 px-4 py-3 bg-[#1A1D24] border border-gray-700/50 rounded-xl hover:bg-[#2A2F37] transition-all duration-200 cursor-pointer shadow-md"
-  >
-    <FileText className="w-5 h-5 text-teal-400 flex-shrink-0" />
-    <span className="text-sm flex-1 font-medium text-gray-100 truncate">
-      {s.title}
-    </span>
-  </div>
-);
-
 const MessageBubble: React.FC<{ m: Message }> = ({ m }) => {
   const isUser = m.role === "user";
 
@@ -226,10 +211,11 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
   const [collapseSources, setCollapseSources] = useState(false);
   const [collapseStudio, setCollapseStudio] = useState(false);
 
+  const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
+
   const [enableMindmap, setEnableMindmap] = useState(false);
   const [mindmapData, setMindmapData] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [pdfModalData, setPdfModalData] = useState(null);
   const loadingTexts = [
     "Thinking…",
     "Analyzing information…",
@@ -238,16 +224,6 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
     "Generating answer…",
   ];
   const [loadingIndex, setLoadingIndex] = useState(0);
-
-  React.useEffect(() => {
-    if (!isLoading) return;
-
-    const interval = setInterval(() => {
-      setLoadingIndex((i) => (i + 1) % loadingTexts.length);
-    }, 1200);
-
-    return () => clearInterval(interval);
-  }, [isLoading]);
 
   const [mindmapReady, setMindmapReady] = useState(false);
   const [showMindmapViewer, setShowMindmapViewer] = useState(false);
@@ -290,8 +266,10 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
   async function fetchLocalPDFs() {
     try {
       const domain = title || "Medical";
+      console.log("[v0] Fetching PDFs for domain:", domain);
 
       const files = await fetchLocalPDFsAPI(domain);
+      console.log("[v0] PDF files loaded:", files.length);
 
       const formatted = files.map((f, i) => ({
         id: `pdf-${i}`,
@@ -302,7 +280,10 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
 
       setSources(formatted);
     } catch (err) {
-      console.error("PDF fetch error:", err);
+      console.error("[v0] PDF fetch error:", err);
+      alert(
+        "Failed to load PDFs. Make sure /data/medical_pdfs.json or /data/ai_testing_sources.json exists."
+      );
     }
   }
 
@@ -321,116 +302,6 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       };
     },
     { splitRegex: /##\s+/g, addPrefix: (t) => "## " + t }
-  );
-
-  const comparative = useContentTool(
-    async () => {
-      const response = await fetchComparativeAnalysisFromAPI(
-        currentDomain,
-        "Comparison Study"
-      );
-      return {
-        content: response.answer,
-        metadata: response.metadata,
-        sources: response.retrieved_context,
-        citations: [],
-        quality_metrics: null,
-      };
-    },
-    { splitRegex: /\n#+\s+/g }
-  );
-
-  const tutorial = useContentTool(
-    async () => {
-      const response = await fetchTutorialFromAPI(
-        currentDomain,
-        "Step by Step Tutorial"
-      );
-      return {
-        content: response.answer,
-        metadata: response.metadata,
-        sources: response.retrieved_context,
-        citations: [],
-        quality_metrics: null,
-      };
-    },
-    { splitRegex: /##\s+/g, addPrefix: (t) => "## " + t }
-  );
-
-  const report = useContentTool(
-    async () => {
-      const response = await fetchTechnicalReportFromAPI(
-        currentDomain,
-        "Detailed Technical Report"
-      );
-      return {
-        content: response.answer,
-        metadata: response.metadata,
-        sources: response.retrieved_context,
-        citations: [],
-        quality_metrics: null,
-      };
-    },
-    { splitRegex: /\n#+\s+/g }
-  );
-
-  const blog = useContentTool(
-    async () => {
-      const response = await fetchBlogPostFromAPI(
-        currentDomain,
-        "Write a Blog Post"
-      );
-      return {
-        content: response.answer,
-        metadata: response.metadata,
-        sources: response.retrieved_context,
-        citations: [],
-        quality_metrics: null,
-      };
-    },
-    { splitRegex: /##\s+/g, addPrefix: (t) => "## " + t }
-  );
-
-  const study = useContentTool(
-    async () => {
-      const response = await fetchStudyGuideFromAPI(
-        currentDomain,
-        "Create Study Guide"
-      );
-      return {
-        content: response.answer,
-        metadata: response.metadata,
-        sources: response.retrieved_context,
-        citations: [],
-        quality_metrics: null,
-      };
-    },
-    { splitRegex: /##\s+/g, addPrefix: (t) => "## " + t }
-  );
-
-  const briefing = useContentTool(
-    async () => {
-      const currentDomain = title || "Medical";
-      const topic = briefingTopic.trim() || "AI developments overview";
-
-      setBriefingLoading(true);
-      try {
-        const response = await fetchBriefingFromAPI(currentDomain, topic);
-        return {
-          content: response.answer,
-          metadata: response.metadata,
-          sources: response.retrieved_context,
-          citations: [],
-          quality_metrics: null,
-        };
-      } finally {
-        setBriefingLoading(false);
-      }
-    },
-    {
-      splitRegex: /##\s+/g,
-      addPrefix: (t) => "## " + t,
-    }
   );
 
   const sendMessage = async () => {
@@ -518,6 +389,230 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
     }
   };
 
+  const handleBriefingGenerate = async () => {
+    if (!briefingTopic.trim()) return;
+    setBriefingLoading(true);
+
+    try {
+      const data = await fetchBriefingFromAPI(briefingTopic);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: data.content || "",
+          sources: data.sources || [],
+          metadata: data.metadata || null,
+        },
+      ]);
+    } catch (err) {
+      console.error("⚠️ Briefing API generation failed:", err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: "⚠️ Failed to generate briefing from API. Check backend logs or ngrok link.",
+          sources: [],
+          metadata: null,
+        },
+      ]);
+    } finally {
+      setBriefingLoading(false);
+      setShowBriefingModal(false);
+    }
+  };
+
+  const handleFAQGenerate = async () => {
+    if (!faqTopic.trim()) return;
+    setFAQLoading(true);
+
+    try {
+      const response = await fetchFAQFromAPI(currentDomain, faqTopic);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: response.answer || "",
+          sources: response.retrieved_context || [],
+          metadata: response.metadata || null,
+        },
+      ]);
+    } catch (err) {
+      console.error("⚠️ FAQ API generation failed:", err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: "⚠️ Failed to generate FAQ from API. Check backend logs or ngrok link.",
+          sources: [],
+          metadata: null,
+        },
+      ]);
+    } finally {
+      setFAQLoading(false);
+      setShowFAQModal(false);
+    }
+  };
+
+  const handleComparativeGenerate = async () => {
+    if (!comparativeTopic.trim()) return;
+    setComparativeLoading(true);
+
+    try {
+      const data = await fetchComparativeAnalysisFromAPI(comparativeTopic);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: data.content || "",
+          sources: data.sources || [],
+          metadata: data.metadata || null,
+        },
+      ]);
+    } catch (err) {
+      console.error("⚠️ Comparative Analysis API generation failed:", err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: "⚠️ Failed to generate comparative analysis from API. Check backend logs or ngrok link.",
+          sources: [],
+          metadata: null,
+        },
+      ]);
+    } finally {
+      setComparativeLoading(false);
+      setShowComparativeModal(false);
+    }
+  };
+
+  const handleTutorialGenerate = async () => {
+    if (!tutorialTopic.trim()) return;
+    setTutorialLoading(true);
+
+    try {
+      const data = await fetchTutorialFromAPI(tutorialTopic);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: data.content || "",
+          sources: data.sources || [],
+          metadata: data.metadata || null,
+        },
+      ]);
+    } catch (err) {
+      console.error("⚠️ Tutorial API generation failed:", err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: "⚠️ Failed to generate tutorial from API. Check backend logs or ngrok link.",
+          sources: [],
+          metadata: null,
+        },
+      ]);
+    } finally {
+      setTutorialLoading(false);
+      setShowTutorialModal(false);
+    }
+  };
+
+  const handleReportGenerate = async () => {
+    if (!reportTopic.trim()) return;
+    setReportLoading(true);
+
+    try {
+      const data = await fetchTechnicalReportFromAPI(reportTopic);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: data.content || "",
+          sources: data.sources || [],
+          metadata: data.metadata || null,
+        },
+      ]);
+    } catch (err) {
+      console.error("⚠️ Technical Report API generation failed:", err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: "⚠️ Failed to generate technical report from API. Check backend logs or ngrok link.",
+          sources: [],
+          metadata: null,
+        },
+      ]);
+    } finally {
+      setReportLoading(false);
+      setShowReportModal(false);
+    }
+  };
+
+  const handleBlogGenerate = async () => {
+    if (!blogTopic.trim()) return;
+    setBlogLoading(true);
+
+    try {
+      const data = await fetchBlogPostFromAPI(blogTopic);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: data.content || "",
+          sources: data.sources || [],
+          metadata: data.metadata || null,
+        },
+      ]);
+    } catch (err) {
+      console.error("⚠️ Blog Post API generation failed:", err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: "⚠️ Failed to generate blog post from API. Check backend logs or ngrok link.",
+          sources: [],
+          metadata: null,
+        },
+      ]);
+    } finally {
+      setBlogLoading(false);
+      setShowBlogModal(false);
+    }
+  };
+
+  const handleStudyGenerate = async () => {
+    if (!studyTopic.trim()) return;
+    setStudyLoading(true);
+
+    try {
+      const data = await fetchStudyGuideFromAPI(studyTopic);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: data.content || "",
+          sources: data.sources || [],
+          metadata: data.metadata || null,
+        },
+      ]);
+    } catch (err) {
+      console.error("⚠️ Study Guide API generation failed:", err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: "⚠️ Failed to generate study guide from API. Check backend logs or ngrok link.",
+          sources: [],
+          metadata: null,
+        },
+      ]);
+    } finally {
+      setStudyLoading(false);
+      setShowStudyModal(false);
+    }
+  };
+
   const renderInputModal = (
     title,
     placeholder,
@@ -545,7 +640,8 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
         <button
           onClick={onGenerate}
           disabled={!topic.trim() || loading}
-          className="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-base font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.01] shadow-lg shadow-teal-900/60"
+          className="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-base font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.01] shadow-lg shadow-teal-900/60 disabled:shadow-none"
+          aria-label="Send Message"
         >
           {loading ? (
             <span className="flex items-center justify-center gap-2">
@@ -565,96 +661,6 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       </div>
     </div>
   );
-  const handleFAQGenerate = async () => {
-    if (!faqTopic.trim()) return;
-    setFAQLoading(true);
-    try {
-      await faq.open();
-      setShowFAQModal(false);
-    } catch (err) {
-      console.error("⚠️ FAQ generation failed:", err);
-    } finally {
-      setFAQLoading(false);
-    }
-  };
-
-  const handleComparativeGenerate = async () => {
-    if (!comparativeTopic.trim()) return;
-    setComparativeLoading(true);
-    try {
-      await comparative.open();
-      setShowComparativeModal(false);
-    } catch (err) {
-      console.error("⚠️ Comparative generation failed:", err);
-    } finally {
-      setComparativeLoading(false);
-    }
-  };
-
-  const handleTutorialGenerate = async () => {
-    if (!tutorialTopic.trim()) return;
-    setTutorialLoading(true);
-    try {
-      await tutorial.open();
-      setShowTutorialModal(false);
-    } catch (err) {
-      console.error("⚠️ Tutorial generation failed:", err);
-    } finally {
-      setTutorialLoading(false);
-    }
-  };
-
-  const handleReportGenerate = async () => {
-    if (!reportTopic.trim()) return;
-    setReportLoading(true);
-    try {
-      await report.open();
-      setShowReportModal(false);
-    } catch (err) {
-      console.error("⚠️ Report generation failed:", err);
-    } finally {
-      setReportLoading(false);
-    }
-  };
-
-  const handleBlogGenerate = async () => {
-    if (!blogTopic.trim()) return;
-    setBlogLoading(true);
-    try {
-      await blog.open();
-      setShowBlogModal(false);
-    } catch (err) {
-      console.error("⚠️ Blog generation failed:", err);
-    } finally {
-      setBlogLoading(false);
-    }
-  };
-
-  const handleStudyGenerate = async () => {
-    if (!studyTopic.trim()) return;
-    setStudyLoading(true);
-    try {
-      await study.open();
-      setShowStudyModal(false);
-    } catch (err) {
-      console.error("⚠️ Study generation failed:", err);
-    } finally {
-      setStudyLoading(false);
-    }
-  };
-
-  const handleBriefingGenerate = async () => {
-    if (!briefingTopic.trim()) return;
-    setBriefingLoading(true);
-    try {
-      await briefing.open();
-      setShowBriefingModal(false);
-    } catch (err) {
-      console.error("⚠️ Briefing generation failed:", err);
-    } finally {
-      setBriefingLoading(false);
-    }
-  };
 
   return (
     <div className="h-screen w-screen bg-[#0E1116] text-white flex flex-col">
@@ -682,38 +688,93 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
         {!collapseSources && (
           <div className="flex-shrink-0 border-r border-gray-700/50 overflow-hidden">
             <aside className="h-full p-6 flex flex-col gap-5 bg-[#14171C]">
-              <div className="flex justify-between items-center">
-                <h2>Sources ({sources.length})</h2>
-                <button onClick={() => setCollapseSources(true)}>
-                  <ChevronLeft />
-                </button>
-              </div>
-
-              <button
-                onClick={fetchLocalPDFs}
-                className="w-full py-2 mb-3 bg-teal-600 text-white rounded-xl hover:bg-teal-500 transition"
-              >
-                Fetch PDFs
-              </button>
-
-              <div className="flex-1 bg-[#1A1D24] border border-gray-700/50 rounded-2xl p-4 space-y-4 overflow-y-auto shadow-inner shadow-black/40">
-                {sources.length === 0 ? (
-                  <div className="text-center text-gray-500 text-sm py-8">
-                    Start a conversation to automatically ingest and list
-                    relevant sources here.
+              {selectedSourceId === null ? (
+                <>
+                  <div className="flex justify-between items-center">
+                    <h2>Sources ({sources.length})</h2>
+                    <button onClick={() => setCollapseSources(true)}>
+                      <ChevronLeft />
+                    </button>
                   </div>
-                ) : (
-                  sources.map((s) => (
-                    <SourceItem
-                      key={s.id}
-                      s={s}
-                      onClick={() => {
-                        setPdfModalData(s);
-                      }}
-                    />
-                  ))
-                )}
-              </div>
+
+                  <button
+                    onClick={fetchLocalPDFs}
+                    className="w-full py-2 mb-3 bg-teal-600 text-white rounded-xl hover:bg-teal-500 transition"
+                  >
+                    Fetch PDFs
+                  </button>
+
+                  <div className="flex-1 bg-[#1A1D24] border border-gray-700/50 rounded-2xl p-4 space-y-4 overflow-y-auto shadow-inner shadow-black/40">
+                    {sources.length === 0 ? (
+                      <div className="text-center text-gray-500 text-sm py-8">
+                        Start a conversation to automatically ingest and list
+                        relevant sources here.
+                      </div>
+                    ) : (
+                      sources.map((s) => (
+                        <div
+                          key={s.id}
+                          onClick={() => setSelectedSourceId(s.id)}
+                          className="flex items-center gap-3 px-4 py-3 bg-[#1A1D24] border border-gray-700/50 rounded-xl hover:bg-[#2A2F37] transition-all duration-200 cursor-pointer shadow-md"
+                        >
+                          <FileText className="w-5 h-5 text-teal-400 flex-shrink-0" />
+                          <span className="text-sm flex-1 font-medium text-gray-100 truncate">
+                            {s.title}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between items-center">
+                    <button
+                      onClick={() => setSelectedSourceId(null)}
+                      className="p-2 rounded-lg hover:bg-[#2A2F37] transition flex items-center gap-2 text-teal-400"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                      <span className="text-sm font-medium">Back</span>
+                    </button>
+                    <button onClick={() => setCollapseSources(true)}>
+                      <ChevronLeft />
+                    </button>
+                  </div>
+
+                  <div className="flex-1 bg-[#1A1D24] border border-gray-700/50 rounded-2xl p-4 overflow-y-auto shadow-inner shadow-black/40">
+                    {sources.map((s) =>
+                      s.id === selectedSourceId ? (
+                        <div key={s.id} className="space-y-4">
+                          <h2 className="text-lg font-bold text-teal-400 border-b border-gray-700/50 pb-3">
+                            {s.title}
+                          </h2>
+
+                          <div
+                            className="
+                              prose prose-invert 
+                              max-w-none 
+                              text-gray-300 text-sm 
+                              leading-relaxed 
+                              space-y-4                       
+                              prose-headings:mt-6             
+                              prose-headings:mb-3             
+                              prose-headings:text-teal-400 
+                              prose-headings:font-bold 
+                              prose-p:my-3                    
+                              prose-strong:text-white 
+                              prose-li:marker:text-teal-400
+                            "
+                          >
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {s.source_guide || "No content available."}
+                            </ReactMarkdown>
+                          </div>
+                        </div>
+                      ) : null
+                    )}
+                  </div>
+                </>
+              )}
             </aside>
           </div>
         )}
@@ -736,19 +797,6 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
                 (Context: Medical.json)
               </span>
             </p>
-            <div className="flex items-center gap-3">
-              {/* <span className="text-xs text-gray-400">Mindmap Mode</span> */}
-              {/* <label className="relative inline-flex cursor-pointer group">
-                <input
-                  type="checkbox"
-                  className="sr-only"
-                  checked={enableMindmap}
-                  onChange={() => setEnableMindmap(!enableMindmap)}
-                />
-                <div className="w-10 h-5 bg-gray-600 rounded-full peer peer-checked:bg-teal-600 transition-colors group-hover:ring-1 ring-teal-500/50"></div>
-                <span className="absolute left-1 top-1 w-3.5 h-3.5 bg-white rounded-full peer-checked:translate-x-5 transition-transform shadow-md"></span>
-              </label> */}
-            </div>
           </div>
 
           <div
@@ -888,48 +936,6 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
                     <ResultCardSimple
                       title="FAQ Results Ready"
                       onClick={() => faq.setShowAnswerModal(true)}
-                    />
-                  )}
-                  {comparative.showCard && (
-                    <ResultCardSimple
-                      title="Comparative Insights Ready"
-                      onClick={() => comparative.setShowAnswerModal(true)}
-                    />
-                  )}
-                  {tutorial.showCard && (
-                    <ResultCardSimple
-                      title="Tutorial Result Ready"
-                      onClick={() => tutorial.setShowAnswerModal(true)}
-                    />
-                  )}
-                  {report.showCard && (
-                    <ResultCardSimple
-                      title="Technical Report Ready"
-                      onClick={() => report.setShowAnswerModal(true)}
-                    />
-                  )}
-                  {blog.showCard && (
-                    <ResultCardSimple
-                      title="Blog Content Ready"
-                      onClick={() => blog.setShowAnswerModal(true)}
-                    />
-                  )}
-                  {study.showCard && (
-                    <ResultCardSimple
-                      title="Study Guide Ready"
-                      onClick={() => study.setShowAnswerModal(true)}
-                    />
-                  )}
-                  {briefing.showCard && (
-                    <ResultCardSimple
-                      title="Briefing Ready"
-                      onClick={() => briefing.setShowAnswerModal(true)}
-                    />
-                  )}
-                  {mindmapReady && (
-                    <ResultCardSimple
-                      title="Mindmap Ready"
-                      onClick={() => setShowMindmapViewer(true)}
                     />
                   )}
                 </div>
@@ -1110,51 +1116,8 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
           () => setShowStudyModal(false),
           studyLoading
         )}
-      {pdfModalData && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center items-center p-6">
-          <div className="w-[700px] max-h-[80vh] overflow-y-auto bg-[#10141A] rounded-2xl p-6 border border-teal-600/30 shadow-xl relative">
-            <button
-              onClick={() => setPdfModalData(null)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white text-xl"
-            >
-              ✕
-            </button>
-
-            <h2 className="text-2xl font-bold text-teal-400 mb-4">
-              {pdfModalData.title}
-            </h2>
-
-            <div
-              className="
-    prose prose-invert 
-    max-w-none 
-    text-gray-300 text-sm 
-    leading-relaxed 
-    space-y-4                       
-    prose-headings:mt-6             
-    prose-headings:mb-3             
-    prose-headings:text-teal-400 
-    prose-headings:font-bold 
-    prose-p:my-3                    
-    prose-strong:text-white 
-    prose-li:marker:text-teal-400
-  "
-            >
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {pdfModalData.source_guide}
-              </ReactMarkdown>
-            </div>
-          </div>
-        </div>
-      )}
 
       <AnswerModal tool={faq} title="FAQ Result" />
-      <AnswerModal tool={comparative} title="Comparison Result" />
-      <AnswerModal tool={tutorial} title="Tutorial Result" />
-      <AnswerModal tool={report} title="Technical Report Result" />
-      <AnswerModal tool={blog} title="Blog Result" />
-      <AnswerModal tool={study} title="Study Guide Result" />
-      <AnswerModal tool={briefing} title="Briefing Result" />
     </div>
   );
 }

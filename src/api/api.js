@@ -42,7 +42,34 @@ function formatResponse(data, fallbackDomain) {
     mindmap: data.mindmap ?? null,
   };
 }
-export async function fetchChatResponse(query) {
+// export async function fetchChatResponse(query) {
+//   const body = {
+//     query,
+//     use_crag: false,
+//     agent_type: "react",
+//     include_steps: true,
+//   };
+
+//   const data = await apiPost("/rag/api/rag/chat-query", body, "Chat Query");
+
+//   return {
+//     answer:
+//       data.final_answer ??
+//       data.answer ??
+//       data.final_decision ??
+//       data.final_decision_text ??
+//       data.report ??
+//       data.summary ??
+//       JSON.stringify(data, null, 2),
+//     steps: data.agent_steps ?? [],
+//     evaluation: data.evaluation_metrics ?? {},
+//     metadata: data.metadata ?? {},
+//     agent_type: data.agent_type ?? "react",
+//     user_query: query,
+//   };
+// }
+
+export async function fetchExplainabilityChatResponse(query) {
   const body = {
     query,
     use_crag: false,
@@ -50,33 +77,15 @@ export async function fetchChatResponse(query) {
     include_steps: true,
   };
 
-  const data = await apiPost("/rag/api/rag/chat-query", body, "Chat Query");
+  const data = await apiPost(
+    "/rag/api/rag/chat-query-with-explainability",
+    body,
+    "Explainability Chat"
+  );
 
-  return {
-    answer:
-      data.final_answer ??
-      data.answer ??
-      data.final_decision ??
-      data.final_decision_text ??
-      data.report ??
-      data.summary ??
-      JSON.stringify(data, null, 2),
-    steps: data.agent_steps ?? [],
-    evaluation: data.evaluation_metrics ?? {},
-    metadata: data.metadata ?? {},
-    agent_type: data.agent_type ?? "react",
-    user_query: query,
-  };
-}
-
-export async function fetchExplainabilityChatResponse(query) {
-  const route = `/rag/api/rag/chat-query-with-explainability?query=${encodeURIComponent(
-    query
-  )}&agent_type=react&include_steps=true&use_crag=false`;
-
-  const data = await apiPost(route, null, "Explainability Chat");
   return { ...data, user_query: query };
 }
+
 export const fetchDomains = () =>
   apiGet("/rag/api/rag/domains", "Fetch Domains");
 
@@ -106,18 +115,11 @@ export async function fetchNotebookAnswerFromAPI(domain, question) {
   };
 }
 export async function fetchDeepResearchResponse(query) {
-  const body = {
-    query: query,
-    agent_type: "deep_research",
-    include_steps: true,
-    use_crag: false,
-  };
+  const url = `/rag/api/rag/deep-research?query=${encodeURIComponent(
+    query
+  )}&agent_type=deep_research&include_steps=true&use_crag=false`;
 
-  const data = await apiPost(
-    "/rag/api/rag/deep-research",
-    body,
-    "Deep Research"
-  );
+  const data = await apiPost(url, null, "Deep Research");
 
   return {
     answer:
@@ -227,57 +229,29 @@ export async function fetchDeepResearchExplainabilityResponse(query) {
   return { ...data, user_query: query };
 }
 
-// const BASE_URL = "https://123ae95f82ef.ngrok-free.app";
-// export async function fetchChatResponse(query) {
-//   try {
-//     console.log("📤 Sending query to backend:", query);
+export async function fetchChatResponse(query) {
+  const url = `/rag/api/rag/chat-query?query=${encodeURIComponent(
+    query
+  )}&use_crag=false&agent_type=react&include_steps=true`;
 
-//     const url = `${BASE_URL}/rag/api/rag/chat-query`;
+  const data = await apiPost(url, null, "Chat Query");
 
-//     const response = await fetch(url, {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//         Accept: "application/json",
-//         "ngrok-skip-browser-warning": "true",
-//       },
-//       body: JSON.stringify({
-//         query,
-//         use_crag: false,
-//         agent_type: "react",
-//         include_steps: true,
-//       }),
-//     });
-
-//     if (!response.ok) {
-//       const errorText = await response.text();
-//       console.error("❌ HTTP Error:", errorText);
-//       throw new Error(`Request failed with status ${response.status}`);
-//     }
-
-//     const data = await response.json();
-//     console.log("✅ Raw Chat API Response:", data);
-
-//     return {
-//       answer:
-//         data.final_answer ??
-//         data.answer ??
-//         data.final_decision ??
-//         data.final_decision_text ??
-//         data.report ??
-//         data.summary ??
-//         JSON.stringify(data, null, 2),
-//       steps: data.agent_steps ?? [],
-//       evaluation: data.evaluation_metrics ?? {},
-//       metadata: data.metadata ?? {},
-//       agent_type: data.agent_type ?? "react",
-//       user_query: query,
-//     };
-//   } catch (error) {
-//     console.error("🚨 fetchChatResponse Error:", error);
-//     throw error;
-//   }
-// }
+  return {
+    answer:
+      data.final_answer ??
+      data.answer ??
+      data.final_decision ??
+      data.final_decision_text ??
+      data.report ??
+      data.summary ??
+      "No answer.",
+    steps: data.agent_steps ?? [],
+    evaluation: data.evaluation_metrics ?? {},
+    metadata: data.metadata ?? {},
+    agent_type: data.agent_type ?? "react",
+    user_query: query,
+  };
+}
 
 // export async function fetchExplainabilityChatResponse(query) {
 //   try {

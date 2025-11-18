@@ -12,6 +12,7 @@ export default function RAGPipelineUI({ goToNotebook }) {
   const [activeTab, setActiveTab] = useState("chat");
   const [agentType, setAgentType] = useState("react");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedQuestion, setSelectedQuestion] = useState<number | null>(null);
 
   useEffect(() => {
     const handleResize = () => {
@@ -43,7 +44,12 @@ export default function RAGPipelineUI({ goToNotebook }) {
               ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
             `}
           >
-            <Sidebar agentType={agentType} setAgentType={setAgentType} />
+            <Sidebar
+              agentType={agentType}
+              setAgentType={setAgentType}
+              selectedQuestion={selectedQuestion}
+              setSelectedQuestion={setSelectedQuestion}
+            />
           </div>
 
           {sidebarOpen && (
@@ -68,7 +74,9 @@ export default function RAGPipelineUI({ goToNotebook }) {
                   agentType={agentType}
                 />
               )}
-              {activeTab === "safety" && <SafetyGuardView />}
+              {activeTab === "safety" && (
+                <SafetyGuardView selectedQuestion={selectedQuestion} />
+              )}
             </div>
           </div>
         </div>
