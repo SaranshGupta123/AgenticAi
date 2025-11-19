@@ -1199,7 +1199,10 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       </div>
 
       {showMindmapViewer && mindmapData && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm overflow-auto p-4">
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm overflow-hidden p-4"
+          onWheel={(e) => e.preventDefault()}
+        >
           <div className="w-[95vw] h-[95vh] bg-[#14171C] border border-gray-600/30 rounded-2xl relative p-5 flex flex-col mx-auto shadow-2xl shadow-black/60/50">
             <h3 className="text-xl font-bold text-white mb-4 border-b border-gray-700/50 pb-2">
               Mind Map Viewer
@@ -1212,7 +1215,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
               ✕
             </button>
 
-            <div className="flex-1 h-full overflow-y-auto rounded-xl bg-[#1A1D24]">
+            <div className="flex-1 h-full overflow-hidden rounded-xl bg-[#1A1D24]">
               <MindmapNotebookLM data={mindmapData} />
             </div>
           </div>

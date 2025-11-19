@@ -58,22 +58,30 @@ type MindmapData = {
 };
 
 const BASE_COLORS = [
-  { r: 25, g: 45, b: 80 },
-  { r: 20, g: 65, b: 50 },
-  { r: 45, g: 40, b: 70 },
+  { r: 30, g: 45, b: 75 },
+  { r: 35, g: 60, b: 50 },
+  { r: 55, g: 45, b: 70 },
 ];
+
+function lighten(base, amount) {
+  return {
+    r: Math.min(base.r + amount, 140),
+    g: Math.min(base.g + amount, 140),
+    b: Math.min(base.b + amount, 140),
+  };
+}
+
 function getColorForNode(node: MindmapNode) {
-  const base = BASE_COLORS[node.level % 3];
-  const hash = Array.from(node.id).reduce((a, c) => a + c.charCodeAt(0), 0);
-  const offset = (hash % 40) - 20;
-  const depthDarken = node.level * 5;
-  let r = base.r + offset - depthDarken;
-  let g = base.g + offset - depthDarken;
-  let b = base.b + offset - depthDarken;
-  r = Math.max(10, Math.min(80, r));
-  g = Math.max(10, Math.min(80, g));
-  b = Math.max(10, Math.min(80, b));
-  return `rgb(${r}, ${g}, ${b})`;
+  const branchIndex =
+    node.level === 0 ? 0 : node.id.charCodeAt(0) % BASE_COLORS.length;
+
+  const base = BASE_COLORS[branchIndex];
+
+  const lightAmount = node.level * 18;
+
+  const final = lighten(base, lightAmount);
+
+  return `rgb(${final.r}, ${final.g}, ${final.b})`;
 }
 
 function buildTree(data: MindmapData): MindmapNode | null {
@@ -323,6 +331,7 @@ export default function MindmapNotebookLM() {
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
     const delta = e.deltaY > 0 ? -0.05 : 0.05;
     setZoom((prev) => Math.max(0.1, Math.min(3, prev + delta)));
   };
@@ -558,8 +567,14 @@ export default function MindmapNotebookLM() {
         <div
           className="bg-[#1E2228] border border-white/10 rounded-2xl p-6 shadow-2xl h-[80vh] relative overflow-hidden"
           onWheel={handleWheel}
-          onMouseEnter={() => (document.body.style.overflow = "hidden")}
-          onMouseLeave={() => (document.body.style.overflow = "auto")}
+          onMouseEnter={() => {
+            document.body.style.overflow = "hidden";
+            document.documentElement.style.overflow = "hidden";
+          }}
+          onMouseLeave={() => {
+            document.body.style.overflow = "auto";
+            document.documentElement.style.overflow = "auto";
+          }}
         >
           <h3 className="text-xl font-bold text-gray-200 mb-4 border-b border-white/10 pb-2">
             Interactive Graph View
