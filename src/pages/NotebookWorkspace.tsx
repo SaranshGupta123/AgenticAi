@@ -899,15 +899,13 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
             />
           </>
         )}
-
         {collapseSources && (
-          <button
+          <div
             onClick={() => setCollapseSources(false)}
-            className="w-full h-full border-r border-gray-700/50 flex justify-center items-center hover:bg-[#1D222A] transition-colors duration-200"
-            aria-label="Expand Sources"
+            className="flex-shrink-0 w-10 bg-[#14171C] border-r border-gray-700/50 flex justify-center items-center cursor-pointer hover:bg-[#1D222A]"
           >
             <ChevronRight className="w-5 h-5 text-gray-400" />
-          </button>
+          </div>
         )}
         <section className="flex-1 h-full min-h-0 border-r border-gray-700/50 p-6 flex flex-col gap-4 bg-[#10141A]">
           <div className="flex items-center justify-between border-b border-gray-700/50 pb-3">
@@ -1175,13 +1173,12 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
         )}
 
         {collapseStudio && (
-          <button
+          <div
             onClick={() => setCollapseStudio(false)}
-            className="w-full h-full flex justify-center items-center border-l border-gray-700/50 hover:bg-[#1D222A] transition-colors duration-200"
-            aria-label="Expand Studio"
+            className="flex-shrink-0 w-10 bg-[#14171C] border-l border-gray-700/50 flex justify-center items-center cursor-pointer hover:bg-[#1D222A]"
           >
             <ChevronLeft className="w-5 h-5 text-gray-400" />
-          </button>
+          </div>
         )}
       </div>
 

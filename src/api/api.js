@@ -10,7 +10,7 @@ async function apiRequest(method, route, body = null, type = "API") {
     const res = await fetch(`${BASE_URL}${route}`, {
       method,
       headers: defaultHeaders,
-      body: body ? JSON.stringify(body) : undefined,
+      body: JSON.stringify(body ?? {}),
     });
 
     if (!res.ok) {
@@ -229,35 +229,39 @@ export async function fetchDeepResearchExplainabilityResponse(query) {
 }
 
 export async function fetchChatResponse(query) {
-  const body = {
-    query: query,
-    use_crag: false,
-    agent_type: "react",
-    include_steps: true,
-  };
+  const url =
+    `/rag/api/rag/chat-query?` +
+    `query=${encodeURIComponent(query)}` +
+    `&agent_type=react` +
+    `&include_steps=true` +
+    `&use_crag=false`;
 
-  const data = await apiPost("/rag/api/rag/chat-query", body, "Chat Query");
+  console.log("🔥 FINAL URL:", BASE_URL + url);
 
+  const response = await fetch(BASE_URL + url, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "ngrok-skip-browser-warning": "true",
+    },
+    body: null,
+  });
+
+  if (!response.ok) {
+    const errorTxt = await response.text();
+    console.error("Chat Query Error:", errorTxt);
+    throw new Error(`Chat Query failed (${response.status})`);
+  }
+
+  const data = await response.json();
   return {
-    answer:
-      data.final_answer ??
-      data.answer ??
-      data.final_decision ??
-      data.final_decision_text ??
-      data.report ??
-      data.summary ??
-      "No answer.",
+    answer: data.final_answer ?? data.answer ?? "No answer",
     steps: data.agent_steps ?? [],
-    evaluation: data.evaluation_metrics ?? {},
     metadata: data.metadata ?? {},
+    evaluation: data.evaluation_metrics ?? {},
+    safety_check: data.safety_check ?? {},
     agent_type: data.agent_type ?? "react",
     user_query: query,
-    safety_check: data.safety_check ?? {
-      threat_level: "low",
-      violation_type: "none",
-      confidence_score: 0.0,
-      explanation: "No issue detected.",
-    },
   };
 }
 
