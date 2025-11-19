@@ -50,7 +50,18 @@ export function AnswerModal({ tool, title }: any) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="w-[700px] max-h-[90vh] flex flex-col bg-[#14171C] rounded-2xl border border-blue-500/20 shadow-2xl shadow-black/60 p-6 relative backdrop-blur-md">
+      <div
+        className={`
+    ${
+      title.toLowerCase().includes("mindmap")
+        ? "w-[90vw] max-w-[1400px]"
+        : "w-[700px]"
+    }
+    max-h-[90vh] flex flex-col bg-[#14171C] rounded-2xl 
+    border border-blue-500/20 shadow-2xl shadow-black/60 
+    p-6 relative backdrop-blur-md
+  `}
+      >
         <button
           onClick={() => tool.setShowAnswerModal(false)}
           className="absolute top-4 right-4 text-2xl text-gray-300 hover:text-red-400 p-1 rounded-full transition"
@@ -76,16 +87,55 @@ export function AnswerModal({ tool, title }: any) {
   );
 }
 
-export function ToolCard({ icon: Icon, label, onClick }: any) {
+export function ToolCard({
+  icon: Icon,
+  label,
+  onClick,
+  style = {},
+  className = "",
+}) {
   return (
     <button
       onClick={onClick}
-      className="rounded-2xl bg-[#1A1D22]/70 backdrop-blur-sm border border-gray-700/50
-      hover:border-blue-500/70 hover:bg-[#252A33]
-      px-4 py-6 text-white text-center flex flex-col items-center justify-center space-y-2 transition-all duration-300 hover:scale-[1.03] shadow-lg hover:shadow-blue-900/40"
+      style={style}
+      className={`
+        group
+        rounded-2xl backdrop-blur-md 
+        border border-white/10 
+        px-4 py-6 text-white
+        flex flex-col items-center justify-center space-y-2
+        cursor-pointer select-none 
+        transition-all duration-300
+        shadow-[0_0_18px_rgba(0,0,0,0.5)]
+        hover:shadow-[0_0_30px_rgba(0,0,0,0.65)]
+        hover:scale-[1.07] hover:-translate-y-1
+        active:scale-95
+        ${className}
+      `}
     >
-      <Icon size={28} className="text-blue-500" />
-      <span className="text-sm font-semibold">{label}</span>
+      <div
+        className="
+          p-3 rounded-full 
+          bg-black/40 border border-white/10 
+          flex items-center justify-center
+          transition-all duration-300
+          group-hover:scale-125 group-hover:bg-black/60
+          group-hover:shadow-[0_0_18px_rgba(255,255,255,0.18)]
+        "
+      >
+        <Icon
+          className="
+            w-8 h-8 text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.35)]
+            transition-all duration-300
+            group-hover:rotate-[12deg]
+            group-hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.6)]
+          "
+        />
+      </div>
+
+      <span className="text-sm font-semibold tracking-wide text-gray-200">
+        {label}
+      </span>
     </button>
   );
 }

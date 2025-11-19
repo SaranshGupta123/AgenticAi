@@ -17,12 +17,12 @@ export default function NotebookHome({ goBack, openNotebook }) {
   const [alertMsg, setAlertMsg] = useState<string | null>(null);
 
   const CARD_COLORS = [
-    "#0B0C10", // Matte Black
-    "#16213E", // Dark Navy Blue
-    "#2A0F36", // Deep Plum Purple
-    "#1F2421", // Smoky Charcoal Grey
-    "#2C1A47", // Royal Violet
-    "#112D32", // Forest Night Green (dark, subtle)
+    "#0B0C10",
+    "#16213E",
+    "#2A0F36",
+    "#1F2421",
+    "#2C1A47",
+    "#112D32",
   ];
 
   const CARD_ICONS = [BookOpen, FileText, BookMarked, NotebookPen, FolderTree];
@@ -120,7 +120,6 @@ export default function NotebookHome({ goBack, openNotebook }) {
         </div>
 
         <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-          {/* Demo Notebook */}
           <div
             onClick={() => openNotebook("Demo Notebook")}
             className="h-48 bg-[#0D1117] border border-[#1F242C] rounded-2xl p-5 cursor-pointer
@@ -139,7 +138,6 @@ export default function NotebookHome({ goBack, openNotebook }) {
             </p>
           </div>
 
-          {/* Dynamic Notebook Cards */}
           {domains.length > 0 &&
             domains.map((domain, index) => {
               const Icon = CARD_ICONS[index % CARD_ICONS.length];

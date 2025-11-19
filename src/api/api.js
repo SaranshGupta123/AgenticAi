@@ -115,11 +115,18 @@ export async function fetchNotebookAnswerFromAPI(domain, question) {
   };
 }
 export async function fetchDeepResearchResponse(query) {
-  const url = `/rag/api/rag/deep-research?query=${encodeURIComponent(
-    query
-  )}&agent_type=deep_research&include_steps=true&use_crag=false`;
+  const body = {
+    query: query,
+    use_crag: false,
+    agent_type: "deep_research",
+    include_steps: true,
+  };
 
-  const data = await apiPost(url, null, "Deep Research");
+  const data = await apiPost(
+    "/rag/api/rag/deep-research",
+    body,
+    "Deep Research"
+  );
 
   return {
     answer:
@@ -230,11 +237,14 @@ export async function fetchDeepResearchExplainabilityResponse(query) {
 }
 
 export async function fetchChatResponse(query) {
-  const url = `/rag/api/rag/chat-query?query=${encodeURIComponent(
-    query
-  )}&use_crag=false&agent_type=react&include_steps=true`;
+  const body = {
+    query: query,
+    use_crag: false,
+    agent_type: "react",
+    include_steps: true,
+  };
 
-  const data = await apiPost(url, null, "Chat Query");
+  const data = await apiPost("/rag/api/rag/chat-query", body, "Chat Query");
 
   return {
     answer:
@@ -250,6 +260,12 @@ export async function fetchChatResponse(query) {
     metadata: data.metadata ?? {},
     agent_type: data.agent_type ?? "react",
     user_query: query,
+    safety_check: data.safety_check ?? {
+      threat_level: "low",
+      violation_type: "none",
+      confidence_score: 0.0,
+      explanation: "No issue detected.",
+    },
   };
 }
 

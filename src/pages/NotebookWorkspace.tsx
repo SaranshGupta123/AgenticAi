@@ -124,8 +124,8 @@ const MessageBubble: React.FC<{ m: Message }> = ({ m }) => {
   const isUser = m.role === "user";
 
   const bubbleClasses = isUser
-    ? "bg-teal-600 text-white rounded-2xl shadow-xl shadow-teal-900/50"
-    : "bg-[#1D222A] text-gray-200 border border-teal-600/30 rounded-2xl shadow-xl shadow-black/30";
+    ? "bg-gray-700 text-white rounded-2xl shadow-xl shadow-black/60/50"
+    : "bg-[#1D222A] text-gray-200 border border-gray-700/30 rounded-2xl shadow-xl shadow-black/30";
 
   return (
     <div key={m.text} className="w-full flex justify-center">
@@ -145,7 +145,7 @@ const MessageBubble: React.FC<{ m: Message }> = ({ m }) => {
         {!isUser && m.sources?.length > 0 && (
           <div className="max-w-[780px] w-full bg-[#1A1D24] border border-teal-700/20 rounded-xl p-3 space-y-2 text-xs shadow-lg shadow-black/20">
             <p className="text-gray-400 font-semibold mb-2 border-b border-gray-700/50 pb-1 flex items-center gap-2">
-              <FileText className="w-3.5 h-3.5 text-teal-400" />
+              <FileText className="w-3.5 h-3.5 text-gray-300" />
               Sources Used
             </p>
             {m.sources.map((src, idx) => (
@@ -158,7 +158,7 @@ const MessageBubble: React.FC<{ m: Message }> = ({ m }) => {
                     <a
                       href={src.href}
                       target="_blank"
-                      className="text-teal-400 underline hover:text-teal-300"
+                      className="text-gray-300 underline hover:text-teal-300"
                     >
                       {src.source}
                     </a>
@@ -174,7 +174,7 @@ const MessageBubble: React.FC<{ m: Message }> = ({ m }) => {
                 </p>
 
                 {src.content_snippet && (
-                  <div className="pl-3 border-l-2 border-teal-500/70 mt-2">
+                  <div className="pl-3 border-l-2 border-gray-600/70 mt-2">
                     <p className="italic text-gray-400 text-xs leading-relaxed">
                       "{src.content_snippet}"
                     </p>
@@ -204,7 +204,66 @@ const MessageBubble: React.FC<{ m: Message }> = ({ m }) => {
 
 type Props = { goBack: () => void; title?: string };
 
+const AnimatedSourceGuide: React.FC<{ source: Source; onBack: () => void }> = ({
+  source,
+  onBack,
+}) => {
+  const [scrollProgress, setScrollProgress] = React.useState(0);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const handleScroll = () => {
+      const progress =
+        (el.scrollTop / (el.scrollHeight - el.clientHeight)) * 100;
+      setScrollProgress(progress || 0);
+    };
+
+    el.addEventListener("scroll", handleScroll);
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <div className="space-y-4 h-full flex flex-col">
+      <button
+        onClick={onBack}
+        className="text-gray-300 hover:text-white flex items-center gap-2 mb-3"
+      >
+        <ChevronLeft /> Back
+      </button>
+
+      <div className="h-1 w-full bg-gray-700/40 rounded overflow-hidden">
+        <div
+          className="h-full bg-teal-500 transition-all"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
+
+      <div
+        ref={containerRef}
+        className="flex-1 overflow-y-auto bg-[#1A1D24] border border-gray-700/50 rounded-2xl p-4 prose prose-invert"
+      >
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          {(source as any).source_guide || "No content available."}
+        </ReactMarkdown>
+      </div>
+    </div>
+  );
+};
+
 export default function NotebookWorkspace({ goBack, title }: Props) {
+  const STUDIO_CARD_COLORS = [
+    "rgba(255, 87, 87, 0.35)",
+    "rgba(255, 140, 66, 0.35)",
+    "rgba(255, 220, 90, 0.35)",
+    "rgba(78, 205, 113, 0.35)",
+    "rgba(66, 135, 245, 0.35)",
+    "rgba(138, 97, 225, 0.35)",
+    "rgba(240, 98, 146, 0.35)",
+    "rgba(32, 201, 180, 0.35)",
+  ];
   const [sources, setSources] = useState<Source[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -259,11 +318,24 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
   const [studyTopic, setStudyTopic] = useState("");
   const [studyLoading, setStudyLoading] = useState(false);
 
+  const [leftWidth, setLeftWidth] = useState(320);
+  const [rightWidth, setRightWidth] = useState(360);
+
+  const [draggingLeft, setDraggingLeft] = useState(false);
+  const [draggingRight, setDraggingRight] = useState(false);
+
+  const MIN_LEFT = 250;
+  const MAX_LEFT = 900;
+
+  const MIN_RIGHT = 250;
+  const MAX_RIGHT = 900;
+
   const currentDomain = title || "Medical";
   const DOMAIN_FILE_MAP = {
     Medical: "medical_pdfs.json",
     "AI Testing": "ai_testing_sources.json",
   };
+
   async function fetchLocalPDFs() {
     try {
       const domain = title || "Medical";
@@ -640,8 +712,8 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
     loading
   ) => (
     <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-md">
-      <div className="bg-[#10141A] border border-teal-500/30 rounded-2xl p-8 w-[450px] space-y-5 shadow-2xl shadow-teal-900/40">
-        <h3 className="text-2xl text-teal-400 font-bold border-b border-gray-700/50 pb-3">
+      <div className="bg-[#10141A] border border-gray-600/30 rounded-2xl p-8 w-[450px] space-y-5 shadow-2xl shadow-black/60/40">
+        <h3 className="text-2xl text-gray-300 font-bold border-b border-gray-700/50 pb-3">
           {title}
         </h3>
         <p className="text-sm text-gray-400">
@@ -657,7 +729,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
         <button
           onClick={onGenerate}
           disabled={!topic.trim() || loading}
-          className="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-base font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.01] shadow-lg shadow-teal-900/60 disabled:shadow-none"
+          className="w-full py-3 rounded-xl bg-gray-700 hover:bg-gray-600 text-base font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.01] shadow-lg shadow-black/60/60 disabled:shadow-none"
           aria-label="Send Message"
         >
           {loading ? (
@@ -679,121 +751,153 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
     </div>
   );
 
+  const handleLeftResize = useCallback(
+    (e: MouseEvent) => {
+      if (!draggingLeft) return;
+      const newWidth = Math.min(Math.max(e.clientX, MIN_LEFT), MAX_LEFT);
+      setLeftWidth(newWidth);
+    },
+    [draggingLeft]
+  );
+
+  const handleRightResize = useCallback(
+    (e: MouseEvent) => {
+      if (!draggingRight) return;
+      const newWidth = Math.min(
+        Math.max(window.innerWidth - e.clientX, MIN_RIGHT),
+        MAX_RIGHT
+      );
+      setRightWidth(newWidth);
+    },
+    [draggingRight]
+  );
+  const stopDragging = useCallback(() => {
+    setDraggingLeft(false);
+    setDraggingRight(false);
+  }, []);
+
+  React.useEffect(() => {
+    if (draggingLeft || draggingRight) {
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+    } else {
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    }
+
+    window.addEventListener("mousemove", handleLeftResize);
+    window.addEventListener("mousemove", handleRightResize);
+    window.addEventListener("mouseup", stopDragging);
+
+    return () => {
+      window.removeEventListener("mousemove", handleLeftResize);
+      window.removeEventListener("mousemove", handleRightResize);
+      window.removeEventListener("mouseup", stopDragging);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+  }, [
+    draggingLeft,
+    draggingRight,
+    handleLeftResize,
+    handleRightResize,
+    stopDragging,
+  ]);
+
+  React.useEffect(() => {
+    window.addEventListener("mousemove", handleLeftResize);
+    window.addEventListener("mousemove", handleRightResize);
+    window.addEventListener("mouseup", stopDragging);
+
+    return () => {
+      window.removeEventListener("mousemove", handleLeftResize);
+      window.removeEventListener("mousemove", handleRightResize);
+      window.removeEventListener("mouseup", stopDragging);
+    };
+  }, [draggingLeft, draggingRight]);
+
   return (
     <div className="h-screen w-screen bg-[#0E1116] text-white flex flex-col">
       <header className="flex items-center justify-between px-8 py-4 border-b border-gray-700/50 bg-[#14171C] shadow-2xl shadow-black/70 z-10">
-        <h1 className="text-3xl font-extrabold text-teal-400 tracking-wider flex items-center gap-3">
+        <h1 className="text-3xl font-extrabold text-gray-300 tracking-wider flex items-center gap-3">
           <Zap className="w-7 h-7" />
           {title ?? "Notebook Workspace"}
         </h1>
         <button
           onClick={goBack}
-          className="px-5 py-2.5 rounded-full bg-[#1A1D24] border border-teal-600/50 text-sm font-bold text-teal-400 hover:bg-teal-600 hover:text-white transition-all duration-300 transform hover:scale-[1.03] shadow-md shadow-black/50 flex items-center gap-1"
+          className="px-5 py-2.5 rounded-full bg-[#1A1D24] border border-gray-700/50 text-sm font-bold text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-300 transform hover:scale-[1.03] shadow-md shadow-black/50 flex items-center gap-1"
         >
           <ChevronLeft className="w-4 h-4" /> Back to Home
         </button>
       </header>
 
-      <div
-        className="flex-1 h-full min-h-0 overflow-hidden grid"
-        style={{
-          gridTemplateColumns: `${collapseSources ? "64px" : "320px"} 1fr ${
-            collapseStudio ? "64px" : "360px"
-          }`,
-        }}
-      >
+      <div className="flex-1 h-full min-h-0 overflow-hidden flex">
         {!collapseSources && (
-          <div className="flex-shrink-0 border-r border-gray-700/50 overflow-hidden">
-            <aside className="h-full p-6 flex flex-col gap-5 bg-[#14171C]">
-              {selectedSourceId === null ? (
-                <>
-                  <div className="flex justify-between items-center">
-                    <h2>Sources ({sources.length})</h2>
-                    <button onClick={() => setCollapseSources(true)}>
-                      <ChevronLeft />
-                    </button>
-                  </div>
+          <>
+            <div
+              className="flex-shrink-0 border-r border-gray-700/50 overflow-hidden"
+              style={{ width: `${leftWidth}px` }}
+            >
+              <aside className="h-full p-6 flex flex-col gap-5 bg-[#14171C]">
+                {selectedSourceId === null ? (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <h2>Sources ({sources.length})</h2>
+                      <button onClick={() => setCollapseSources(true)}>
+                        <ChevronLeft />
+                      </button>
+                    </div>
 
-                  <button
-                    onClick={fetchLocalPDFs}
-                    className="w-full py-2 mb-3 bg-teal-600 text-white rounded-xl hover:bg-teal-500 transition"
-                  >
-                    Fetch PDFs
-                  </button>
-
-                  <div className="flex-1 bg-[#1A1D24] border border-gray-700/50 rounded-2xl p-4 space-y-4 overflow-y-auto shadow-inner shadow-black/40">
-                    {sources.length === 0 ? (
-                      <div className="text-center text-gray-500 text-sm py-8">
-                        Start a conversation to automatically ingest and list
-                        relevant sources here.
-                      </div>
-                    ) : (
-                      sources.map((s) => (
-                        <div
-                          key={s.id}
-                          onClick={() => setSelectedSourceId(s.id)}
-                          className="flex items-center gap-3 px-4 py-3 bg-[#1A1D24] border border-gray-700/50 rounded-xl hover:bg-[#2A2F37] transition-all duration-200 cursor-pointer shadow-md"
-                        >
-                          <FileText className="w-5 h-5 text-teal-400 flex-shrink-0" />
-                          <span className="text-sm flex-1 font-medium text-gray-100 truncate">
-                            {s.title}
-                          </span>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="flex justify-between items-center">
                     <button
-                      onClick={() => setSelectedSourceId(null)}
-                      className="p-2 rounded-lg hover:bg-[#2A2F37] transition flex items-center gap-2 text-teal-400"
+                      onClick={fetchLocalPDFs}
+                      className="w-full py-2 mb-3 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition"
                     >
-                      <ChevronLeft className="w-5 h-5" />
-                      <span className="text-sm font-medium">Back</span>
+                      Fetch PDFs
                     </button>
-                    <button onClick={() => setCollapseSources(true)}>
-                      <ChevronLeft />
-                    </button>
-                  </div>
 
-                  <div className="flex-1 bg-[#1A1D24] border border-gray-700/50 rounded-2xl p-4 overflow-y-auto shadow-inner shadow-black/40">
+                    <div className="flex-1 bg-[#1A1D24] border border-gray-700/50 rounded-2xl p-4 space-y-4 overflow-y-auto shadow-inner shadow-black/40">
+                      {sources.length === 0 ? (
+                        <div className="text-center text-gray-500 text-sm py-8">
+                          Start a conversation to automatically ingest and list
+                          relevant sources here.
+                        </div>
+                      ) : (
+                        sources.map((s) => (
+                          <div
+                            key={s.id}
+                            onClick={() => setSelectedSourceId(s.id)}
+                            className="flex items-center gap-3 px-4 py-3 bg-[#1A1D24] border border-gray-700/50 rounded-xl hover:bg-[#2A2F37] transition-all duration-200 cursor-pointer shadow-md"
+                          >
+                            <FileText className="w-5 h-5 text-gray-300 flex-shrink-0" />
+                            <span className="text-sm flex-1 font-medium text-gray-100 truncate">
+                              {s.title}
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <>
                     {sources.map((s) =>
                       s.id === selectedSourceId ? (
-                        <div key={s.id} className="space-y-4">
-                          <h2 className="text-lg font-bold text-teal-400 border-b border-gray-700/50 pb-3">
-                            {s.title}
-                          </h2>
-
-                          <div
-                            className="
-                              prose prose-invert 
-                              max-w-none 
-                              text-gray-300 text-sm 
-                              leading-relaxed 
-                              space-y-4                       
-                              prose-headings:mt-6             
-                              prose-headings:mb-3             
-                              prose-headings:text-teal-400 
-                              prose-headings:font-bold 
-                              prose-p:my-3                    
-                              prose-strong:text-white 
-                              prose-li:marker:text-teal-400
-                            "
-                          >
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {s.source_guide || "No content available."}
-                            </ReactMarkdown>
-                          </div>
-                        </div>
+                        <AnimatedSourceGuide
+                          key={s.id}
+                          source={s}
+                          onBack={() => setSelectedSourceId(null)}
+                        />
                       ) : null
                     )}
-                  </div>
-                </>
-              )}
-            </aside>
-          </div>
+                  </>
+                )}
+              </aside>
+            </div>
+            <div
+              onMouseDown={() => setDraggingLeft(true)}
+              className="w-1 hover:w-1.5 bg-gray-700/30 hover:bg-teal-500/50 cursor-col-resize transition-all duration-150 flex-shrink-0"
+              aria-label="Resize Sources Panel"
+            />
+          </>
         )}
 
         {collapseSources && (
@@ -808,7 +912,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
         <section className="flex-1 h-full min-h-0 border-r border-gray-700/50 p-6 flex flex-col gap-4 bg-[#10141A]">
           <div className="flex items-center justify-between border-b border-gray-700/50 pb-3">
             <p className="text-sm text-gray-300 font-medium flex items-center gap-2">
-              <Cpu className="w-4 h-4 text-teal-400 animate-pulse" />
+              <Cpu className="w-4 h-4 text-gray-300 animate-pulse" />
               Chatting with **{title ?? "Notebook"}**
               <span className="text-xs text-gray-500 font-normal ml-2">
                 (Context: Medical.json)
@@ -818,7 +922,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
 
           <div
             className="flex-1 bg-[#171A1F] border border-gray-700/50 rounded-2xl p-5 overflow-x-hidden
-          overflow-y-auto space-y-8 shadow-xl shadow-black/30"
+        overflow-y-auto space-y-8 shadow-xl shadow-black/30"
           >
             {messages.length === 0 && !isLoading ? (
               <div className="flex flex-col items-center justify-center w-full h-full text-center text-gray-500">
@@ -838,7 +942,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
             {isLoading && (
               <div className="w-full flex justify-center mt-4">
                 <div className="w-full max-w-[900px] mx-auto flex gap-3 px-2 py-3">
-                  <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center text-white font-bold">
+                  <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-white font-bold">
                     AI
                   </div>
 
@@ -853,9 +957,9 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
                       <span className="text-xs text-gray-400 italic">
                         {loadingTexts[loadingIndex]}
                       </span>
-                      <span className="w-2 h-2 bg-teal-500 rounded-full animate-bounce"></span>
-                      <span className="w-2 h-2 bg-teal-500 rounded-full animate-bounce delay-150"></span>
-                      <span className="w-2 h-2 bg-teal-500 rounded-full animate-bounce delay-300"></span>
+                      <span className="w-2 h-2 bg-gray-600 rounded-full animate-bounce"></span>
+                      <span className="w-2 h-2 bg-gray-600 rounded-full animate-bounce delay-150"></span>
+                      <span className="w-2 h-2 bg-gray-600 rounded-full animate-bounce delay-300"></span>
                     </div>
                   </div>
                 </div>
@@ -876,7 +980,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
               <button
                 onClick={sendMessage}
                 disabled={!input.trim() || isLoading}
-                className="p-2 rounded-full bg-teal-600 text-white hover:bg-teal-500 disabled:bg-gray-700 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-md shadow-teal-900/50 disabled:shadow-none"
+                className="p-2 rounded-full bg-gray-700 text-white hover:bg-gray-600 disabled:bg-gray-700 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-md shadow-black/60/50 disabled:shadow-none"
                 aria-label="Send Message"
               >
                 <Send className="w-5 h-5" />
@@ -885,161 +989,189 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
           </div>
         </section>
         {!collapseStudio && (
-          <div className="flex-shrink-0 border-l border-gray-700/50 overflow-y-auto">
-            <aside className="h-full p-6 flex flex-col bg-[#14171C]">
-              <div className="flex justify-between items-center pb-3 mb-5">
-                <h2 className="text-xl font-bold text-gray-100 flex items-center gap-2 border-b-2 border-teal-500/50 pb-1">
-                  <Zap className="w-5 h-5 text-teal-400" />
-                  AI Studio Tools
-                </h2>
-                <button
-                  onClick={() => setCollapseStudio(true)}
-                  className="p-1.5 rounded-full hover:bg-[#3E4550] transition-colors duration-200"
-                  aria-label="Collapse Studio"
-                >
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
-                </button>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <ToolCard
-                  icon={GitBranch}
-                  label="Mind Map"
-                  onClick={() => setShowMindmapCreateModal(true)}
-                />
-                <ToolCard
-                  icon={MessageCircleQuestion}
-                  label="FAQ"
-                  onClick={() => setShowFAQModal(true)}
-                />
-                <ToolCard
-                  icon={Scale}
-                  label="Comparative Analysis"
-                  onClick={() => setShowComparativeModal(true)}
-                />
-                <ToolCard
-                  icon={BookOpen}
-                  label="Tutorial"
-                  onClick={() => setShowTutorialModal(true)}
-                />
-                <ToolCard
-                  icon={FileText}
-                  label="Technical Report"
-                  onClick={() => setShowReportModal(true)}
-                />
-                <ToolCard
-                  icon={Feather}
-                  label="Blog Post"
-                  onClick={() => setShowBlogModal(true)}
-                />
-                <ToolCard
-                  icon={GraduationCap}
-                  label="Study Guide"
-                  onClick={() => setShowStudyModal(true)}
-                />
-                <ToolCard
-                  icon={ClipboardList}
-                  label="Briefing"
-                  onClick={() => setShowBriefingModal(true)}
-                />
-              </div>
+          <>
+            <div
+              onMouseDown={() => setDraggingRight(true)}
+              className="w-1 hover:w-1.5 bg-gray-700/30 hover:bg-teal-500/50 cursor-col-resize transition-all duration-150 flex-shrink-0"
+              aria-label="Resize Studio Panel"
+            />
+            <div
+              className="flex-shrink-0 border-l border-gray-700/50 overflow-y-auto"
+              style={{ width: `${rightWidth}px` }}
+            >
+              <aside className="h-full p-6 flex flex-col bg-[#14171C]">
+                <div className="flex justify-between items-center pb-3 mb-5">
+                  <h2 className="text-xl font-bold text-gray-100 flex items-center gap-2 border-b-2 border-gray-600/50 pb-1">
+                    <Zap className="w-5 h-5 text-gray-300" />
+                    AI Studio Tools
+                  </h2>
+                  <button
+                    onClick={() => setCollapseStudio(true)}
+                    className="p-1.5 rounded-full hover:bg-[#3E4550] transition-colors duration-200"
+                    aria-label="Collapse Studio"
+                  >
+                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <ToolCard
+                    icon={GitBranch}
+                    label="Mind Map"
+                    style={{ backgroundColor: STUDIO_CARD_COLORS[0] }}
+                    onClick={() => setShowMindmapCreateModal(true)}
+                  />
 
-              <div className="mt-8 pt-4 border-t border-gray-700/50 space-y-3">
-                <h3 className="text-lg font-semibold text-gray-100 border-b border-gray-700/50 pb-2">
-                  Tool Results
-                </h3>
+                  <ToolCard
+                    icon={MessageCircleQuestion}
+                    label="FAQ"
+                    style={{ backgroundColor: STUDIO_CARD_COLORS[1] }}
+                    onClick={() => setShowFAQModal(true)}
+                  />
 
-                <div className="space-y-3 max-h-[40vh] overflow-y-auto p-2 -m-2">
-                  {mindmapTool.showCard && (
-                    <ResultCardSimple
-                      title="Mindmap Ready"
-                      onClick={() => mindmapTool.setShowAnswerModal(true)}
-                    />
-                  )}
+                  <ToolCard
+                    icon={Scale}
+                    label="Comparative Analysis"
+                    style={{ backgroundColor: STUDIO_CARD_COLORS[2] }}
+                    onClick={() => setShowComparativeModal(true)}
+                  />
 
-                  {faq.showCard && (
-                    <ResultCardSimple
-                      title="FAQ Results Ready"
-                      onClick={() => faq.setShowAnswerModal(true)}
-                    />
-                  )}
+                  <ToolCard
+                    icon={BookOpen}
+                    label="Tutorial"
+                    style={{ backgroundColor: STUDIO_CARD_COLORS[3] }}
+                    onClick={() => setShowTutorialModal(true)}
+                  />
 
-                  {comparative.showCard && (
-                    <ResultCardSimple
-                      title="Comparative Analysis Ready"
-                      onClick={() => comparative.setShowAnswerModal(true)}
-                    />
-                  )}
+                  <ToolCard
+                    icon={FileText}
+                    label="Technical Report"
+                    style={{ backgroundColor: STUDIO_CARD_COLORS[4] }}
+                    onClick={() => setShowReportModal(true)}
+                  />
 
-                  {tutorial.showCard && (
-                    <ResultCardSimple
-                      title="Tutorial Ready"
-                      onClick={() => tutorial.setShowAnswerModal(true)}
-                    />
-                  )}
+                  <ToolCard
+                    icon={Feather}
+                    label="Blog Post"
+                    style={{ backgroundColor: STUDIO_CARD_COLORS[5] }}
+                    onClick={() => setShowBlogModal(true)}
+                  />
 
-                  {report.showCard && (
-                    <ResultCardSimple
-                      title="Technical Report Ready"
-                      onClick={() => report.setShowAnswerModal(true)}
-                    />
-                  )}
+                  <ToolCard
+                    icon={GraduationCap}
+                    label="Study Guide"
+                    style={{ backgroundColor: STUDIO_CARD_COLORS[6] }}
+                    onClick={() => setShowStudyModal(true)}
+                  />
 
-                  {blog.showCard && (
-                    <ResultCardSimple
-                      title="Blog Post Ready"
-                      onClick={() => blog.setShowAnswerModal(true)}
-                    />
-                  )}
-
-                  {study.showCard && (
-                    <ResultCardSimple
-                      title="Study Guide Ready"
-                      onClick={() => study.setShowAnswerModal(true)}
-                    />
-                  )}
-
-                  {briefing.showCard && (
-                    <ResultCardSimple
-                      title="Briefing Ready"
-                      onClick={() => briefing.setShowAnswerModal(true)}
-                    />
-                  )}
+                  <ToolCard
+                    icon={ClipboardList}
+                    label="Briefing"
+                    style={{ backgroundColor: STUDIO_CARD_COLORS[7] }}
+                    onClick={() => setShowBriefingModal(true)}
+                  />
                 </div>
 
-                {mindmapTool.showAnswerModal && (
-                  <AnswerModal tool={mindmapTool} title="Mindmap Result" />
-                )}
+                <div className="mt-8 pt-4 border-t border-gray-700/50 space-y-3">
+                  <h3 className="text-lg font-semibold text-gray-100 border-b border-gray-700/50 pb-2">
+                    Tool Results
+                  </h3>
 
-                {faq.showAnswerModal && (
-                  <AnswerModal tool={faq} title="FAQ Result" />
-                )}
+                  <div className="space-y-3 max-h-[40vh] overflow-y-auto p-2 -m-2">
+                    {mindmapTool.showCard && (
+                      <ResultCardSimple
+                        title="Mindmap Ready"
+                        onClick={() => mindmapTool.setShowAnswerModal(true)}
+                      />
+                    )}
 
-                {comparative.showAnswerModal && (
-                  <AnswerModal tool={comparative} title="Comparative Result" />
-                )}
+                    {faq.showCard && (
+                      <ResultCardSimple
+                        title="FAQ Results Ready"
+                        onClick={() => faq.setShowAnswerModal(true)}
+                      />
+                    )}
 
-                {tutorial.showAnswerModal && (
-                  <AnswerModal tool={tutorial} title="Tutorial" />
-                )}
+                    {comparative.showCard && (
+                      <ResultCardSimple
+                        title="Comparative Analysis Ready"
+                        onClick={() => comparative.setShowAnswerModal(true)}
+                      />
+                    )}
 
-                {report.showAnswerModal && (
-                  <AnswerModal tool={report} title="Technical Report" />
-                )}
+                    {tutorial.showCard && (
+                      <ResultCardSimple
+                        title="Tutorial Ready"
+                        onClick={() => tutorial.setShowAnswerModal(true)}
+                      />
+                    )}
 
-                {blog.showAnswerModal && (
-                  <AnswerModal tool={blog} title="Blog Post" />
-                )}
+                    {report.showCard && (
+                      <ResultCardSimple
+                        title="Technical Report Ready"
+                        onClick={() => report.setShowAnswerModal(true)}
+                      />
+                    )}
 
-                {study.showAnswerModal && (
-                  <AnswerModal tool={study} title="Study Guide" />
-                )}
+                    {blog.showCard && (
+                      <ResultCardSimple
+                        title="Blog Post Ready"
+                        onClick={() => blog.setShowAnswerModal(true)}
+                      />
+                    )}
 
-                {briefing.showAnswerModal && (
-                  <AnswerModal tool={briefing} title="Briefing" />
-                )}
-              </div>
-            </aside>
-          </div>
+                    {study.showCard && (
+                      <ResultCardSimple
+                        title="Study Guide Ready"
+                        onClick={() => study.setShowAnswerModal(true)}
+                      />
+                    )}
+
+                    {briefing.showCard && (
+                      <ResultCardSimple
+                        title="Briefing Ready"
+                        onClick={() => briefing.setShowAnswerModal(true)}
+                      />
+                    )}
+                  </div>
+
+                  {mindmapTool.showAnswerModal && (
+                    <AnswerModal tool={mindmapTool} title="Mindmap Result" />
+                  )}
+
+                  {faq.showAnswerModal && (
+                    <AnswerModal tool={faq} title="FAQ Result" />
+                  )}
+
+                  {comparative.showAnswerModal && (
+                    <AnswerModal
+                      tool={comparative}
+                      title="Comparative Result"
+                    />
+                  )}
+
+                  {tutorial.showAnswerModal && (
+                    <AnswerModal tool={tutorial} title="Tutorial" />
+                  )}
+
+                  {report.showAnswerModal && (
+                    <AnswerModal tool={report} title="Technical Report" />
+                  )}
+
+                  {blog.showAnswerModal && (
+                    <AnswerModal tool={blog} title="Blog Post" />
+                  )}
+
+                  {study.showAnswerModal && (
+                    <AnswerModal tool={study} title="Study Guide" />
+                  )}
+
+                  {briefing.showAnswerModal && (
+                    <AnswerModal tool={briefing} title="Briefing" />
+                  )}
+                </div>
+              </aside>
+            </div>
+          </>
         )}
 
         {collapseStudio && (
@@ -1055,7 +1187,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
 
       {showMindmapViewer && mindmapData && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm overflow-auto p-4">
-          <div className="w-[95vw] h-[95vh] bg-[#14171C] border border-teal-500/30 rounded-2xl relative p-5 flex flex-col mx-auto shadow-2xl shadow-teal-900/50">
+          <div className="w-[95vw] h-[95vh] bg-[#14171C] border border-gray-600/30 rounded-2xl relative p-5 flex flex-col mx-auto shadow-2xl shadow-black/60/50">
             <h3 className="text-xl font-bold text-white mb-4 border-b border-gray-700/50 pb-2">
               Mind Map Viewer
             </h3>
@@ -1076,8 +1208,8 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
 
       {showMindmapCreateModal && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-md">
-          <div className="bg-[#10141A] border border-teal-500/30 rounded-2xl p-8 w-[450px] space-y-5 shadow-2xl shadow-teal-900/40">
-            <h3 className="text-2xl text-teal-400 font-bold border-b border-gray-700/50 pb-3">
+          <div className="bg-[#10141A] border border-gray-600/30 rounded-2xl p-8 w-[450px] space-y-5 shadow-2xl shadow-black/60/40">
+            <h3 className="text-2xl text-gray-300 font-bold border-b border-gray-700/50 pb-3">
               Generate Mind Map
             </h3>
             <p className="text-sm text-gray-400">
@@ -1094,7 +1226,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
             <button
               onClick={handleMindmapGenerate}
               disabled={!mindmapTopic.trim() || mindmapLoading}
-              className="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-base font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.01] shadow-lg shadow-teal-900/60"
+              className="w-full py-3 rounded-xl bg-gray-700 hover:bg-gray-600 text-base font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.01] shadow-lg shadow-black/60/60"
             >
               {mindmapLoading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -1116,8 +1248,8 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       )}
       {showBriefingModal && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-md">
-          <div className="bg-[#10141A] border border-teal-500/30 rounded-2xl p-8 w-[450px] space-y-5 shadow-2xl shadow-teal-900/40">
-            <h3 className="text-2xl text-teal-400 font-bold border-b border-gray-700/50 pb-3">
+          <div className="bg-[#10141A] border border-gray-600/30 rounded-2xl p-8 w-[450px] space-y-5 shadow-2xl shadow-black/60/40">
+            <h3 className="text-2xl text-gray-300 font-bold border-b border-gray-700/50 pb-3">
               Generate Briefing
             </h3>
             <p className="text-sm text-gray-400">
@@ -1134,7 +1266,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
             <button
               onClick={handleBriefingGenerate}
               disabled={!briefingTopic.trim() || briefingLoading}
-              className="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-base font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.01] shadow-lg shadow-teal-900/60"
+              className="w-full py-3 rounded-xl bg-gray-700 hover:bg-gray-600 text-base font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.01] shadow-lg shadow-black/60/60"
             >
               {briefingLoading ? (
                 <span className="flex items-center justify-center gap-2">
