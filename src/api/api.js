@@ -7,11 +7,15 @@ const defaultHeaders = {
 };
 async function apiRequest(method, route, body = null, type = "API") {
   try {
-    const res = await fetch(`${BASE_URL}${route}`, {
+    const options = {
       method,
       headers: defaultHeaders,
-      body: JSON.stringify(body ?? {}),
-    });
+    };
+    if (method !== "GET" && method !== "HEAD") {
+      options.body = JSON.stringify(body ?? {});
+    }
+
+    const res = await fetch(`${BASE_URL}${route}`, options);
 
     if (!res.ok) {
       const errText = await res.text();
