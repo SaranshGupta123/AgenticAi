@@ -39,6 +39,7 @@ import {
   ToolCard,
 } from "../components/ContentToolView";
 import ResultCardSimple from "../components/ResultCardSimple";
+import { saveLS, loadLS } from "../components/storage";
 
 type Source = {
   id: string;
@@ -57,13 +58,18 @@ type Splitter = {
   splitRegex: RegExp;
   addPrefix?: (text: string) => string;
 };
-
-function useContentTool(fetcher: () => Promise<any>, splitter: Splitter) {
+function useContentTool(
+  fetcher: () => Promise<any>,
+  splitter: Splitter,
+  storageKey: string
+) {
   const [data, setData] = useState<any | null>(null);
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState<any | null>(null);
   const [showSearchModal, setShowSearchModal] = useState(false);
-  const [showAnswerModal, setShowAnswerModal] = useState(false);
+  const [showAnswerModal, setShowAnswerModal] = useState(
+    loadLS(`${storageKey}_modal`, false)
+  );
   const [showCard, setShowCard] = useState(false);
 
   const open = async () => {
@@ -112,7 +118,10 @@ function useContentTool(fetcher: () => Promise<any>, splitter: Splitter) {
     showSearchModal,
     setShowSearchModal,
     showAnswerModal,
-    setShowAnswerModal,
+    setShowAnswerModal: (value) => {
+      saveLS(`${storageKey}_modal`, value);
+      setShowAnswerModal(value);
+    },
     showCard,
     setShowCard,
     open,
@@ -264,12 +273,20 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
     "rgba(240, 98, 146, 0.35)",
     "rgba(32, 201, 180, 0.35)",
   ];
-  const [sources, setSources] = useState<Source[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [sources, setSources] = useState<Source[]>(() =>
+    loadLS("nb_sources", [])
+  );
+  const [messages, setMessages] = useState<Message[]>(() =>
+    loadLS("nb_messages", [])
+  );
   const [input, setInput] = useState("");
 
-  const [collapseSources, setCollapseSources] = useState(false);
-  const [collapseStudio, setCollapseStudio] = useState(false);
+  const [collapseSources, setCollapseSources] = useState(
+    loadLS("nb_col_src", false)
+  );
+  const [collapseStudio, setCollapseStudio] = useState(
+    loadLS("nb_col_studio", false)
+  );
 
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
 
@@ -318,8 +335,8 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
   const [studyTopic, setStudyTopic] = useState("");
   const [studyLoading, setStudyLoading] = useState(false);
 
-  const [leftWidth, setLeftWidth] = useState(320);
-  const [rightWidth, setRightWidth] = useState(360);
+  const [leftWidth, setLeftWidth] = useState(loadLS("nb_left_width", 320));
+  const [rightWidth, setRightWidth] = useState(loadLS("nb_right_width", 360));
 
   const [draggingLeft, setDraggingLeft] = useState(false);
   const [draggingRight, setDraggingRight] = useState(false);
@@ -352,6 +369,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       }));
 
       setSources(formatted);
+      saveLS("nb_sources", formatted);
     } catch (err) {
       console.error("[v0] PDF fetch error:", err);
       alert(
@@ -374,7 +392,9 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
         quality_metrics: null,
       };
     },
-    { splitRegex: /##\s+/g, addPrefix: (t) => "## " + t }
+
+    { splitRegex: /##\s+/g, addPrefix: (t) => "## " + t },
+    "nb_tool_faq"
   );
   const mindmapTool = useContentTool(
     async () => {
@@ -385,7 +405,8 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
         sources: response.retrieved_context,
       };
     },
-    { splitRegex: /##\s+/g }
+    { splitRegex: /##\s+/g },
+    "nb_tool_mindmap"
   );
 
   const comparative = useContentTool(
@@ -397,7 +418,8 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
         sources: response.sources,
       };
     },
-    { splitRegex: /##\s+/g }
+    { splitRegex: /##\s+/g },
+    "nb_tool_comparative"
   );
 
   const tutorial = useContentTool(
@@ -409,7 +431,8 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
         sources: response.sources,
       };
     },
-    { splitRegex: /##\s+/g }
+    { splitRegex: /##\s+/g },
+    "nb_tool_tutorial"
   );
 
   const report = useContentTool(
@@ -421,7 +444,8 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
         sources: response.sources,
       };
     },
-    { splitRegex: /##\s+/g }
+    { splitRegex: /##\s+/g },
+    "nb_tool_report"
   );
 
   const blog = useContentTool(
@@ -433,7 +457,8 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
         sources: response.sources,
       };
     },
-    { splitRegex: /##\s+/g }
+    { splitRegex: /##\s+/g },
+    "nb_tool_blog"
   );
 
   const study = useContentTool(
@@ -445,7 +470,8 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
         sources: response.sources,
       };
     },
-    { splitRegex: /##\s+/g }
+    { splitRegex: /##\s+/g },
+    "nb_tool_study"
   );
 
   const briefing = useContentTool(
@@ -457,7 +483,8 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
         sources: response.sources,
       };
     },
-    { splitRegex: /##\s+/g }
+    { splitRegex: /##\s+/g },
+    "nb_tool_briefing"
   );
 
   const sendMessage = async () => {
@@ -488,6 +515,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       const interval = setInterval(() => {
         setMessages((prev) => {
           const updated = [...prev];
+          saveLS("nb_messages", updated);
           updated[updated.length - 1].text = words.slice(0, index).join(" ");
           return updated;
         });
@@ -803,18 +831,6 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
     handleRightResize,
     stopDragging,
   ]);
-
-  React.useEffect(() => {
-    window.addEventListener("mousemove", handleLeftResize);
-    window.addEventListener("mousemove", handleRightResize);
-    window.addEventListener("mouseup", stopDragging);
-
-    return () => {
-      window.removeEventListener("mousemove", handleLeftResize);
-      window.removeEventListener("mousemove", handleRightResize);
-      window.removeEventListener("mouseup", stopDragging);
-    };
-  }, [draggingLeft, draggingRight]);
 
   return (
     <div className="h-screen w-screen bg-[#0E1116] text-white flex flex-col">
