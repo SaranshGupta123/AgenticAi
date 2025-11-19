@@ -70,19 +70,11 @@ function formatResponse(data, fallbackDomain) {
 // }
 
 export async function fetchExplainabilityChatResponse(query) {
-  const body = {
-    query,
-    use_crag: false,
-    agent_type: "react",
-    include_steps: true,
-  };
+  const url = `/rag/api/rag/chat-query-with-explainability?query=${encodeURIComponent(
+    query
+  )}&agent_type=react&include_steps=true&use_crag=false`;
 
-  const data = await apiPost(
-    "/rag/api/rag/chat-query-with-explainability",
-    body,
-    "Explainability Chat"
-  );
-
+  const data = await apiPost(url, null, "Explainability Chat");
   return { ...data, user_query: query };
 }
 
