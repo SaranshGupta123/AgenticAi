@@ -830,7 +830,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       const data = await fetchComparativeAnalysisFromAPI(comparativeTopic);
 
       comparative.setAnswer({
-        content: data.content,
+        content: data.answer || data.content || data.text || "",
         sources: data.sources,
         metadata: data.metadata,
       });
@@ -853,7 +853,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       const data = await fetchTutorialFromAPI(tutorialTopic);
 
       tutorial.setAnswer({
-        content: data.content,
+        content: data.answer || data.content || data.text || "",
         sources: data.sources,
         metadata: data.metadata,
       });
@@ -876,7 +876,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       const data = await fetchTechnicalReportFromAPI(reportTopic);
 
       report.setAnswer({
-        content: data.content,
+        content: data.answer || data.content || data.text || "",
         sources: data.sources,
         metadata: data.metadata,
       });
@@ -899,7 +899,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       const data = await fetchBlogPostFromAPI(blogTopic);
 
       blog.setAnswer({
-        content: data.content,
+        content: data.answer || data.content || data.text || "",
         sources: data.sources,
         metadata: data.metadata,
       });
@@ -922,7 +922,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       const data = await fetchStudyGuideFromAPI(studyTopic);
 
       study.setAnswer({
-        content: data.content,
+        content: data.answer || data.content || data.text || "",
         sources: data.sources,
         metadata: data.metadata,
       });
