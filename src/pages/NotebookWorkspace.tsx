@@ -129,14 +129,45 @@ function useContentTool(
     setAnswer,
   };
 }
-
-const MessageBubble: React.FC<{ m: Message }> = ({ m }) => {
+const MessageBubble: React.FC<{ m: Message; isLastAssistant: boolean }> = ({
+  m,
+  isLastAssistant,
+}) => {
   const isUser = m.role === "user";
   const [isVisible, setIsVisible] = useState(false);
+  const [displayedText, setDisplayedText] = useState(m.text);
+  const [isTyping, setIsTyping] = useState(
+    isLastAssistant && m.text.length > 0
+  );
 
   React.useEffect(() => {
     setIsVisible(true);
   }, []);
+
+  React.useEffect(() => {
+    if (isLastAssistant && m.text.length > 0) {
+      setDisplayedText("");
+      setIsTyping(true);
+      const fullText = m.text;
+      let index = 0;
+      const speed = 25;
+
+      const intervalId = setInterval(() => {
+        if (index < fullText.length) {
+          setDisplayedText((prev) => prev + fullText.charAt(index));
+          index++;
+        } else {
+          clearInterval(intervalId);
+          setIsTyping(false);
+        }
+      }, speed);
+
+      return () => clearInterval(intervalId);
+    } else {
+      setDisplayedText(m.text);
+      setIsTyping(false);
+    }
+  }, [m.text, isLastAssistant]);
 
   const bubbleClasses = isUser
     ? "bg-gradient-to-br from-gray-700 to-gray-800 text-white rounded-2xl shadow-xl shadow-black/60"
@@ -197,10 +228,15 @@ const MessageBubble: React.FC<{ m: Message }> = ({ m }) => {
             animation: `slide${isUser ? "InRight" : "InLeft"} 0.5s ease-out`,
           }}
         >
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {displayedText}
+          </ReactMarkdown>
+          {!isUser && isTyping && (
+            <span className="animate-pulse ml-1 text-gray-400">|</span>
+          )}
         </div>
 
-        {!isUser && m.sources?.length > 0 && (
+        {!isUser && m.sources?.length > 0 && !isTyping && (
           <div
             className="max-w-[1000px] w-full bg-gradient-to-br from-[#1A1D24]/90 to-[#15191F]/90 border border-blue-600/30 rounded-xl p-3 space-y-2 text-base shadow-lg shadow-blue-900/20 backdrop-blur-sm transition-all duration-700 hover:border-blue-500/50 hover:shadow-blue-900/40 transform"
             style={{
@@ -251,7 +287,7 @@ const MessageBubble: React.FC<{ m: Message }> = ({ m }) => {
           </div>
         )}
 
-        {!isUser && m.metadata && (
+        {!isUser && m.metadata && !isTyping && (
           <div
             className="max-w-[1000px] w-full bg-gradient-to-br from-[#1A1D24]/90 to-[#15191F]/90 border border-blue-600/20 rounded-xl p-3 text-sm text-gray-400 space-y-1 shadow-inner shadow-blue-900/10 backdrop-blur-sm transition-all duration-700 transform"
             style={{
@@ -666,7 +702,16 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
     { splitRegex: /##\s+/g },
     "nb_tool_briefing"
   );
+  function smartScroll(container) {
+    const threshold = 120;
+    const isNearBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight <
+      threshold;
 
+    if (isNearBottom) {
+      container.scrollTop = container.scrollHeight;
+    }
+  }
   const sendMessage = async () => {
     const text = input.trim();
     if (!text || isLoading) return;
@@ -683,12 +728,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       const chatContainer = document.querySelector(
         '[aria-label="Chat Messages"]'
       );
-      if (chatContainer) {
-        chatContainer.scrollTo({
-          top: chatContainer.scrollHeight,
-          behavior: "smooth",
-        });
-      }
+      if (chatContainer) smartScroll(chatContainer);
     }, 100);
 
     try {
@@ -696,44 +736,21 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
 
       const response = await fetchNotebookAnswerFromAPI(currentDomain, text);
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          text: "",
-          sources: response.retrieved_context ?? [],
-          metadata: response.metadata ?? null,
-        },
-      ]);
+      setMessages((prev) => {
+        const updated = [
+          ...prev,
+          {
+            role: "assistant",
+            text: response.answer || "",
+            sources: response.retrieved_context ?? [],
+            metadata: response.metadata ?? null,
+          },
+        ];
+        saveLS("nb_messages", updated);
+        return updated;
+      });
 
-      const fullText = response.answer || "";
-      const words = fullText.split(" ");
-      let index = 0;
-
-      const interval = setInterval(() => {
-        setMessages((prev) => {
-          const updated = [...prev];
-          saveLS("nb_messages", updated);
-          updated[updated.length - 1].text = words.slice(0, index).join(" ");
-          return updated;
-        });
-
-        index++;
-
-        setTimeout(() => {
-          const chatContainer = document.querySelector(
-            '[aria-label="Chat Messages"]'
-          );
-          if (chatContainer) {
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-          }
-        }, 0);
-
-        if (index > words.length) {
-          clearInterval(interval);
-          setIsLoading(false);
-        }
-      }, 40);
+      setIsLoading(false);
 
       if (response.mindmap) {
         setMindmapData(response.mindmap);
@@ -749,10 +766,10 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
           metadata: null,
         },
       ]);
-    } finally {
       setIsLoading(false);
     }
   };
+
   const handleMindmapGenerate = async () => {
     if (!mindmapTopic.trim()) return;
     setMindmapLoading(true);
@@ -1283,7 +1300,12 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
                   className="chat-message"
                   style={{ animationDelay: `${idx * 0.1}s` }}
                 >
-                  <MessageBubble m={m} />
+                  <MessageBubble
+                    m={m}
+                    isLastAssistant={
+                      m.role === "assistant" && idx === messages.length - 1
+                    }
+                  />
                 </div>
               ))
             )}
