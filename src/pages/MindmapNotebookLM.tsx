@@ -26,6 +26,7 @@ type MindmapNode = {
   isClusterTheme?: boolean;
   x?: number;
   y?: number;
+  depth?: number;
 };
 type MindmapCluster = {
   cluster_id: string;
@@ -64,11 +65,27 @@ const BASE_COLORS = [
   { r: 88, g: 72, b: 92 },
   { r: 80, g: 87, b: 101 },
 ];
-
 function getColorForNode(node: MindmapNode) {
-  const levelIndex = Math.min(node.level, BASE_COLORS.length - 1);
-  const base = BASE_COLORS[levelIndex];
-  return `rgb(${base.r}, ${base.g}, ${base.b})`;
+  const rawLevel =
+    typeof node.depth === "number"
+      ? node.depth
+      : typeof node.level === "number"
+      ? node.level
+      : 0;
+
+  const lvl = Math.max(0, rawLevel);
+
+  const PRESET_HUES = [210, 160, 30, 280, 120, 10, 330, 60];
+
+  const hue =
+    lvl < PRESET_HUES.length
+      ? PRESET_HUES[lvl]
+      : (PRESET_HUES[0] + lvl * 137) % 360;
+
+  const saturation = 35;
+  const lightness = 20 + Math.min(lvl, 6) * 2;
+
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
 
 function buildTree(data: MindmapData): MindmapNode | null {
@@ -86,7 +103,6 @@ function buildTree(data: MindmapData): MindmapNode | null {
     clusterNodes[id] = {
       id,
       label: c.theme,
-      level: 1,
       node_type: "cluster",
       color: c.color,
       importance: 9,
@@ -144,20 +160,7 @@ function buildTree(data: MindmapData): MindmapNode | null {
     )
   );
 
-  const assignRealDepth = (node: MindmapNode, depth: number) => {
-    node.level = depth;
-    node.children.forEach((child) => assignRealDepth(child, depth + 1));
-  };
-  function assignBranchColor(node: MindmapNode, colorIndex: number) {
-    node.branchColorIndex = colorIndex;
-    node.children.forEach((child) => assignBranchColor(child, colorIndex));
-  }
-  rootNode.children.forEach((child, i) => {
-    assignBranchColor(child, i % BASE_COLORS.length);
-  });
-
   rootNode.children.sort((a, b) => a.label.localeCompare(b.label));
-  assignRealDepth(rootNode, 0);
   return rootNode;
 }
 
@@ -358,21 +361,34 @@ export default function MindmapNotebookLM() {
     function calculatePositions(
       node: MindmapNode,
       x: number,
-      y: number
+      y: number,
+      depth: number
     ): number {
-      [node.x, node.y] = [x, y];
+      node.x = x;
+      node.y = y;
+      node.depth = depth;
+
       if (!expandedNodes.has(node.id) || !node.children?.length) return nodeGap;
 
-      let [currentY, totalHeight] = [y, 0];
+      let currentY = y;
+      let totalHeight = 0;
+
       node.children.forEach((child) => {
-        const childHeight = calculatePositions(child, x + levelGap, currentY);
+        const childHeight = calculatePositions(
+          child,
+          x + levelGap,
+          currentY,
+          depth + 1
+        );
         currentY += childHeight;
         totalHeight += childHeight;
       });
+
       node.y = y + (totalHeight - nodeGap) / 2;
       return totalHeight;
     }
-    calculatePositions(root, 0, 0);
+
+    calculatePositions(root, 0, 0, 0);
 
     function drawLinks(node: MindmapNode) {
       if (!expandedNodes.has(node.id) || !node.children) return;

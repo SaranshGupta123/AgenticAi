@@ -83,6 +83,7 @@ export function SearchModal({ tool, title }: any) {
 export function AnswerModal({ tool, title }: any) {
   const [isOpen, setIsOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [activeTab, setActiveTab] = useState<"graph" | "info">("graph");
 
   useEffect(() => {
     setIsOpen(true);
