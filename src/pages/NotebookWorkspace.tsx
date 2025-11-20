@@ -16,6 +16,7 @@ import {
   ClipboardList,
   Zap,
   Cpu,
+  Sparkles,
 } from "lucide-react";
 import {
   fetchMindmapFromAPI,
@@ -131,60 +132,116 @@ function useContentTool(
 
 const MessageBubble: React.FC<{ m: Message }> = ({ m }) => {
   const isUser = m.role === "user";
+  const [isVisible, setIsVisible] = useState(false);
+
+  React.useEffect(() => {
+    setIsVisible(true);
+  }, []);
 
   const bubbleClasses = isUser
-    ? "bg-gray-700 text-white rounded-2xl shadow-xl shadow-black/60/50"
-    : "bg-[#1D222A] text-gray-200 border border-gray-700/30 rounded-2xl shadow-xl shadow-black/30";
+    ? "bg-gradient-to-br from-gray-700 to-gray-800 text-white rounded-2xl shadow-xl shadow-black/60"
+    : "bg-gradient-to-br from-[#1D222A] to-[#15191F] text-gray-200 border border-blue-600/30 rounded-2xl shadow-xl shadow-black/30";
 
   return (
-    <div key={m.text} className="w-full flex justify-center">
+    <div
+      key={m.text}
+      className={`w-full flex justify-center transition-all duration-700 transform ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+      }`}
+    >
+      <style>{`
+        @keyframes slideInLeft {
+          from {
+            opacity: 0;
+            transform: translateX(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        @keyframes slideInRight {
+          from {
+            opacity: 0;
+            transform: translateX(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        @keyframes slideInUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+
       <div
-        className={`w-full max-w-[800px] flex flex-col space-y-3 ${
+        className={`w-full max-w-[940px] flex flex-col space-y-3 ${
           isUser ? "items-end" : "items-center"
         }`}
       >
         <div
-          className={`text-sm px-4 py-3 w-fit transition-all duration-300 hover:scale-[1.01] ${
-            isUser ? "max-w-[420px] -translate-x-2" : "max-w-[780px]"
-          } ${bubbleClasses}`}
+          className={`text-lg px-4 py-3 w-fit transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl ${
+            isUser ? "max-w-[690px] -translate-x-2" : "max-w-[1600px]"
+          } ${bubbleClasses} ${
+            !isUser ? "hover:border-blue-500/50 hover:shadow-blue-900/30" : ""
+          }`}
+          style={{
+            animation: `slide${isUser ? "InRight" : "InLeft"} 0.5s ease-out`,
+          }}
         >
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
         </div>
 
         {!isUser && m.sources?.length > 0 && (
-          <div className="max-w-[780px] w-full bg-[#1A1D24] border border-teal-700/20 rounded-xl p-3 space-y-2 text-xs shadow-lg shadow-black/20">
-            <p className="text-gray-400 font-semibold mb-2 border-b border-gray-700/50 pb-1 flex items-center gap-2">
-              <FileText className="w-3.5 h-3.5 text-gray-300" />
+          <div
+            className="max-w-[1000px] w-full bg-gradient-to-br from-[#1A1D24]/90 to-[#15191F]/90 border border-blue-600/30 rounded-xl p-3 space-y-2 text-base shadow-lg shadow-blue-900/20 backdrop-blur-sm transition-all duration-700 hover:border-blue-500/50 hover:shadow-blue-900/40 transform"
+            style={{
+              animation: "slideInUp 0.6s ease-out 0.2s both",
+            }}
+          >
+            <p className="text-gray-400 font-semibold mb-2 border-b border-blue-600/30 pb-1 flex items-center gap-2">
+              <FileText className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
               Sources Used
             </p>
             {m.sources.map((src, idx) => (
               <div
                 key={idx}
-                className="bg-[#21252C] border border-gray-700/50 p-3 rounded-lg space-y-2 hover:bg-[#282D35] transition"
+                className="bg-[#21252C]/80 border border-blue-600/20 p-3 rounded-lg space-y-2 hover:bg-[#282D35] hover:border-blue-500/40 transition-all duration-300 transform hover:scale-105"
+                style={{ animationDelay: `${0.3 + idx * 0.1}s` }}
               >
                 <p className="text-gray-300 font-medium break-words flex items-center gap-1">
                   {src.href ? (
                     <a
                       href={src.href}
                       target="_blank"
-                      className="text-gray-300 underline hover:text-teal-300"
+                      className="text-white underline hover:text-cyan-300 transition-colors duration-300 font-semibold bg-white/10 px-2 py-0.5 rounded"
                     >
                       {src.source}
                     </a>
                   ) : (
-                    src.source
+                    <span className="text-white font-semibold bg-white/10 px-2 py-0.5 rounded">
+                      {src.source}
+                    </span>
                   )}
 
                   {src.page && (
-                    <span className="text-gray-500 text-xs ml-2">
-                      (Page {src.page})
+                    <span className="text-gray-500 text-sm2 bg-blue-600/20 px-2 py-0.5 rounded-full">
+                      Page {src.page}
                     </span>
                   )}
                 </p>
 
                 {src.content_snippet && (
-                  <div className="pl-3 border-l-2 border-gray-600/70 mt-2">
-                    <p className="italic text-gray-400 text-xs leading-relaxed">
+                  <div className="pl-3 border-l-2 border-blue-600/50 mt-2">
+                    <p className="italic text-gray-400 text-sm leading-relaxed hover:text-gray-300 transition-colors">
                       "{src.content_snippet}"
                     </p>
                   </div>
@@ -195,14 +252,21 @@ const MessageBubble: React.FC<{ m: Message }> = ({ m }) => {
         )}
 
         {!isUser && m.metadata && (
-          <div className="max-w-[780px] w-full bg-[#1A1D24] border border-white/10 rounded-xl p-3 text-xs text-gray-400 space-y-1 shadow-inner shadow-black/20">
+          <div
+            className="max-w-[1000px] w-full bg-gradient-to-br from-[#1A1D24]/90 to-[#15191F]/90 border border-blue-600/20 rounded-xl p-3 text-sm text-gray-400 space-y-1 shadow-inner shadow-blue-900/10 backdrop-blur-sm transition-all duration-700 transform"
+            style={{
+              animation: "slideInUp 0.6s ease-out 0.4s both",
+            }}
+          >
             <p>
-              <span className="text-gray-300 font-medium">Domain:</span>{" "}
-              {m.metadata.active_domain}
+              <span className="text-blue-400 font-semibold">Domain:</span>{" "}
+              <span className="text-gray-300">{m.metadata.active_domain}</span>
             </p>
             <p>
-              <span className="text-gray-300 font-medium">Response Time:</span>{" "}
-              {m.metadata.total_time}s
+              <span className="text-blue-400 font-semibold">
+                Response Time:
+              </span>{" "}
+              <span className="text-gray-300">{m.metadata.total_time}s</span>
             </p>
           </div>
         )}
@@ -218,7 +282,12 @@ const AnimatedSourceGuide: React.FC<{ source: Source; onBack: () => void }> = ({
   onBack,
 }) => {
   const [scrollProgress, setScrollProgress] = React.useState(0);
+  const [isOpen, setIsOpen] = useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    setIsOpen(true);
+  }, []);
 
   React.useEffect(() => {
     const el = containerRef.current;
@@ -234,29 +303,139 @@ const AnimatedSourceGuide: React.FC<{ source: Source; onBack: () => void }> = ({
     return () => el.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const handleBack = () => {
+    setIsOpen(false);
+    setTimeout(onBack, 300);
+  };
+
   return (
-    <div className="space-y-4 h-full flex flex-col">
+    <div className="space-y-4 h-full flex flex-col relative">
+      <style>{`
+        @keyframes slideInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes fadeInText {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        .prose-animated h1,
+        .prose-animated h2,
+        .prose-animated h3 {
+          animation: slideInUp 0.6s ease-out forwards;
+          opacity: 0;
+          color: #ffffff; 
+        }
+
+        .prose-animated h1 { animation-delay: 0.1s; }
+        .prose-animated h2 { animation-delay: 0.2s; }
+        .prose-animated h3 { animation-delay: 0.3s; }
+
+        .prose-animated p {
+          animation: fadeInText 0.8s ease-out forwards;
+          opacity: 0;
+          color: #d1d5db;
+        }
+
+        .prose-animated p:nth-of-type(1) { animation-delay: 0.4s; }
+        .prose-animated p:nth-of-type(2) { animation-delay: 0.6s; }
+        .prose-animated p:nth-of-type(3) { animation-delay: 0.8s; }
+        .prose-animated p:nth-of-type(n+4) { animation-delay: 1s; }
+
+        .prose-animated strong {
+          color: #ffffff;  
+          font-weight: 700;
+        }
+
+        .prose-animated a {
+          color: #3b82f6;
+          text-decoration: underline;
+          transition: all 0.3s ease;
+        }
+
+        .prose-animated a:hover {
+           color: #60a5fa;
+          text-decoration-thickness: 2px;
+        }
+      `}</style>
+
+      <div
+        className={`absolute inset-0 backdrop-blur-md transition-all duration-500 rounded-2xl pointer-events-none ${
+          isOpen ? "opacity-40" : "opacity-0"
+        }`}
+        style={{
+          background:
+            "radial-gradient(circle, rgba(59,130,246,0.15), rgba(37,99,235,0.05))",
+        }}
+      />
+
       <button
-        onClick={onBack}
-        className="text-gray-300 hover:text-white flex items-center gap-2 mb-3"
+        onClick={handleBack}
+        className={`text-gray-300 hover:text-white flex items-center gap-2 mb-3 transition-all duration-500 transform hover:scale-110 group relative z-10 ${
+          isOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
+        }`}
       >
-        <ChevronLeft /> Back
+        <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-300" />
+        <span className="text-sm font-medium group-hover:text-blue-300 transition-colors">
+          Back
+        </span>
       </button>
 
-      <div className="h-1 w-full bg-gray-700/40 rounded overflow-hidden">
+      <div
+        className={`h-1.5 w-full bg-gray-700/40 rounded-full overflow-hidden transition-all duration-500 relative z-10 ${
+          isOpen ? "opacity-100 scale-y-100" : "opacity-0 scale-y-75"
+        }`}
+      >
         <div
-          className="h-full bg-teal-500 transition-all"
+          className="h-full bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 transition-all duration-300 shadow-lg shadow-purple-500/60 rounded-full"
           style={{ width: `${scrollProgress}%` }}
         />
       </div>
 
       <div
         ref={containerRef}
-        className="flex-1 overflow-y-auto bg-[#1A1D24] border border-gray-700/50 rounded-2xl p-4 prose prose-invert"
+        className={`flex-1 overflow-y-auto bg-gradient-to-br from-[#1A1D24]/98 via-[#1D222A]/95 to-[#161A20]/98 border border-blue-600/40 rounded-2xl p-6 prose prose-invert transition-all duration-700 transform relative z-10 ${
+          isOpen
+            ? "scale-100 opacity-100 shadow-2xl shadow-purple-900/40"
+            : "scale-95 opacity-0 shadow-lg"
+        }`}
+        style={{
+          backdropFilter: "blur(10px)",
+          background:
+            "linear-gradient(135deg, rgba(26,29,36,0.98) 0%, rgba(29,34,42,0.95) 50%, rgba(22,26,32,0.98) 100%)",
+        }}
       >
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-          {(source as any).source_guide || "No content available."}
-        </ReactMarkdown>
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-600/5 via-transparent to-pink-600/5 pointer-events-none" />
+
+        <div className="relative z-10 space-y-4">
+          <div className="prose-animated">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {(source as any).source_guide || "No content available."}
+            </ReactMarkdown>
+          </div>
+        </div>
+      </div>
+
+      <div
+        className={`flex items-center justify-between px-3 py-2 bg-gradient-to-r from-blue-600/10 to-blue-400/10 rounded-lg border border-blue-500/20 backdrop-blur-sm transition-all duration-500 relative z-10 ${
+          isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+        }`}
+      >
+        <p className="text-sm text-gray-400 font-medium">
+          {Math.round(scrollProgress)}% scrolled
+        </p>
       </div>
     </div>
   );
@@ -264,15 +443,16 @@ const AnimatedSourceGuide: React.FC<{ source: Source; onBack: () => void }> = ({
 
 export default function NotebookWorkspace({ goBack, title }: Props) {
   const STUDIO_CARD_COLORS = [
-    "rgba(255, 87, 87, 0.35)",
-    "rgba(255, 140, 66, 0.35)",
-    "rgba(255, 220, 90, 0.35)",
-    "rgba(78, 205, 113, 0.35)",
-    "rgba(66, 135, 245, 0.35)",
-    "rgba(138, 97, 225, 0.35)",
-    "rgba(240, 98, 146, 0.35)",
-    "rgba(32, 201, 180, 0.35)",
+    "rgba(77, 87, 111, 0.55)",
+    "rgba(68, 86, 72, 0.55)",
+    "rgba(97, 73, 92, 0.55)",
+    "rgba(90, 90, 65, 0.55)",
+    "rgba(88, 73, 54, 0.55)",
+    "rgba(70, 87, 96, 0.55)",
+    "rgba(97, 73, 92, 0.55)",
+    "rgba(68, 86, 72, 0.55)",
   ];
+
   const [sources, setSources] = useState<Source[]>(() =>
     loadLS("nb_sources", [])
   );
@@ -413,9 +593,9 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
     async () => {
       const response = await fetchComparativeAnalysisFromAPI(comparativeTopic);
       return {
-        content: response.content,
+        content: response.answer || response.content || "",
         metadata: response.metadata,
-        sources: response.sources,
+        sources: response.sources || response.retrieved_context || [],
       };
     },
     { splitRegex: /##\s+/g },
@@ -426,9 +606,9 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
     async () => {
       const response = await fetchTutorialFromAPI(tutorialTopic);
       return {
-        content: response.content,
+        content: response.answer || response.content || "",
         metadata: response.metadata,
-        sources: response.sources,
+        sources: response.sources || response.retrieved_context || [],
       };
     },
     { splitRegex: /##\s+/g },
@@ -439,9 +619,9 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
     async () => {
       const response = await fetchTechnicalReportFromAPI(reportTopic);
       return {
-        content: response.content,
+        content: response.answer || response.content || "",
         metadata: response.metadata,
-        sources: response.sources,
+        sources: response.sources || response.retrieved_context || [],
       };
     },
     { splitRegex: /##\s+/g },
@@ -452,9 +632,9 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
     async () => {
       const response = await fetchBlogPostFromAPI(blogTopic);
       return {
-        content: response.content,
+        content: response.answer || response.content || "",
         metadata: response.metadata,
-        sources: response.sources,
+        sources: response.sources || response.retrieved_context || [],
       };
     },
     { splitRegex: /##\s+/g },
@@ -465,9 +645,9 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
     async () => {
       const response = await fetchStudyGuideFromAPI(studyTopic);
       return {
-        content: response.content,
+        content: response.answer || response.content || "",
         metadata: response.metadata,
-        sources: response.sources,
+        sources: response.sources || response.retrieved_context || [],
       };
     },
     { splitRegex: /##\s+/g },
@@ -478,9 +658,9 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
     async () => {
       const response = await fetchBriefingFromAPI(briefingTopic);
       return {
-        content: response.content,
+        content: response.answer || response.content || "",
         metadata: response.metadata,
-        sources: response.sources,
+        sources: response.sources || response.retrieved_context || [],
       };
     },
     { splitRegex: /##\s+/g },
@@ -493,12 +673,29 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
 
     setInput("");
     setIsLoading(true);
-    setMessages((prev) => [...prev, { role: "user", text }]);
+
+    setMessages((prev) => [
+      ...prev,
+      { role: "user", text, sources: [], metadata: null },
+    ]);
+
+    setTimeout(() => {
+      const chatContainer = document.querySelector(
+        '[aria-label="Chat Messages"]'
+      );
+      if (chatContainer) {
+        chatContainer.scrollTo({
+          top: chatContainer.scrollHeight,
+          behavior: "smooth",
+        });
+      }
+    }, 100);
 
     try {
       const currentDomain = title || "Medical";
 
       const response = await fetchNotebookAnswerFromAPI(currentDomain, text);
+
       setMessages((prev) => [
         ...prev,
         {
@@ -508,6 +705,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
           metadata: response.metadata ?? null,
         },
       ]);
+
       const fullText = response.answer || "";
       const words = fullText.split(" ");
       let index = 0;
@@ -522,11 +720,21 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
 
         index++;
 
+        setTimeout(() => {
+          const chatContainer = document.querySelector(
+            '[aria-label="Chat Messages"]'
+          );
+          if (chatContainer) {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+          }
+        }, 0);
+
         if (index > words.length) {
           clearInterval(interval);
           setIsLoading(false);
         }
       }, 40);
+
       if (response.mindmap) {
         setMindmapData(response.mindmap);
       }
@@ -545,7 +753,6 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       setIsLoading(false);
     }
   };
-
   const handleMindmapGenerate = async () => {
     if (!mindmapTopic.trim()) return;
     setMindmapLoading(true);
@@ -577,9 +784,9 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       const data = await fetchBriefingFromAPI(briefingTopic);
 
       briefing.setAnswer({
-        content: data.content,
-        sources: data.sources,
-        metadata: data.metadata,
+        content: data.answer || data.content || "",
+        sources: data.sources || data.retrieved_context || [],
+        metadata: data.metadata || null,
       });
 
       briefing.setShowCard(true);
@@ -739,26 +946,105 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
     onCancel,
     loading
   ) => (
-    <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-md">
-      <div className="bg-[#10141A] border border-gray-600/30 rounded-2xl p-8 w-[450px] space-y-5 shadow-2xl shadow-black/60/40">
-        <h3 className="text-2xl text-gray-300 font-bold border-b border-gray-700/50 pb-3">
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <style>{`
+      @keyframes modalSlideIn {
+        from {
+          opacity: 0;
+          transform: scale(0.92) translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+
+      @keyframes modalBackdropIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 0.7;
+        }
+      }
+
+      @keyframes modalFadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+    `}</style>
+
+      <div
+        className="absolute inset-0 bg-black backdrop-blur-sm"
+        style={{
+          animation: "modalBackdropIn 0.4s ease-out forwards",
+        }}
+        onClick={onCancel}
+      />
+
+      <div
+        className="
+        relative w-[450px] bg-gradient-to-br from-[#1A1D24] to-[#10141A]
+        border border-gray-700/40 rounded-2xl p-8 shadow-2xl shadow-black/70
+      "
+        style={{
+          animation: "modalSlideIn 0.4s ease-out forwards",
+        }}
+      >
+        <h3
+          className="text-2xl text-gray-200 font-bold mb-4 flex items-center gap-2"
+          style={{
+            animation: "modalFadeIn 0.4s ease-out 0.2s forwards",
+            opacity: 0,
+          }}
+        >
+          <Sparkles className="w-5 h-5 text-blue-400 animate-pulse" />
           {title}
         </h3>
-        <p className="text-sm text-gray-400">
-          Enter the topic you want to generate content for.
+
+        <p
+          className="text-sm text-gray-400 mb-3"
+          style={{
+            animation: "modalFadeIn 0.4s ease-out 0.3s forwards",
+            opacity: 0,
+          }}
+        >
+          Enter the topic you want the AI to generate:
         </p>
+
         <input
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
           placeholder={placeholder}
-          className="w-full px-4 py-3 bg-[#1A1D24] border border-white/10 rounded-xl text-base outline-none focus:ring-2 focus:ring-teal-500 transition-shadow text-white placeholder-gray-500"
+          className="
+          w-full px-4 py-3 bg-[#151A20] border border-white/10 rounded-xl
+          text-base outline-none text-white placeholder-gray-500
+          focus:ring-2 focus:ring-teal-500 transition-all
+        "
+          style={{
+            animation: "modalFadeIn 0.4s ease-out 0.4s forwards",
+            opacity: 0,
+          }}
           onKeyDown={(e) => e.key === "Enter" && onGenerate()}
         />
+
         <button
           onClick={onGenerate}
           disabled={!topic.trim() || loading}
-          className="w-full py-3 rounded-xl bg-gray-700 hover:bg-gray-600 text-base font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.01] shadow-lg shadow-black/60/60 disabled:shadow-none"
-          aria-label="Send Message"
+          className="
+          mt-5 w-full py-3 rounded-xl bg-gray-700 hover:bg-gray-600
+          font-bold transition-all duration-300
+          disabled:opacity-50 disabled:cursor-not-allowed
+          transform hover:scale-[1.03]
+        "
+          style={{
+            animation: "modalFadeIn 0.4s ease-out 0.5s forwards",
+            opacity: 0,
+          }}
         >
           {loading ? (
             <span className="flex items-center justify-center gap-2">
@@ -769,9 +1055,17 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
             "Generate"
           )}
         </button>
+
         <button
           onClick={onCancel}
-          className="w-full py-3 rounded-xl bg-[#21252C] hover:bg-[#343A45] text-base transition-all duration-200 transform hover:scale-[1.01] text-gray-200"
+          className="
+          mt-3 w-full py-3 rounded-xl bg-[#21252C] hover:bg-[#343A45]
+          text-base text-gray-200 transition-all duration-200
+        "
+          style={{
+            animation: "modalFadeIn 0.4s ease-out 0.6s forwards",
+            opacity: 0,
+          }}
         >
           Cancel
         </button>
@@ -928,16 +1222,48 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
             <p className="text-sm text-gray-300 font-medium flex items-center gap-2">
               <Cpu className="w-4 h-4 text-gray-300 animate-pulse" />
               Chatting with **{title ?? "Notebook"}**
-              <span className="text-xs text-gray-500 font-normal ml-2">
+              <span className="text-sm text-gray-500 font-normal ml-2">
                 (Context: Medical.json)
               </span>
             </p>
           </div>
 
           <div
+            aria-label="Chat Messages"
             className="flex-1 bg-[#171A1F] border border-gray-700/50 rounded-2xl p-5 overflow-x-hidden
-        overflow-y-auto space-y-8 shadow-xl shadow-black/30"
+  overflow-y-auto space-y-8 shadow-xl shadow-black/30"
           >
+            <style>{`
+    @keyframes messageSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .chat-message {
+      animation: messageSlideIn 0.4s ease-out forwards;
+      opacity: 0;
+    }
+
+    .typing-indicator {
+      animation: fadeIn 0.3s ease-out forwards;
+    }
+  `}</style>
+
             {messages.length === 0 && !isLoading ? (
               <div className="flex flex-col items-center justify-center w-full h-full text-center text-gray-500">
                 <div className="w-full max-w-[900px] mx-auto flex flex-col items-center">
@@ -951,29 +1277,38 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
                 </div>
               </div>
             ) : (
-              messages.map((m, idx) => <MessageBubble key={idx} m={m} />)
+              messages.map((m, idx) => (
+                <div
+                  key={idx}
+                  className="chat-message"
+                  style={{ animationDelay: `${idx * 0.1}s` }}
+                >
+                  <MessageBubble m={m} />
+                </div>
+              ))
             )}
+
             {isLoading && (
-              <div className="w-full flex justify-center mt-4">
+              <div className="typing-indicator w-full flex justify-center mt-4">
                 <div className="w-full max-w-[900px] mx-auto flex gap-3 px-2 py-3">
-                  <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-white font-bold">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
                     AI
                   </div>
 
-                  <div className="bg-[#1D222A] border border-gray-700/50 px-4 py-3 rounded-2xl max-w-[70%] shadow-md">
+                  <div className="bg-gradient-to-br from-[#1D222A] to-[#15191F] border border-blue-600/30 px-4 py-3 rounded-2xl max-w-[70%] shadow-md hover:shadow-lg hover:shadow-blue-900/30 transition-shadow">
                     <div className="space-y-2">
-                      <div className="h-3 w-3/4 bg-gray-600/30 rounded animate-pulse"></div>
-                      <div className="h-3 w-2/3 bg-gray-600/30 rounded animate-pulse"></div>
-                      <div className="h-3 w-1/3 bg-gray-600/30 rounded animate-pulse"></div>
+                      <div className="h-3 w-3/4 bg-blue-600/30 rounded animate-pulse"></div>
+                      <div className="h-3 w-2/3 bg-blue-600/30 rounded animate-pulse delay-100"></div>
+                      <div className="h-3 w-1/3 bg-blue-600/30 rounded animate-pulse delay-200"></div>
                     </div>
 
                     <div className="flex items-center gap-2 mt-3">
-                      <span className="text-xs text-gray-400 italic">
+                      <span className="text-sm text-blue-400 italic font-semibold">
                         {loadingTexts[loadingIndex]}
                       </span>
-                      <span className="w-2 h-2 bg-gray-600 rounded-full animate-bounce"></span>
-                      <span className="w-2 h-2 bg-gray-600 rounded-full animate-bounce delay-150"></span>
-                      <span className="w-2 h-2 bg-gray-600 rounded-full animate-bounce delay-300"></span>
+                      <span className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></span>
+                      <span className="w-2 h-2 bg-blue-600 rounded-full animate-bounce delay-150"></span>
+                      <span className="w-2 h-2 bg-blue-600 rounded-full animate-bounce delay-300"></span>
                     </div>
                   </div>
                 </div>
@@ -1027,6 +1362,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
                     <ChevronRight className="w-5 h-5 text-gray-400" />
                   </button>
                 </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <ToolCard
                     icon={GitBranch}
@@ -1222,86 +1558,27 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
         </div>
       )}
 
-      {showMindmapCreateModal && (
-        <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-md">
-          <div className="bg-[#10141A] border border-gray-600/30 rounded-2xl p-8 w-[450px] space-y-5 shadow-2xl shadow-black/60/40">
-            <h3 className="text-2xl text-gray-300 font-bold border-b border-gray-700/50 pb-3">
-              Generate Mind Map
-            </h3>
-            <p className="text-sm text-gray-400">
-              Enter the main topic for the AI to analyze your notebook data and
-              generate a visual mind map.
-            </p>
-            <input
-              value={mindmapTopic}
-              onChange={(e) => setMindmapTopic(e.target.value)}
-              placeholder="E.g., Key concepts of Medical.json"
-              className="w-full px-4 py-3 bg-[#1A1D24] border border-white/10 rounded-xl text-base outline-none focus:ring-2 focus:ring-teal-500 transition-shadow text-white placeholder-gray-500"
-              onKeyDown={(e) => e.key === "Enter" && handleMindmapGenerate()}
-            />
-            <button
-              onClick={handleMindmapGenerate}
-              disabled={!mindmapTopic.trim() || mindmapLoading}
-              className="w-full py-3 rounded-xl bg-gray-700 hover:bg-gray-600 text-base font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.01] shadow-lg shadow-black/60/60"
-            >
-              {mindmapLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  Generating Mindmap...
-                </span>
-              ) : (
-                "Generate Mind Map"
-              )}
-            </button>
-            <button
-              onClick={() => setShowMindmapCreateModal(false)}
-              className="w-full py-3 rounded-xl bg-[#21252C] hover:bg-[#343A45] text-base transition-all duration-200 transform hover:scale-[1.01] text-gray-200"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-      {showBriefingModal && (
-        <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-md">
-          <div className="bg-[#10141A] border border-gray-600/30 rounded-2xl p-8 w-[450px] space-y-5 shadow-2xl shadow-black/60/40">
-            <h3 className="text-2xl text-gray-300 font-bold border-b border-gray-700/50 pb-3">
-              Generate Briefing
-            </h3>
-            <p className="text-sm text-gray-400">
-              Enter the topic for which you want to generate an AI-powered
-              briefing summary.
-            </p>
-            <input
-              value={briefingTopic}
-              onChange={(e) => setBriefingTopic(e.target.value)}
-              placeholder="E.g., Healthcare innovation trends"
-              className="w-full px-4 py-3 bg-[#1A1D24] border border-white/10 rounded-xl text-base outline-none focus:ring-2 focus:ring-teal-500 transition-shadow text-white placeholder-gray-500"
-              onKeyDown={(e) => e.key === "Enter" && handleBriefingGenerate()}
-            />
-            <button
-              onClick={handleBriefingGenerate}
-              disabled={!briefingTopic.trim() || briefingLoading}
-              className="w-full py-3 rounded-xl bg-gray-700 hover:bg-gray-600 text-base font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.01] shadow-lg shadow-black/60/60"
-            >
-              {briefingLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  Generating Briefing...
-                </span>
-              ) : (
-                "Generate Briefing"
-              )}
-            </button>
-            <button
-              onClick={() => setShowBriefingModal(false)}
-              className="w-full py-3 rounded-xl bg-[#21252C] hover:bg-[#343A45] text-base transition-all duration-200 transform hover:scale-[1.01] text-gray-200"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
+      {showMindmapCreateModal &&
+        renderInputModal(
+          "Generate Mind Map",
+          "E.g., Key concepts of Medical.json",
+          mindmapTopic,
+          setMindmapTopic,
+          handleMindmapGenerate,
+          () => setShowMindmapCreateModal(false),
+          mindmapLoading
+        )}
+
+      {showBriefingModal &&
+        renderInputModal(
+          "Generate Briefing",
+          "E.g., Healthcare innovation trends",
+          briefingTopic,
+          setBriefingTopic,
+          handleBriefingGenerate,
+          () => setShowBriefingModal(false),
+          briefingLoading
+        )}
       {showFAQModal &&
         renderInputModal(
           "Generate FAQ",

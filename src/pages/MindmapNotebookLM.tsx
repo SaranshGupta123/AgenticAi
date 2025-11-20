@@ -58,30 +58,17 @@ type MindmapData = {
 };
 
 const BASE_COLORS = [
-  { r: 30, g: 45, b: 75 },
-  { r: 35, g: 60, b: 50 },
-  { r: 55, g: 45, b: 70 },
+  { r: 66, g: 76, b: 104 },
+  { r: 64, g: 83, b: 68 },
+  { r: 112, g: 101, b: 76 },
+  { r: 88, g: 72, b: 92 },
+  { r: 80, g: 87, b: 101 },
 ];
 
-function lighten(base, amount) {
-  return {
-    r: Math.min(base.r + amount, 140),
-    g: Math.min(base.g + amount, 140),
-    b: Math.min(base.b + amount, 140),
-  };
-}
-
 function getColorForNode(node: MindmapNode) {
-  const branchIndex =
-    node.level === 0 ? 0 : node.id.charCodeAt(0) % BASE_COLORS.length;
-
-  const base = BASE_COLORS[branchIndex];
-
-  const lightAmount = node.level * 18;
-
-  const final = lighten(base, lightAmount);
-
-  return `rgb(${final.r}, ${final.g}, ${final.b})`;
+  const levelIndex = Math.min(node.level, BASE_COLORS.length - 1);
+  const base = BASE_COLORS[levelIndex];
+  return `rgb(${base.r}, ${base.g}, ${base.b})`;
 }
 
 function buildTree(data: MindmapData): MindmapNode | null {
@@ -161,6 +148,13 @@ function buildTree(data: MindmapData): MindmapNode | null {
     node.level = depth;
     node.children.forEach((child) => assignRealDepth(child, depth + 1));
   };
+  function assignBranchColor(node: MindmapNode, colorIndex: number) {
+    node.branchColorIndex = colorIndex;
+    node.children.forEach((child) => assignBranchColor(child, colorIndex));
+  }
+  rootNode.children.forEach((child, i) => {
+    assignBranchColor(child, i % BASE_COLORS.length);
+  });
 
   rootNode.children.sort((a, b) => a.label.localeCompare(b.label));
   assignRealDepth(rootNode, 0);
