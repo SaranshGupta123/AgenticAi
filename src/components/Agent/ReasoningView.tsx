@@ -260,7 +260,10 @@ export const ReasoningView = ({
         </h2>
       </div>
 
-      <div id="explain-scroll" className="flex-1 p-6 overflow-y-auto space-y-6">
+      <div
+        id="explain-scroll"
+        className="flex-1 p-6 overflow-y-auto overflow-x-hidden space-y-6"
+      >
         {error && (
           <div className="text-red-600 text-sm bg-red-50 p-3 rounded">
             {error}
@@ -278,7 +281,7 @@ export const ReasoningView = ({
             </div>
 
             <div className="w-full flex justify-center">
-              <div className="w-full max-w-[900px] mx-auto">
+              <div className="w-full max-w-full lg:max-w-[900px] mx-auto">
                 {!chat.streaming && chat.safe && (
                   <div className="inline-flex items-center space-x-1 px-2 py-1 bg-green-50 rounded-full border border-green-100 mb-3 shadow-sm">
                     <Shield className="w-3.5 h-3.5 text-green-600" />
@@ -330,14 +333,14 @@ export const ReasoningView = ({
                           </p>
 
                           {step.input_data && (
-                            <pre className="text-xs bg-slate-100 p-2 rounded border mb-2 whitespace-pre-wrap overflow-x-auto">
+                            <pre className="text-xs bg-slate-100 p-2 rounded border mb-2 whitespace-pre-wrap break-all overflow-x-hidden">
                               {formatOutput(step.input_data)}
                             </pre>
                           )}
 
                           {step.output_data && (
                             <pre
-                              className={`text-xs ${bg} p-3 rounded border whitespace-pre-wrap overflow-x-auto`}
+                              className={`text-xs ${bg} p-3 rounded border whitespace-pre-wrap break-all overflow-x-hidden`}
                             >
                               {formatted}
                             </pre>

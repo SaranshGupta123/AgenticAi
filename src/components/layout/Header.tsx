@@ -31,7 +31,7 @@ export const Header: React.FC<Props> = ({
 
   return (
     <header className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-50">
-      <div className="max-w-full mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-6 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <button
             onClick={onSidebarToggle}
@@ -55,7 +55,7 @@ export const Header: React.FC<Props> = ({
           </div>
         </div>
 
-        <div className="hidden lg:flex items-center space-x-1 sm:space-x-2 bg-slate-100 p-1 rounded-lg">
+        <div className="hidden lg:flex items-center space-x-1 lg:space-x-2 bg-slate-100 p-1 rounded-lg">
           {tabs.map(({ id, label, Icon }) => (
             <button
               key={id}
@@ -74,7 +74,7 @@ export const Header: React.FC<Props> = ({
 
         <button
           onClick={onNotebookOpen}
-          className="px-3 py-2 rounded-md border border-slate-300 hover:bg-slate-100 flex items-center gap-2"
+          className="px-2.5 lg:px-3 py-2 rounded-md border border-slate-300 hover:bg-slate-100 flex items-center gap-2"
         >
           <BookOpen className="w-5 h-5 text-blue-600" />
           <span className="text-sm font-medium text-slate-700">Notebooks</span>

@@ -37,12 +37,12 @@ export default function RAGPipelineUI({ goToNotebook }) {
         <div className="flex flex-1 min-h-0 overflow-hidden relative">
           <div
             className={`
-              fixed z-40 inset-y-0 left-0 transform bg-white border-r border-slate-200 p-4
-              w-[300px] sm:w-[320px] md:w-[340px] lg:w-[360px]
-              overflow-y-auto transition-transform duration-300 ease-in-out
-              lg:static lg:translate-x-0
-              ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-            `}
+    fixed z-40 inset-y-0 left-0 transform bg-white border-r border-slate-200 p-4
+    w-[260px]
+    transition-transform duration-300 ease-in-out
+    lg:static lg:translate-x-0 lg:w-[300px]
+    ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+  `}
           >
             <Sidebar
               agentType={agentType}
@@ -59,7 +59,7 @@ export default function RAGPipelineUI({ goToNotebook }) {
             ></div>
           )}
 
-          <div className="flex-1 min-h-0 overflow-hidden p-4 sm:p-6 lg:p-8">
+          <div className="flex-1 min-h-0 overflow-hidden p-4 sm:p-6 lg:p-4">
             <div className="h-full flex flex-col min-h-0">
               {activeTab === "chat" &&
                 (agentType === "deep_research" ? (

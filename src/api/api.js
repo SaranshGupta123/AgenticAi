@@ -1,4 +1,4 @@
-export const BASE_URL = "https://d3027091cd8f.ngrok-free.app";
+export const BASE_URL = "https://eb699aa80a4c.ngrok-free.app";
 
 const defaultHeaders = {
   "Content-Type": "application/json",
@@ -111,26 +111,29 @@ export async function fetchNotebookAnswerFromAPI(domain, question) {
   };
 }
 export async function fetchDeepResearchResponse(query) {
-  const body = {
-    query: query,
-    use_crag: false,
-    agent_type: "deep_research",
-    include_steps: true,
-  };
+  const url = `/rag/api/rag/deep-research?max_iterations=5&include_full_report=true`;
 
-  const data = await apiPost(
-    "/rag/api/rag/deep-research",
-    body,
-    "Deep Research"
-  );
+  const body = { query };
 
+  const response = await fetch(BASE_URL + url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      "ngrok-skip-browser-warning": "true",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorTxt = await response.text();
+    console.error("Deep Research Error:", errorTxt);
+    throw new Error(`Deep Research failed (${response.status})`);
+  }
+
+  const data = await response.json();
   return {
-    answer:
-      data.final_answer ??
-      data.answer ??
-      data.final_decision ??
-      data.final_decision_text ??
-      "No answer.",
+    answer: data.final_answer,
     steps: data.agent_steps ?? [],
     evaluation: data.evaluation_metrics ?? {},
     metadata: data.metadata ?? {},
