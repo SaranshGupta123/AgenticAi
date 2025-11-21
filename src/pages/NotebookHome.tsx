@@ -10,6 +10,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 
+import { motion } from "framer-motion";
+
 export default function NotebookHome({ goBack, openNotebook }) {
   const [domains, setDomains] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -70,41 +72,68 @@ export default function NotebookHome({ goBack, openNotebook }) {
 
   return (
     <div className="h-screen w-screen bg-[#0A0A0C] text-white flex flex-col">
-      <header className="flex items-center justify-between px-10 py-6 shadow-xl border-b border-[#1C1C20] bg-[#0D1117]/80 backdrop-blur-xl">
+      <motion.header
+        initial={{ opacity: 0, y: -18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45 }}
+        className="flex items-center justify-between px-10 py-6 shadow-xl border-b border-[#1C1C20] bg-[#0D1117]/80 backdrop-blur-xl"
+      >
         <h1 className="text-xl font-semibold tracking-wide text-gray-300 drop-shadow">
           Notebook Home
         </h1>
 
         <div className="flex items-center space-x-3">
-          <button
+          <motion.button
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.15 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
             onClick={handleFetch}
             className="px-4 py-2 text-sm flex items-center space-x-2 
-              bg-[#1A1A1D] border border-[#2A2A30]
-              hover:bg-[#121216] hover:border-[#4A4A55]
+              bg-[#2A2E33] border border-[#3A3F45]
+              hover:bg-[#1D2126] hover:border-[#5A5F66]
               rounded-xl transition-all shadow-md"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             <span>{loading ? "Refreshing…" : "Fetch Domains"}</span>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.25 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
             onClick={goBack}
             className="px-4 py-2 rounded-xl bg-[#1A1A1D] hover:bg-[#121216]
               transition-colors text-sm font-medium shadow-md border border-[#2A2A30]"
           >
             Back to Agentic
-          </button>
+          </motion.button>
         </div>
-      </header>
+      </motion.header>
 
       {alertMsg && (
-        <div className="fixed top-6 right-6 bg-[#1A1A1D] border border-gray-600 px-4 py-2 rounded-xl shadow-lg text-sm animate-fade-in">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 10 }}
+          exit={{ opacity: 0 }}
+          className="fixed top-24 right-6 
+                     bg-[#2A2424] text-red-300 
+                     border border-red-500/40 
+                     px-4 py-2 rounded-xl shadow-lg text-sm"
+        >
           {alertMsg}
-        </div>
+        </motion.div>
       )}
 
       <div className="flex-1 px-12 py-10 overflow-y-auto">
-        <div className="mb-10">
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+        >
           <h2 className="text-3xl font-semibold text-gray-200">
             Welcome back 👋
           </h2>
@@ -117,10 +146,15 @@ export default function NotebookHome({ goBack, openNotebook }) {
               ⚠ Failed to reach server – showing local cache
             </p>
           )}
-        </div>
+        </motion.div>
 
-        <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-          <div
+        <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 mt-8">
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45 }}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => openNotebook("Demo Notebook")}
             className="h-48 bg-[#0D1117] border border-[#1F242C] rounded-2xl p-5 cursor-pointer
                        hover:scale-[1.03] hover:border-gray-500 hover:bg-[#10141A]
@@ -136,7 +170,7 @@ export default function NotebookHome({ goBack, openNotebook }) {
             <p className="text-gray-500 text-sm mt-1">
               A sample notebook to explore.
             </p>
-          </div>
+          </motion.div>
 
           {domains.length > 0 &&
             domains.map((domain, index) => {
@@ -144,8 +178,13 @@ export default function NotebookHome({ goBack, openNotebook }) {
               const bg = CARD_COLORS[index % CARD_COLORS.length];
 
               return (
-                <div
+                <motion.div
                   key={domain}
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45 + index * 0.05 }}
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => handleOpen(domain)}
                   style={{ backgroundColor: bg }}
                   className="h-48 border border-[#252530] rounded-2xl p-5 cursor-pointer
@@ -162,7 +201,7 @@ export default function NotebookHome({ goBack, openNotebook }) {
                   <p className="text-gray-500 text-sm mt-1">
                     Open this notebook
                   </p>
-                </div>
+                </motion.div>
               );
             })}
         </div>

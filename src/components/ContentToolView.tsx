@@ -4,6 +4,7 @@ import remarkGfm from "remark-gfm";
 import AnswerDetails from "./AnswerDetails";
 import MindmapNotebookLM from "../pages/MindmapNotebookLM";
 import { X, Sparkles } from "lucide-react";
+import ReactDOM from "react-dom";
 
 export function SearchModal({ tool, title }: any) {
   const [isOpen, setIsOpen] = useState(false);
@@ -98,149 +99,26 @@ export function AnswerModal({ tool, title }: any) {
     }, 300);
   };
 
-  return (
+  return ReactDOM.createPortal(
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-300 ${
         isOpen && !isClosing ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
     >
       <style>{`
-        @keyframes modalSlideIn {
-          from {
-            opacity: 0;
-            transform: scale(0.92) translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-
-        @keyframes modalSlideOut {
-          from {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-          to {
-            opacity: 0;
-            transform: scale(0.92) translateY(20px);
-          }
-        }
-
-        @keyframes contentFadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-
-        .modal-content {
-          animation: ${
-            isClosing ? "modalSlideOut" : "modalSlideIn"
-          } 0.4s ease-out forwards;
-        }
-
-        .modal-header {
-          animation: slideInDown 0.5s ease-out forwards;
-          opacity: 0;
-        }
-
-        @keyframes slideInDown {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .modal-body {
-          animation: contentFadeIn 0.5s ease-out 0.2s forwards;
-          opacity: 0;
-        }
-
-        .answer-text p {
-          animation: fadeInUp 0.6s ease-out forwards;
-          opacity: 0;
-        }
-
-        .answer-text p:nth-of-type(1) { animation-delay: 0.3s; }
-        .answer-text p:nth-of-type(2) { animation-delay: 0.4s; }
-        .answer-text p:nth-of-type(3) { animation-delay: 0.5s; }
-        .answer-text p:nth-of-type(n+4) { animation-delay: 0.6s; }
-
-        .answer-text h1,
-        .answer-text h2,
-        .answer-text h3 {
-          animation: slideInLeft 0.5s ease-out forwards;
-          opacity: 0;
-          color: #ffffff;
-        }
-
-        .answer-text h1 { animation-delay: 0.25s; }
-        .answer-text h2 { animation-delay: 0.35s; }
-        .answer-text h3 { animation-delay: 0.45s; }
-
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes slideInLeft {
-          from {
-            opacity: 0;
-            transform: translateX(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-
-        .answer-text strong {
-          color: #ffffff;
-          font-weight: 700;
-          background: rgba(255, 255, 255, 0.1);
-          padding: 0 4px;
-          border-radius: 3px;
-        }
-
-        .answer-text a {
-          color: #ffffff;
-          text-decoration: underline;
-          transition: all 0.3s ease;
-          background: rgba(255, 255, 255, 0.1);
-          padding: 0 4px;
-          border-radius: 3px;
-        }
-
-        .answer-text a:hover {
-          background: rgba(255, 255, 255, 0.2);
-        }
-
-        .close-btn-animated:hover {
-          animation: spinRotate 0.3s ease-out forwards;
-        }
-
-        @keyframes spinRotate {
-          from {
-            transform: rotate(0deg) scale(1);
-          }
-          to {
-            transform: rotate(90deg) scale(1.1);
-          }
-        }
-      `}</style>
+      @keyframes modalSlideIn {
+        from { opacity: 0; transform: scale(0.92) translateY(20px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+      }
+      @keyframes modalSlideOut {
+        from { opacity: 1; transform: scale(1) translateY(0); }
+        to { opacity: 0; transform: scale(0.92) translateY(20px); }
+      }
+      @keyframes contentFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+    `}</style>
 
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
@@ -248,18 +126,14 @@ export function AnswerModal({ tool, title }: any) {
       />
 
       <div
-        className={`modal-content
-          ${
-            title.toLowerCase().includes("mindmap")
-              ? "w-[90vw] max-w-[1400px]"
-              : "w-[700px]"
-          }
-          max-h-[90vh] flex flex-col bg-gradient-to-br from-[#14171C] to-[#0E1116] rounded-2xl 
-          border border-blue-600/40 shadow-2xl shadow-blue-900/50
-          p-6 relative z-10`}
+        className={`modal-content ${
+          title.toLowerCase().includes("mindmap")
+            ? "w-[90vw] max-w-[1400px]"
+            : "w-[700px]"
+        }
+        max-h-[90vh] flex flex-col bg-gradient-to-br from-[#14171C] to-[#0E1116]
+        rounded-2xl border border-blue-600/40 shadow-2xl shadow-blue-900/50 p-6 relative z-10`}
       >
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-600/5 via-cyan-600/5 to-transparent pointer-events-none" />
-
         <button
           onClick={handleClose}
           className="close-btn-animated absolute top-4 right-4 text-gray-300 hover:text-red-400 p-1 rounded-full transition-all duration-300 z-20"
@@ -267,12 +141,12 @@ export function AnswerModal({ tool, title }: any) {
           <X className="w-6 h-6" />
         </button>
 
-        <div className="modal-header relative z-10 flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3 mb-4">
           <Sparkles className="w-5 h-5 text-blue-400 animate-pulse" />
           <h2 className="text-xl font-bold text-white">{title}</h2>
         </div>
 
-        <div className="modal-body flex-1 h-0 overflow-y-auto text-gray-300 text-base leading-relaxed border border-blue-600/30 rounded-xl p-5 space-y-4 bg-gradient-to-br from-[#1A1D22] to-[#15191F] relative z-10">
+        <div className="flex-1 h-0 overflow-y-auto text-gray-300 text-base leading-relaxed border border-blue-600/30 rounded-xl p-5 space-y-4 bg-gradient-to-br from-[#1A1D22] to-[#15191F]">
           <div className="answer-text">
             {tool.answer?.content ? (
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -282,11 +156,8 @@ export function AnswerModal({ tool, title }: any) {
               <p>No content available.</p>
             )}
 
-            {tool.answer && (
-              <>
-                <AnswerDetails answer={tool.answer} />
-              </>
-            )}
+            {tool.answer && <AnswerDetails answer={tool.answer} />}
+
             {title.toLowerCase().includes("mindmap") && tool.answer && (
               <div className="mt-5 p-3 rounded-xl bg-gradient-to-br from-[#1E2228] to-[#1A1D24] border border-blue-600/30">
                 <MindmapNotebookLM data={tool.answer} />
@@ -295,7 +166,8 @@ export function AnswerModal({ tool, title }: any) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.getElementById("modal-root")
   );
 }
 

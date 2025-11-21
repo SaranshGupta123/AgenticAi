@@ -66,12 +66,23 @@ function useContentTool(
 ) {
   const [data, setData] = useState<any | null>(null);
   const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState<any | null>(null);
+
+  const [answer, setAnswerState] = useState<any | null>(() =>
+    loadLS(`${storageKey}_result`, null)
+  );
+
   const [showSearchModal, setShowSearchModal] = useState(false);
+
   const [showAnswerModal, setShowAnswerModal] = useState(
     loadLS(`${storageKey}_modal`, false)
   );
-  const [showCard, setShowCard] = useState(false);
+
+  const [showCard, setShowCard] = useState(() => (answer ? true : false));
+
+  const setAnswer = (val: any) => {
+    saveLS(`${storageKey}_result`, val);
+    setAnswerState(val);
+  };
 
   const open = async () => {
     try {
@@ -94,13 +105,15 @@ function useContentTool(
           finalContent = JSON.stringify(d, null, 2);
         }
 
-        setAnswer({
+        const resultObj = {
           content: finalContent,
           metadata: d.metadata ?? null,
           sources: d.sources ?? [],
           citations: d.citations ?? [],
           quality_metrics: d.quality_metrics ?? null,
-        });
+        };
+
+        setAnswer(resultObj);
 
         setShowSearchModal(false);
         setShowAnswerModal(true);
@@ -129,6 +142,7 @@ function useContentTool(
     setAnswer,
   };
 }
+
 const MessageBubble: React.FC<{ m: Message; isLastAssistant: boolean }> = ({
   m,
   isLastAssistant,
@@ -556,6 +570,8 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
 
   const [draggingLeft, setDraggingLeft] = useState(false);
   const [draggingRight, setDraggingRight] = useState(false);
+  const [isHidingLeft, setIsHidingLeft] = useState(false);
+  const [isHidingRight, setIsHidingRight] = useState(false);
 
   const MIN_LEFT = 250;
   const MAX_LEFT = 900;
@@ -1162,7 +1178,11 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
         {!collapseSources && (
           <>
             <div
-              className="flex-shrink-0 border-r border-gray-700/50 overflow-hidden"
+              className={`
+    flex-shrink-0 border-r border-gray-700/50 overflow-hidden
+    transition-all duration-300 ease-out
+    ${isHidingLeft ? "opacity-0 -translate-x-4" : "opacity-100 translate-x-0"}
+  `}
               style={{ width: `${leftWidth}px` }}
             >
               <aside className="h-full p-6 flex flex-col gap-5 bg-[#14171C]">
@@ -1170,7 +1190,12 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
                   <>
                     <div className="flex justify-between items-center">
                       <h2>Sources ({sources.length})</h2>
-                      <button onClick={() => setCollapseSources(true)}>
+                      <button
+                        onClick={() => {
+                          setIsHidingLeft(true);
+                          setTimeout(() => setCollapseSources(true), 280);
+                        }}
+                      >
                         <ChevronLeft />
                       </button>
                     </div>
@@ -1228,8 +1253,16 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
         )}
         {collapseSources && (
           <div
-            onClick={() => setCollapseSources(false)}
-            className="flex-shrink-0 w-10 bg-[#14171C] border-r border-gray-700/50 flex justify-center items-center cursor-pointer hover:bg-[#1D222A]"
+            onClick={() => {
+              setCollapseSources(false);
+              setTimeout(() => setIsHidingLeft(false), 50);
+            }}
+            className="
+      flex-shrink-0 w-10 bg-[#14171C] border-r border-gray-700/50 
+      flex justify-center items-center cursor-pointer hover:bg-[#1D222A]
+      transition-all duration-300 ease-out
+      opacity-100 translate-x-0
+    "
           >
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </div>
@@ -1363,11 +1396,15 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
           <>
             <div
               onMouseDown={() => setDraggingRight(true)}
-              className="w-1 hover:w-1.5 bg-gray-700/30 hover:bg-teal-500/50 cursor-col-resize transition-all duration-150 flex-shrink-0"
-              aria-label="Resize Studio Panel"
+              className="w-1 hover:w-1.5 bg-gray-700/30 hover:bg-teal-500/50 cursor-col-resize transition-all"
             />
+
             <div
-              className="flex-shrink-0 border-l border-gray-700/50 overflow-y-auto"
+              className={`
+    flex-shrink-0 border-l border-gray-700/50 overflow-y-auto
+    transition-all duration-300 ease-out
+    ${isHidingRight ? "opacity-0 translate-x-4" : "opacity-100 translate-x-0"}
+  `}
               style={{ width: `${rightWidth}px` }}
             >
               <aside className="h-full p-6 flex flex-col bg-[#14171C]">
@@ -1377,7 +1414,10 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
                     AI Studio Tools
                   </h2>
                   <button
-                    onClick={() => setCollapseStudio(true)}
+                    onClick={() => {
+                      setIsHidingRight(true);
+                      setTimeout(() => setCollapseStudio(true), 280);
+                    }}
                     className="p-1.5 rounded-full hover:bg-[#3E4550] transition-colors duration-200"
                     aria-label="Collapse Studio"
                   >
@@ -1548,8 +1588,16 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
 
         {collapseStudio && (
           <div
-            onClick={() => setCollapseStudio(false)}
-            className="flex-shrink-0 w-10 bg-[#14171C] border-l border-gray-700/50 flex justify-center items-center cursor-pointer hover:bg-[#1D222A]"
+            onClick={() => {
+              setCollapseStudio(false);
+              setTimeout(() => setIsHidingRight(false), 50);
+            }}
+            className="
+      flex-shrink-0 w-10 bg-[#14171C] border-l border-gray-700/50 
+      flex justify-center items-center cursor-pointer hover:bg-[#1D222A]
+      transition-all duration-300 ease-out
+      opacity-100 translate-x-0
+    "
           >
             <ChevronLeft className="w-5 h-5 text-gray-400" />
           </div>
