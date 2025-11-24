@@ -177,8 +177,12 @@ export function ToolCard({
   onClick,
   style = {},
   className = "",
+  tooltip = "",
 }) {
   const [isHovering, setIsHovering] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
 
   const bg = style.backgroundColor;
 
@@ -196,96 +200,184 @@ export function ToolCard({
 
   const glowColor = getTextColor(bg);
 
+  const handleInfoHover = (e: React.MouseEvent) => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const tooltipWidth = 320;
+      const tooltipHeight = 200;
+      const padding = 10;
+
+      let top = rect.top;
+      let left = rect.right + padding;
+
+      if (left + tooltipWidth > window.innerWidth) {
+        left = rect.left - tooltipWidth - padding;
+      }
+
+      if (left < 0) {
+        left = rect.left + rect.width / 2 - tooltipWidth / 2;
+        top = rect.bottom + padding;
+      }
+
+      if (top + tooltipHeight > window.innerHeight) {
+        top = rect.top - tooltipHeight - padding;
+      }
+
+      if (top < 0) {
+        top = padding;
+      }
+
+      if (left < padding) {
+        left = padding;
+      }
+
+      if (left + tooltipWidth > window.innerWidth - padding) {
+        left = window.innerWidth - tooltipWidth - padding;
+      }
+
+      setTooltipPosition({ top, left });
+      setShowTooltip(true);
+    }
+  };
+
+  const handleTooltipMouseEnter = () => {
+    setShowTooltip(true);
+  };
+
+  const handleTooltipMouseLeave = () => {
+    setShowTooltip(false);
+  };
+
   return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
-      style={style}
-      className={`
-        group
-        rounded-2xl backdrop-blur-md 
-        border border-white/10 
-        px-4 py-6
-        flex flex-col items-center justify-center space-y-2
-        cursor-pointer select-none 
-        transition-all duration-300
-        shadow-[0_0_20px_rgba(0,0,0,0.45)]
-        hover:scale-[1.1] hover:-translate-y-2
-        hover:border-white/20
-        active:scale-95
-        relative overflow-hidden
-        ${className}
-      `}
-    >
-      <style>{`
-        @keyframes shineSweep {
-          0% { transform: translateX(-150%); opacity: 0; }
-          50% { opacity: 0.7; }
-          100% { transform: translateX(150%); opacity: 0; }
-        }
-
-        @keyframes glowPulse {
-          0%, 100% { box-shadow: 0 0 15px ${glowColor}; }
-          50% { box-shadow: 0 0 30px ${glowColor}; }
-        }
-
-        @keyframes iconFloat {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-4px);}
-        }
-      `}</style>
-
-      <div
-        className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100"
-        style={{
-          background:
-            "linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%)",
-          animation: isHovering ? "shineSweep 1s ease-out" : "none",
-        }}
-      />
-
-      <div
+    <>
+      <button
+        ref={buttonRef}
+        onClick={onClick}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+        style={style}
         className={`
-          p-3 rounded-full 
-          bg-black/40 border border-white/10 
-          flex items-center justify-center
+          group
+          rounded-2xl backdrop-blur-md 
+          border border-white/10 
+          px-4 py-6
+          flex flex-col items-center justify-center space-y-2
+          cursor-pointer select-none 
           transition-all duration-300
-          group-hover:scale-125
-          ${isHovering ? "animate-[glowPulse_2s_infinite]" : ""}
+          shadow-[0_0_20px_rgba(0,0,0,0.45)]
+          hover:scale-[1.1] hover:-translate-y-2
+          hover:border-white/20
+          active:scale-95
+          relative overflow-hidden
+          ${className}
         `}
-        style={{
-          boxShadow: isHovering
-            ? `0 0 20px ${glowColor}, 0 0 40px ${glowColor}66`
-            : `0 0 10px rgba(0,0,0,0.4)`,
-        }}
       >
-        <Icon
-          className={`w-8 h-8 transition-all duration-300`}
+        <style>{`
+          @keyframes shineSweep {
+            0% { transform: translateX(-150%); opacity: 0; }
+            50% { opacity: 0.7; }
+            100% { transform: translateX(150%); opacity: 0; }
+          }
+
+          @keyframes glowPulse {
+            0%, 100% { box-shadow: 0 0 15px ${glowColor}; }
+            50% { box-shadow: 0 0 30px ${glowColor}; }
+          }
+
+          @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px);}
+          }
+          
+          @keyframes tooltipFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+          }
+        `}</style>
+
+        {tooltip && (
+          <div
+            className="absolute top-2 right-2 z-20"
+            onMouseEnter={handleInfoHover}
+            onMouseLeave={() => setShowTooltip(false)}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-5 h-5 flex items-center justify-center bg-black/70 border border-white/30 rounded-full text-xs text-gray-200 hover:bg-black/90 hover:border-white/50 transition-all cursor-help">
+              i
+            </div>
+          </div>
+        )}
+
+        <div
+          className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100"
           style={{
-            color: glowColor,
-            filter: isHovering
-              ? `drop-shadow(0px 0px 10px ${glowColor}) brightness(1.3)`
-              : `drop-shadow(0px 0px 4px ${glowColor}88)`,
-            animation: isHovering ? "iconFloat 3s ease-in-out infinite" : "",
-            transform: isHovering ? "rotate(8deg)" : "none",
+            background:
+              "linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%)",
+            animation: isHovering ? "shineSweep 1s ease-out" : "none",
           }}
         />
-      </div>
 
-      <span
-        className="
-          text-sm font-semibold tracking-wide transition-all duration-300
-        "
-        style={{
-          color: glowColor,
-          textShadow: isHovering
-            ? `0px 0px 12px ${glowColor}, 0px 0px 18px ${glowColor}AA`
-            : `0px 0px 6px ${glowColor}66`,
-        }}
-      >
-        {label}
-      </span>
-    </button>
+        <div
+          className={`
+            p-3 rounded-full 
+            bg-black/40 border border-white/10 
+            flex items-center justify-center
+            transition-all duration-300
+            group-hover:scale-125
+            ${isHovering ? "animate-[glowPulse_2s_infinite]" : ""}
+          `}
+          style={{
+            boxShadow: isHovering
+              ? `0 0 20px ${glowColor}, 0 0 40px ${glowColor}66`
+              : `0 0 10px rgba(0,0,0,0.4)`,
+          }}
+        >
+          <Icon
+            className={`w-8 h-8 transition-all duration-300`}
+            style={{
+              color: glowColor,
+              filter: isHovering
+                ? `drop-shadow(0px 0px 10px ${glowColor}) brightness(1.3)`
+                : `drop-shadow(0px 0px 4px ${glowColor}88)`,
+              animation: isHovering ? "iconFloat 3s ease-in-out infinite" : "",
+              transform: isHovering ? "rotate(8deg)" : "none",
+            }}
+          />
+        </div>
+
+        <span
+          className="
+            text-sm font-semibold tracking-wide transition-all duration-300
+          "
+          style={{
+            color: glowColor,
+            textShadow: isHovering
+              ? `0px 0px 12px ${glowColor}, 0px 0px 18px ${glowColor}AA`
+              : `0px 0px 6px ${glowColor}66`,
+          }}
+        >
+          {label}
+        </span>
+      </button>
+
+      {showTooltip &&
+        tooltip &&
+        ReactDOM.createPortal(
+          <div
+            className="fixed z-[9999] w-[20rem] bg-[#0E1114] border border-[#2A2D33] text-gray-300 text-sm p-4 rounded-lg shadow-2xl leading-relaxed overflow-y-auto"
+            style={{
+              top: `${tooltipPosition.top}px`,
+              left: `${tooltipPosition.left}px`,
+              maxHeight: "350px",
+              animation: "tooltipFadeIn 0.2s ease-out",
+            }}
+            onMouseEnter={handleTooltipMouseEnter}
+            onMouseLeave={handleTooltipMouseLeave}
+          >
+            <div dangerouslySetInnerHTML={{ __html: tooltip }} />
+          </div>,
+          document.body
+        )}
+    </>
   );
 }

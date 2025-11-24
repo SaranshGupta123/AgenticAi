@@ -309,13 +309,13 @@ const MessageBubble: React.FC<{ m: Message; isLastAssistant: boolean }> = ({
             }}
           >
             <p>
-              <span className="text-blue-400 font-semibold">Domain:</span>{" "}
+              <span className="text-blue-400 font-semibold">Domain:</span>
               <span className="text-gray-300">{m.metadata.active_domain}</span>
             </p>
             <p>
               <span className="text-blue-400 font-semibold">
                 Response Time:
-              </span>{" "}
+              </span>
               <span className="text-gray-300">{m.metadata.total_time}s</span>
             </p>
           </div>
@@ -1268,14 +1268,50 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
           </div>
         )}
         <section className="flex-1 h-full min-h-0 border-r border-gray-700/50 p-6 flex flex-col gap-4 bg-[#10141A]">
-          <div className="flex items-center justify-between border-b border-gray-700/50 pb-3">
+          <div className="flex items-center gap-2 border-b border-gray-700/50 pb-3">
             <p className="text-sm text-gray-300 font-medium flex items-center gap-2">
               <Cpu className="w-4 h-4 text-gray-300 animate-pulse" />
               Chatting with **{title ?? "Notebook"}**
-              <span className="text-sm text-gray-500 font-normal ml-2">
-                (Context: Medical.json)
-              </span>
             </p>
+
+            <div className="relative cursor-pointer group">
+              <div
+                className="w-5 h-5 flex items-center justify-center 
+      bg-[#1A1D21] border border-[#2A2D33] 
+      rounded-full text-xs text-gray-300
+      hover:bg-[#15171A] transition-all"
+              >
+                i
+              </div>
+
+              <div
+                className="absolute left-0 mt-2 min-w-[18rem] opacity-0 pointer-events-none
+      group-hover:opacity-100 group-hover:pointer-events-auto hover:opacity-100 hover:pointer-events-auto transition-all bg-[#0E1114]
+      border border-[#2A2D33] text-gray-300 text-xs p-4 
+      rounded-lg shadow-xl leading-relaxed z-40 max-h-[350px] overflow-y-auto"
+              >
+                <h5>
+                  Query active domain database with RAG and optional mind map
+                  generation
+                </h5>
+                <br />
+                • Uses currently active domain's vector store
+                <br />• To switch domains: Use /select-domain endpoint
+                <br />
+                • To see active domain: Use /domains endpoint
+                <br />
+                <br /> Enhanced features:
+                <br />
+                • Increased retrieval depth (k=15 default)
+                <br />
+                • Cross-encoder reranking
+                <br />
+                • Comprehensive answer generation
+                <br />
+                • Better context utilization
+                <br />• Optional mind map visualization of the answer
+              </div>
+            </div>
           </div>
 
           <div
@@ -1431,6 +1467,20 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
                     label="Mind Map"
                     style={{ backgroundColor: STUDIO_CARD_COLORS[0] }}
                     onClick={() => setShowMindmapCreateModal(true)}
+                    tooltip="
+<div style='position: relative;'>
+<h5 class='font-bold mb-2 text-white'>Mind Map Generator</h5>
+1. Fetches relevant data from the active domain<br/>
+
+2. Combines info from multiple docs<br/>
+
+3.Builds a structured mind map<br/>
+
+4.Supports JSON / Mermaid export<br/>
+
+5. Great for: overview, quick research, concept linking
+</div>
+"
                   />
 
                   <ToolCard
@@ -1438,6 +1488,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
                     label="FAQ"
                     style={{ backgroundColor: STUDIO_CARD_COLORS[1] }}
                     onClick={() => setShowFAQModal(true)}
+                    tooltip="<h5 class='font-bold mb-2 text-white'>Generate FAQ from active domain database</h5>• Uses: Current active domain's knowledge base<br />• Comprehensive, organized by category<br />• Anticipates common questions"
                   />
 
                   <ToolCard
@@ -1445,6 +1496,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
                     label="Comparative Analysis"
                     style={{ backgroundColor: STUDIO_CARD_COLORS[2] }}
                     onClick={() => setShowComparativeModal(true)}
+                    tooltip="<h5 class='font-bold mb-2 text-white'>Generate comparative analysis from active domain database</h5>• Uses: Current active domain's knowledge base<br />• Balanced with evaluation criteria<br />• Ideal for decision support"
                   />
 
                   <ToolCard
@@ -1452,6 +1504,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
                     label="Tutorial"
                     style={{ backgroundColor: STUDIO_CARD_COLORS[3] }}
                     onClick={() => setShowTutorialModal(true)}
+                    tooltip="<h5 class='font-bold mb-2 text-white'>Generate tutorial from active domain database</h5>• Uses: Current active domain's knowledge base<br />• Step-by-step with clear instructions<br />• Perfect for hands-on learning"
                   />
 
                   <ToolCard
@@ -1459,6 +1512,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
                     label="Technical Report"
                     style={{ backgroundColor: STUDIO_CARD_COLORS[4] }}
                     onClick={() => setShowReportModal(true)}
+                    tooltip="<h5 class='font-bold mb-2 text-white'>Generate technical report from active domain database</h5>• Uses: Current active domain's knowledge base<br />• Rigorous with detailed analysis and methodology<br />• Includes abstract, theoretical framework, references"
                   />
 
                   <ToolCard
@@ -1466,6 +1520,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
                     label="Blog Post"
                     style={{ backgroundColor: STUDIO_CARD_COLORS[5] }}
                     onClick={() => setShowBlogModal(true)}
+                    tooltip="<h5 class='font-bold mb-2 text-white'>Generate blog post from active domain database</h5>• Uses: Current active domain's knowledge base<br />• Engaging, scannable with compelling headline<br />• Optimized for web readability"
                   />
 
                   <ToolCard
@@ -1473,6 +1528,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
                     label="Study Guide"
                     style={{ backgroundColor: STUDIO_CARD_COLORS[6] }}
                     onClick={() => setShowStudyModal(true)}
+                    tooltip="<h5 class='font-bold mb-2 text-white'>Generate technical report from active domain database</h5>•Uses: Current active domain's knowledge base<br />• Rigorous with detailed analysis and methodology<br />• Includes abstract, theoretical framework, references"
                   />
 
                   <ToolCard
@@ -1480,6 +1536,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
                     label="Briefing"
                     style={{ backgroundColor: STUDIO_CARD_COLORS[7] }}
                     onClick={() => setShowBriefingModal(true)}
+                    tooltip="<h5 class='font-bold mb-2 text-white'>Generate briefing from active domain database</h5>• Uses: Current active domain's knowledge base<br />• Perfect for business reports and strategic decision-making<br />• Switch domain: Use /select-domain endpoint"
                   />
                 </div>
 

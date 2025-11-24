@@ -35,6 +35,39 @@ export const ReasoningView = ({
 }: {
   agentType: "react" | "deep_research";
 }) => {
+  const infoText =
+    agentType === "deep_research"
+      ? {
+          title: "Deep Reasoning Mode",
+          body: `
+Performs deep research with comprehensive explainability tracking
+
+This endpoint combines the power of deep research with full explainability:
+
+• Chain-of-Thought tracing showing research reasoning process
+• Tool attribution tracking which searches contributed what
+• Source citations for transparency
+• Quality metrics and decision points
+
+Perfect for:
+
+• Understanding how research conclusions were reached
+• Auditing research methodology
+• Educational purposes showing research process
+• Building trust through transparency
+          `,
+        }
+      : {
+          title: "React Reasoning Mode",
+          body: `
+Enhanced endpoint that provides comprehensive explainability through:
+
+• Chain-of-Thought tracing - Shows the reasoning process
+• Tool Attribution - Shows which tools contributed what information
+• Source citations - Provides transparency about information sources
+          `,
+        };
+
   const REASON_KEY =
     agentType === "deep_research" ? LS_REASON_DEEP : LS_REASON_REACT;
   const [query, setQuery] = useState("");
@@ -258,6 +291,30 @@ export const ReasoningView = ({
         <h2 className="text-lg font-semibold text-slate-900">
           Reasoning Trace
         </h2>
+
+        <div className="relative cursor-pointer group ml-2">
+          <div
+            className="w-5 h-5 flex items-center justify-center
+      bg-white border border-gray-300
+      rounded-full text-xs text-gray-800 font-bold
+      hover:bg-gray-100 transition-all"
+          >
+            i
+          </div>
+
+          <div
+            className="absolute left-0 mt-2 min-w-[18rem] opacity-0 pointer-events-none
+      group-hover:opacity-100 transition-all
+      bg-white text-gray-800
+      border border-gray-300 p-4
+      rounded-lg shadow-xl leading-relaxed z-40"
+          >
+            <h5 className="font-semibold mb-1">{infoText.title}</h5>
+            <div className="whitespace-pre-line text-gray-700 text-sm">
+              {infoText.body}
+            </div>
+          </div>
+        </div>
       </div>
 
       <div

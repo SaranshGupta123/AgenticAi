@@ -52,7 +52,6 @@ export default function NotebookHome({ goBack, openNotebook }) {
   useEffect(() => {
     const cached = localStorage.getItem("notebook_domains");
     const parsed = cached ? JSON.parse(cached) : [];
-
     setDomains(Array.isArray(parsed) ? parsed : []);
   }, []);
 
@@ -82,36 +81,19 @@ export default function NotebookHome({ goBack, openNotebook }) {
           Notebook Home
         </h1>
 
-        <div className="flex items-center space-x-3">
-          <motion.button
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.15 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={handleFetch}
-            className="px-4 py-2 text-sm flex items-center space-x-2 
-              bg-[#2A2E33] border border-[#3A3F45]
-              hover:bg-[#1D2126] hover:border-[#5A5F66]
-              rounded-xl transition-all shadow-md"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            <span>{loading ? "Refreshing…" : "Fetch Domains"}</span>
-          </motion.button>
-
-          <motion.button
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.25 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={goBack}
-            className="px-4 py-2 rounded-xl bg-[#1A1A1D] hover:bg-[#121216]
-              transition-colors text-sm font-medium shadow-md border border-[#2A2A30]"
-          >
-            Back to Agentic
-          </motion.button>
-        </div>
+        <motion.button
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.25 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={goBack}
+          className="px-4 py-2 rounded-xl bg-[#1A1A1D] hover:bg-[#121216]
+            transition-colors text-sm font-medium shadow-md 
+            border border-[#2A2A30]"
+        >
+          Back to Agentic
+        </motion.button>
       </motion.header>
 
       {alertMsg && (
@@ -134,12 +116,83 @@ export default function NotebookHome({ goBack, openNotebook }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          <h2 className="text-3xl font-semibold text-gray-200">
+          <h2 className="text-3xl font-semibold text-gray-200 flex items-center">
             Welcome back 👋
+            <div className="relative group cursor-pointer ml-3">
+              <div
+                className="peer w-5 h-5 flex items-center justify-center
+                  bg-[#1A1D21] border border-[#2A2D33]
+                  rounded-full text-xs text-gray-300
+                  hover:bg-[#15171A] transition-all"
+              >
+                i
+              </div>
+
+              <div
+                className="absolute left-1/2 -translate-x-1/2 mt-2 w-72 opacity-0 pointer-events-none
+                 group-hover:opacity-100 
+                 bg-[#0E1114] border border-[#2A2D33] text-gray-300 
+                 text-xs p-4 rounded-lg shadow-xl leading-relaxed z-40"
+              >
+                <h5>STEP 1: Check available domain databases</h5>
+                • Select any domain you want to work with <br />• If the domain
+                isn't available, use the
+                <span
+                  className="ml-1 px-2 py-0.5 bg-[#1A1D21] 
+                  border border-[#31343A] rounded-md text-gray-200"
+                >
+                  Fetch Domains
+                </span>
+                button <br />• All future queries use the selected domain until
+                switched
+              </div>
+            </div>
           </h2>
+
           <p className="text-gray-500 mt-1">
             Select a notebook to continue working.
           </p>
+
+          <div className="flex justify-start mt-6">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={handleFetch}
+              className="px-4 py-2 text-sm flex items-center space-x-2
+                bg-[#2A2E33] border border-[#3A3F45]
+                hover:bg-[#1D2126] hover:border-[#5A5F66]
+                rounded-xl transition-all shadow-md"
+            >
+              <RefreshCw
+                className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+              />
+              <span>{loading ? "Refreshing…" : "Fetch Domains"}</span>
+            </motion.button>
+
+            <div className="relative ml-2 cursor-pointer group">
+              <div
+                className="w-5 h-5 flex items-center justify-center 
+                bg-[#1A1D21] border border-[#2A2D33] 
+                rounded-full text-xs text-gray-300
+                hover:bg-[#15171A] transition-all
+                 mt-2"
+              >
+                i
+              </div>
+
+              <div
+                className="absolute left-0 mt-2 min-w-[18rem] opacity-0 pointer-events-none
+                group-hover:opacity-100 transition-all bg-[#0E1114]
+                border border-[#2A2D33] text-gray-300 text-xs p-4 
+                rounded-lg shadow-xl leading-relaxed z-40"
+              >
+                <h5>STEP 2: Select which domain database to use</h5>
+                • Lists all domain folders found in dataset/ <br />
+                • Shows which domain is currently active <br />• Shows which
+                domains are initialized (vector stores)
+              </div>
+            </div>
+          </div>
 
           {fetchError && (
             <p className="text-red-400 mt-3 text-sm">
@@ -189,7 +242,7 @@ export default function NotebookHome({ goBack, openNotebook }) {
                   style={{ backgroundColor: bg }}
                   className="h-48 border border-[#252530] rounded-2xl p-5 cursor-pointer
                              hover:scale-[1.03] hover:border-gray-500
-                             transition-all duration-300 shadow-lg group"
+                             transition-all duration-300 shadow-lg relative"
                 >
                   <div className="p-3 bg-[#ffffff10] rounded-xl inline-flex items-center justify-center">
                     <Icon className="w-6 h-6 text-gray-300" />
@@ -201,6 +254,42 @@ export default function NotebookHome({ goBack, openNotebook }) {
                   <p className="text-gray-500 text-sm mt-1">
                     Open this notebook
                   </p>
+
+                  <div
+                    className="absolute top-3 right-3 group cursor-pointer z-10"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div
+                      className="w-5 h-5 flex items-center justify-center 
+                      bg-[#1A1D21] border border-[#2A2D33] 
+                      rounded-full text-xs text-gray-300
+                      hover:bg-[#15171A] transition-all"
+                    >
+                      i
+                    </div>
+
+                    <div
+                      className="absolute right-0 mt-2 min-w-[16rem] opacity-0 pointer-events-none
+                      group-hover:opacity-100 transition-all bg-[#0E1114]
+                      border border-[#2A2D33] text-gray-300 text-xs p-3 
+                      rounded-lg shadow-xl leading-relaxed z-50"
+                    >
+                      <strong className="text-gray-200">Domain:</strong>
+                      {domain}
+                      <br />
+                      <br />
+                      <span className="text-gray-400">
+                        <h5>
+                          STEP 3: Generate embeddings and create vector database
+                          for a domain
+                        </h5>
+                        • Processes all PDFs in dataset/{domain}/
+                        <br />• Creates vector store in database/chromadb/
+                        {domain}/
+                        <br />• Automatically sets this domain as active
+                      </span>
+                    </div>
+                  </div>
                 </motion.div>
               );
             })}

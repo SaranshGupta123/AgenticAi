@@ -82,26 +82,44 @@ export const SafetyGuardView = ({
 
   return (
     <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-      <div className="border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+      <div className="border-b border-slate-200 px-6 py-4 flex items-center gap-3">
         <h2 className="text-lg font-semibold text-slate-900 flex items-center space-x-2">
           <Shield className="w-5 h-5 text-red-600" />
           <span>Safety Guard Analysis</span>
         </h2>
 
-        {currentQuestion && safetyCheck && (
-          <span
-            className={`px-3 py-1 rounded-full text-sm font-medium ${
-              blocked
-                ? "bg-red-100 text-red-700"
-                : "bg-green-100 text-green-700"
-            }`}
+        <div className="relative cursor-pointer group ml-2">
+          <div
+            className="w-5 h-5 flex items-center justify-center
+        bg-white border border-gray-300
+        rounded-full text-xs text-gray-800 font-bold
+        hover:bg-gray-100 transition-all"
           >
-            {blocked ? "Blocked" : "Safe"}
-          </span>
-        )}
+            i
+          </div>
+
+          <div
+            className="absolute left-0 mt-2 min-w-[18rem] opacity-0 pointer-events-none
+        group-hover:opacity-100 transition-all
+        bg-white text-gray-800
+        border border-gray-300 p-4
+        rounded-lg shadow-xl leading-relaxed z-40"
+          >
+            <h5 className="font-semibold mb-1">Safety Guard Panel</h5>
+            • Shows safety evaluation for each question <br />
+            • Displays threat level, violation type, and explanation <br />•
+            Click any question above to view detailed analysis
+          </div>
+        </div>
       </div>
 
-      <div className="flex-1 p-6 overflow-y-auto space-y-6">
+      <div
+        className={`flex-1 p-6 space-y-6 ${
+          currentQuestion && selectedEntry
+            ? "overflow-y-auto"
+            : "overflow-y-hidden"
+        }`}
+      >
         <div className="bg-slate-50 rounded-lg p-5 border border-slate-200">
           <h3 className="font-semibold text-slate-900 mb-4 flex items-center space-x-2">
             <Shield className="w-5 h-5" />
@@ -219,17 +237,17 @@ export const SafetyGuardView = ({
 
                 {safetyCheck.details?.pattern_check && (
                   <p className="mt-1">
-                    <strong>Pattern Detected:</strong>{" "}
+                    <strong>Pattern Detected:</strong>
                     {safetyCheck.details.pattern_check.detection_method} (
                     {safetyCheck.details.pattern_check
-                      .injection_patterns_count || 0}{" "}
+                      .injection_patterns_count || 0}
                     injections)
                   </p>
                 )}
 
                 {safetyCheck.details?.llm_check && (
                   <p className="mt-1">
-                    <strong>Detection Method:</strong>{" "}
+                    <strong>Detection Method:</strong>
                     {safetyCheck.details.llm_check.detection_method}
                   </p>
                 )}

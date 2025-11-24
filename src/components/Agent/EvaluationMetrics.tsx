@@ -176,9 +176,35 @@ export const EvaluationMetrics: React.FC = () => {
           <h2 className="text-xl font-bold text-slate-900 flex items-center space-x-2">
             <BarChart3 className="w-6 h-6 text-blue-600" />
             <span>Pipeline Evaluation Metrics</span>
+
+            <div className="relative cursor-pointer group">
+              <div
+                className="w-5 h-5 flex items-center justify-center
+        bg-white border border-gray-300
+        rounded-full text-xs text-gray-800 font-bold
+        hover:bg-gray-100 transition-all"
+              >
+                i
+              </div>
+
+              <div
+                className="absolute left-0 mt-2 min-w-[18rem] opacity-0 pointer-events-none
+  group-hover:opacity-100 transition-all
+  bg-white text-gray-800
+  border border-gray-300 p-4
+  rounded-lg shadow-xl leading-relaxed z-40 text-xs"
+              >
+                <h5 className="font-semibold mb-1">Evaluation Metrics Panel</h5>
+
+                <p>• Shows aggregated performance metrics for all questions</p>
+                <p>• Includes success rate, relevance, planning, etc.</p>
+                <p>• Click a question to view detailed analysis</p>
+              </div>
+            </div>
           </h2>
+
           <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-            Overall:{" "}
+            Overall:
             {(
               selectedData?.evaluation?.summary?.overall_score ||
               metrics.taskSuccess.rate
@@ -585,9 +611,9 @@ export const EvaluationMetrics: React.FC = () => {
                           </span>
                         </span>
                         <p className="text-xs text-slate-600 mt-1">
-                          Assessment:{" "}
-                          {selectedData.evaluation.summary.overall_assessment}{" "}
-                          (Confidence:{" "}
+                          Assessment:
+                          {selectedData.evaluation.summary.overall_assessment}
+                          (Confidence:
                           {selectedData.evaluation.summary.confidence_level})
                         </p>
                       </div>

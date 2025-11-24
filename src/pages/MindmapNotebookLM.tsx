@@ -523,7 +523,7 @@ export default function MindmapNotebookLM() {
     return (
       <div className="w-full h-96 flex items-center justify-center text-red-400 bg-gradient-to-br from-[#0B0E12] via-[#13171D] to-[#1B1F24] rounded-xl p-8 shadow-xl">
         <p className="text-xl font-semibold">
-          🚨 Error:{" "}
+          🚨 Error:
           {error ||
             "No mind map data available or root node could not be constructed."}
         </p>

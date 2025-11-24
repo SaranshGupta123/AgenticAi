@@ -37,6 +37,40 @@ export const ChatInterface = ({
 }: {
   mode?: "normal" | "deep_research";
 }) => {
+  const infoText =
+    mode === "deep_research"
+      ? {
+          title: "Deep Research Mode",
+          body: `
+Performs comprehensive deep research on a given query using multiple information sources.
+
+This endpoint:
+
+• Analyzes the query type (comparison, timeline, explanation, etc.)
+• Generates structured research queries
+• Executes searches across multiple sources
+• Builds a knowledge graph
+• Performs fact verification
+• Generates a structured, well-cited report
+• Suggests follow-up questions
+
+Ideal for:
+
+• Complex research questions
+• Comparative analyses (e.g., "Compare Tokyo and Mumbai public transportation")
+• Multi-faceted topics requiring diverse sources
+• Academic or professional research
+          `,
+        }
+      : {
+          title: "React Agent Mode",
+          body: `
+• Fast single-step answers  
+• Great for quick Q&A  
+• Lightweight reasoning  
+• Ideal for simple queries  
+          `,
+        };
   const [query, setQuery] = useState("");
   const [chats, setChats] = useState<Chat[]>(() => {
     try {
@@ -255,9 +289,33 @@ export const ChatInterface = ({
         <div className="flex items-center space-x-2">
           <MessageSquare className="w-5 h-5 text-blue-600" />
           <h2 className="text-lg font-semibold text-slate-900">
-            Query Interface{" "}
+            Query Interface
             {mode === "deep_research" ? "(Deep Research)" : "(React Agent)"}
           </h2>
+          <div className="relative cursor-pointer group">
+            <div
+              className="w-5 h-5 flex items-center justify-center
+    bg-white border border-gray-300
+    rounded-full text-xs text-gray-800 font-bold
+    hover:bg-gray-100 transition-all"
+            >
+              i
+            </div>
+
+            <div
+              className="absolute left-0 mt-2 min-w-[18rem] opacity-0 pointer-events-none
+    group-hover:opacity-100 transition-all
+    bg-white text-gray-800
+    border border-gray-300 p-4
+    rounded-lg shadow-xl leading-relaxed z-40"
+            >
+              <h5 className="font-semibold mb-1">{infoText.title}</h5>
+
+              <div className="whitespace-pre-line text-gray-700 text-sm">
+                {infoText.body}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
