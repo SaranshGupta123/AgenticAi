@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { MessageSquare, Send, Shield, Clock, Zap } from "lucide-react";
 import { fetchChatResponse, fetchDeepResearchResponse } from "../../api/api";
 import ReactMarkdown from "react-markdown";
+import { useLoading } from "../context/LoadingContext";
 
 const LS_NORMAL = "agentic_normal_history";
 const LS_DEEP = "agentic_deep_history";
@@ -98,7 +99,7 @@ Ideal for:
       },
     ];
   });
-  const [loading, setLoading] = useState(false);
+  const { isLoading, setIsLoading } = useLoading();
   const [loadingIndex, setLoadingIndex] = useState(0);
   useEffect(() => {
     const key = mode === "deep_research" ? LS_DEEP : LS_NORMAL;
@@ -222,7 +223,7 @@ Ideal for:
   };
 
   const handleSubmit = async () => {
-    if (!query.trim() || loading) return;
+    if (!query.trim() || isLoading) return;
     const asked = query.trim();
     setQuery("");
 
@@ -255,7 +256,7 @@ Ideal for:
       },
     ]);
 
-    setLoading(true);
+    setIsLoading(true);
     try {
       const data =
         mode === "deep_research"
@@ -272,7 +273,7 @@ Ideal for:
       console.error("[v0] Error fetching response:", error);
       streamAnswer("Error fetching response.", {});
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -282,6 +283,81 @@ Ideal for:
       handleSubmit();
     }
   };
+  function renderSmartAnswer(answer: string) {
+    if (!answer) return null;
+
+    const urlRegex = /(https?:\/\/[^\s)]+)/g;
+
+    const parseMarkdown = (text: string) =>
+      text
+        .replace(/\*\*\*(.*?)\*\*\*/g, "<b><i>$1</i></b>")
+        .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
+        .replace(/\*(.*?)\*/g, "<i>$1</i>");
+
+    const renderCard = (url: string, key: string) => {
+      if (!url || url.trim() === "" || url === "()") return null;
+
+      const isYT = url.includes("youtube.com") || url.includes("youtu.be");
+      const isGitHub = url.includes("github.com");
+      const isArxiv = url.includes("arxiv.org");
+
+      let bg = "bg-blue-600";
+      let label = "Open Link";
+
+      if (isYT) {
+        bg = "bg-red-600";
+        label = "Watch on YouTube";
+      } else if (isGitHub) {
+        bg = "bg-gray-900";
+        label = "Open GitHub Repo";
+      } else if (isArxiv) {
+        bg = "bg-purple-700";
+        label = "Open ArXiv Paper";
+      }
+
+      return (
+        <a
+          key={key}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`block max-w-md rounded-xl p-3 shadow-md text-white ${bg} hover:opacity-90 transition-all`}
+        >
+          <span className="font-semibold">{label}</span>
+        </a>
+      );
+    };
+
+    return (
+      <div className="space-y-3">
+        {answer.split("\n").map((line, i) => {
+          const urls = line.match(urlRegex);
+
+          if (urls) {
+            return (
+              <div key={i} className="space-y-2">
+                <p
+                  className="text-slate-800"
+                  dangerouslySetInnerHTML={{
+                    __html: parseMarkdown(line.replace(urlRegex, "")),
+                  }}
+                />
+                {urls.map((u, j) => renderCard(u, `${i}-${j}`))}
+              </div>
+            );
+          }
+
+          return (
+            <p
+              key={i}
+              className="text-slate-800"
+              dangerouslySetInnerHTML={{ __html: parseMarkdown(line) }}
+            />
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -346,12 +422,10 @@ Ideal for:
                   </div>
                 )}
 
-                <div className="text-slate-800 leading-relaxed whitespace-pre-line prose prose-slate max-w-none">
-                  {mode === "deep_research" ? (
-                    <ReactMarkdown>{chat.answer}</ReactMarkdown>
-                  ) : (
-                    chat.answer
-                  )}
+                <div className="text-slate-800 leading-relaxed prose prose-slate max-w-none">
+                  {chat.streaming
+                    ? chat.answer
+                    : renderSmartAnswer(chat.answer)}
                 </div>
 
                 {!chat.streaming && chat.metadata && (
@@ -387,7 +461,7 @@ Ideal for:
           </div>
         ))}
 
-        {loading && (
+        {isLoading && (
           <div className="w-full flex justify-center mt-4">
             <div className="w-full max-w-[900px] mx-auto flex gap-3 px-2 py-3">
               <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold shadow-md">
@@ -428,12 +502,12 @@ Ideal for:
             onKeyDown={handleKey}
             placeholder="Ask about OpenAI, tech, weather, or any topic..."
             className="w-full px-4 py-3 pr-12 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none focus:border-transparent text-sm"
-            disabled={loading}
+            disabled={isLoading}
           />
 
           <button
             onClick={handleSubmit}
-            disabled={!query.trim() || loading}
+            disabled={!query.trim() || isLoading}
             title="Send query"
             className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors duration-150 shadow-md"
           >

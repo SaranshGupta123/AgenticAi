@@ -7,7 +7,9 @@ import {
   Shield,
   Menu,
   BookOpen,
+  Loader2, // ADD THIS
 } from "lucide-react";
+import { useLoading } from "../context/LoadingContext"; // ADD THIS
 
 type Props = {
   activeTab: string;
@@ -22,6 +24,8 @@ export const Header: React.FC<Props> = ({
   onSidebarToggle,
   onNotebookOpen,
 }) => {
+  const { isLoading } = useLoading(); // ADD THIS
+
   const tabs = [
     { id: "chat", label: "Chat", Icon: MessageSquare },
     { id: "evaluation", label: "Metrics", Icon: BarChart3 },
@@ -35,21 +39,33 @@ export const Header: React.FC<Props> = ({
         <div className="flex items-center space-x-3">
           <button
             onClick={onSidebarToggle}
-            className="lg:hidden p-2 rounded-md hover:bg-slate-100"
+            disabled={isLoading} // ADD THIS
+            className="lg:hidden p-2 rounded-md hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed" // ADD disabled styles
           >
             <Menu className="w-5 h-5 text-slate-700" />
           </button>
 
           <div className="flex items-center space-x-2">
-            <div className="bg-blue-600 p-2 rounded-md shadow-md">
+            <div className="bg-blue-600 p-2 rounded-md shadow-md relative">
+              {" "}
+              {/* ADD relative */}
               <Brain className="w-5 h-5 text-white" />
+              {/* ADD LOADING SPINNER */}
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-blue-600 rounded-md">
+                  <Loader2 className="w-4 h-4 text-white animate-spin" />
+                </div>
+              )}
             </div>
             <div>
               <h1 className="text-lg sm:text-xl font-bold text-slate-900">
                 Agentic Pipeline
               </h1>
               <p className="text-xs sm:text-sm text-slate-500">
-                Advanced AI with Full Observability
+                {/* ADD DYNAMIC TEXT */}
+                {isLoading
+                  ? "Processing..."
+                  : "Advanced AI with Full Observability"}
               </p>
             </div>
           </div>
@@ -59,8 +75,9 @@ export const Header: React.FC<Props> = ({
           {tabs.map(({ id, label, Icon }) => (
             <button
               key={id}
-              onClick={() => setActiveTab(id)}
-              className={`px-3 py-2 rounded-md flex items-center space-x-2 text-sm font-medium transition-colors ${
+              onClick={() => !isLoading && setActiveTab(id)} // ADD LOADING CHECK
+              disabled={isLoading} // ADD THIS
+              className={`px-3 py-2 rounded-md flex items-center space-x-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                 activeTab === id
                   ? "bg-white text-blue-700 shadow-sm"
                   : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
@@ -74,12 +91,23 @@ export const Header: React.FC<Props> = ({
 
         <button
           onClick={onNotebookOpen}
-          className="px-2.5 lg:px-3 py-2 rounded-md border border-slate-300 hover:bg-slate-100 flex items-center gap-2"
+          disabled={isLoading} // ADD THIS
+          className="px-2.5 lg:px-3 py-2 rounded-md border border-slate-300 hover:bg-slate-100 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white" // ADD disabled styles
         >
           <BookOpen className="w-5 h-5 text-blue-600" />
           <span className="text-sm font-medium text-slate-700">Notebooks</span>
         </button>
       </div>
+
+      {/* ADD LOADING PROGRESS BAR */}
+      {isLoading && (
+        <div className="h-1 bg-blue-100">
+          <div
+            className="h-full bg-blue-600 animate-pulse"
+            style={{ width: "60%" }}
+          ></div>
+        </div>
+      )}
     </header>
   );
 };

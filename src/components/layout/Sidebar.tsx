@@ -1,5 +1,6 @@
 import React from "react";
 import { Settings } from "lucide-react";
+import { useLoading } from "../context/LoadingContext"; // ✅ ADDED
 
 type Props = {
   agentType: string;
@@ -7,6 +8,8 @@ type Props = {
 };
 
 export const Sidebar: React.FC<Props> = ({ agentType, setAgentType }) => {
+  const { isLoading } = useLoading(); // ✅ ADDED
+
   return (
     <div className="flex flex-col justify-between h-full space-y-6">
       <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
@@ -21,14 +24,16 @@ export const Sidebar: React.FC<Props> = ({ agentType, setAgentType }) => {
           </label>
           <select
             value={agentType}
-            onChange={(e) => setAgentType(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white text-sm"
+            disabled={isLoading} // ✅ DISABLED WHEN LOADING
+            onChange={(e) => !isLoading && setAgentType(e.target.value)} // ✅ PREVENT CHANGE WHILE LOADING
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <option value="react">ReAct Agent</option>
             <option value="deep_research">Deep Research</option>
           </select>
         </div>
       </div>
+
       <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
         <h3 className="font-semibold text-slate-900 mb-4">System Status</h3>
         <div className="space-y-3 text-sm">

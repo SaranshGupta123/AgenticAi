@@ -16,6 +16,59 @@ import {
   Maximize2,
   X,
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+const LinkRenderer = (props: any) => {
+  const href = props.href || "";
+  const children = props.children;
+
+  if (!href) return <>{children}</>;
+
+  const isYT = href.includes("youtube.com") || href.includes("youtu.be");
+  const isGitHub = href.includes("github.com");
+  const isArxiv = href.includes("arxiv.org");
+  const isPDF = href.endsWith(".pdf");
+
+  let bg = "bg-blue-600 hover:bg-blue-700";
+  let icon = "🔗";
+  let label = children;
+
+  if (isYT) {
+    bg = "bg-red-600 hover:bg-red-700";
+    icon = "▶️";
+  } else if (isGitHub) {
+    bg = "bg-slate-900 hover:bg-black";
+    icon = "💻";
+  } else if (isArxiv) {
+    bg = "bg-purple-700 hover:bg-purple-800";
+    icon = "📄";
+  } else if (isPDF) {
+    bg = "bg-rose-600 hover:bg-rose-700";
+    icon = "📕";
+  } else {
+    bg = "bg-blue-500 hover:bg-blue-600";
+    icon = "🌐";
+  }
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold text-white shadow-sm transition-all duration-200 ${bg}`}
+    >
+      <span>{icon}</span>
+      <span className="truncate max-w-[160px]">{label}</span>
+    </a>
+  );
+};
+
+const urlify = (text: string) => {
+  const urlRegex = /(https?:\/\/[^\s)]+)/g;
+
+  return text.replace(urlRegex, (url) => {
+    return `[${url}](${url})`;
+  });
+};
 
 const LS_METRICS = "agentic_metrics_data";
 
@@ -803,9 +856,11 @@ export const EvaluationMetrics: React.FC = () => {
                     Expand
                   </button>
                 </div>
-                <p className="text-sm text-slate-700 whitespace-pre-wrap break-words">
-                  {selectedData.answer}
-                </p>
+                <div className="text-sm text-slate-700 prose prose-slate max-w-none">
+                  <ReactMarkdown components={{ a: LinkRenderer }}>
+                    {selectedData.answer || ""}
+                  </ReactMarkdown>
+                </div>
               </div>
             </div>
           </div>
@@ -827,9 +882,11 @@ export const EvaluationMetrics: React.FC = () => {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
-              <pre className="whitespace-pre-wrap break-words text-sm text-slate-700 font-mono">
-                {fullTextModal.content}
-              </pre>
+              <div className="prose prose-slate max-w-none text-sm text-slate-700">
+                <ReactMarkdown components={{ a: LinkRenderer }}>
+                  {fullTextModal.content || ""}
+                </ReactMarkdown>
+              </div>
             </div>
           </div>
         </div>

@@ -6,6 +6,7 @@ import {
 } from "../../api/api";
 
 import ReactMarkdown from "react-markdown";
+import { useLoading } from "../context/LoadingContext";
 
 const LS_REASON_REACT = "agentic_reasoning_react";
 const LS_REASON_DEEP = "agentic_reasoning_deep";
@@ -93,8 +94,7 @@ Enhanced endpoint that provides comprehensive explainability through:
       },
     ];
   });
-
-  const [loading, setLoading] = useState(false);
+  const { isLoading, setIsLoading } = useLoading();
   const [loadingIndex, setLoadingIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
@@ -108,13 +108,13 @@ Enhanced endpoint that provides comprehensive explainability through:
   }, [chats, loading]);
 
   useEffect(() => {
-    if (!loading) return;
+    if (!isLoading) return;
     const id = setInterval(
       () => setLoadingIndex((i) => (i + 1) % loadingTexts.length),
       1200
     );
     return () => clearInterval(id);
-  }, [loading]);
+  }, [isLoading]);
 
   const formatOutput = (data: any): string => {
     if (!data) return "";
@@ -256,7 +256,7 @@ Enhanced endpoint that provides comprehensive explainability through:
   };
 
   const handleSubmit = async () => {
-    if (!query.trim() || loading) return;
+    if (!query.trim() || isLoading) return;
     const asked = query.trim();
     setQuery("");
     setChats((prev) => [
@@ -269,11 +269,11 @@ Enhanced endpoint that provides comprehensive explainability through:
         safe: true,
       },
     ]);
-    setLoading(true);
+    setIsLoading(true);
     try {
       await fetchExplainabilityData(asked);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -430,7 +430,7 @@ Enhanced endpoint that provides comprehensive explainability through:
           </div>
         ))}
 
-        {loading && (
+        {isLoading && (
           <div className="w-full flex justify-center mt-4">
             <div className="w-full max-w-[900px] mx-auto flex gap-3 px-2 py-3">
               <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold shadow-md">
@@ -470,13 +470,13 @@ Enhanced endpoint that provides comprehensive explainability through:
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKey}
             placeholder="Ask something..."
-            disabled={loading}
+            disabled={isLoading}
             className="w-full px-4 py-3 pr-12 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
           />
 
           <button
             onClick={handleSubmit}
-            disabled={!query.trim() || loading}
+            disabled={!query.trim() || isLoading}
             className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white disabled:bg-slate-300 transition-colors duration-150 shadow-sm"
           >
             <Search className="w-4 h-4" />

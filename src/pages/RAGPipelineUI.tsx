@@ -5,6 +5,10 @@ import {
   ReasoningView,
   SafetyGuardView,
 } from "../components/Agent";
+import {
+  LoadingProvider,
+  useLoading,
+} from "../components/context/LoadingContext"; // ADD THIS
 
 import { Header, Sidebar } from "../components/layout";
 
@@ -24,13 +28,43 @@ export default function RAGPipelineUI({ goToNotebook }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // WRAP EVERYTHING IN LoadingProvider
+  return (
+    <LoadingProvider>
+      <RAGPipelineContent
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        agentType={agentType}
+        setAgentType={setAgentType}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        selectedQuestion={selectedQuestion}
+        setSelectedQuestion={setSelectedQuestion}
+        goToNotebook={goToNotebook}
+      />
+    </LoadingProvider>
+  );
+}
+function RAGPipelineContent({
+  activeTab,
+  setActiveTab,
+  agentType,
+  setAgentType,
+  sidebarOpen,
+  setSidebarOpen,
+  selectedQuestion,
+  setSelectedQuestion,
+  goToNotebook,
+}) {
+  const { isLoading } = useLoading(); // USE THE CONTEXT HERE
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50">
       <div className="flex flex-col flex-1 bg-white shadow-xl overflow-hidden">
         <Header
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          onSidebarToggle={() => setSidebarOpen((prev) => !prev)}
+          onSidebarToggle={() => !isLoading && setSidebarOpen((prev) => !prev)} // ADD LOADING CHECK
           onNotebookOpen={goToNotebook}
         />
 
@@ -55,7 +89,7 @@ export default function RAGPipelineUI({ goToNotebook }) {
           {sidebarOpen && (
             <div
               className="fixed inset-0 bg-black/30 z-30 lg:hidden"
-              onClick={() => setSidebarOpen(false)}
+              onClick={() => !isLoading && setSidebarOpen(false)} // ADD LOADING CHECK
             ></div>
           )}
 
