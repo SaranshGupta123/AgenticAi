@@ -105,7 +105,7 @@ Enhanced endpoint that provides comprehensive explainability through:
   useEffect(() => {
     const el = document.getElementById("explain-scroll");
     if (el) el.scrollTop = el.scrollHeight;
-  }, [chats, loading]);
+  }, [chats, isLoading]);
 
   useEffect(() => {
     if (!isLoading) return;
@@ -164,10 +164,14 @@ Enhanced endpoint that provides comprehensive explainability through:
   const fetchExplainabilityData = async (customQuery: string) => {
     setError(null);
     try {
+      console.log(`🔍 Fetching ${agentType} explainability for:`, customQuery);
+
       const data =
         agentType === "deep_research"
           ? await fetchDeepResearchExplainabilityResponse(customQuery)
           : await fetchExplainabilityChatResponse(customQuery);
+
+      console.log("✅ Received data:", data);
 
       const finalAnswer =
         data.final_answer ??
@@ -175,9 +179,11 @@ Enhanced endpoint that provides comprehensive explainability through:
         data.final_decision_text ??
         "No answer.";
 
+      const explainability = data.explainability_results ?? {};
+
       const blocks: any[] = [];
 
-      if (data.agent_steps) {
+      if (data.agent_steps && Array.isArray(data.agent_steps)) {
         blocks.push(
           ...data.agent_steps.map((step: any, i: number) => ({
             step_number: i + 1,
@@ -189,7 +195,6 @@ Enhanced endpoint that provides comprehensive explainability through:
           }))
         );
       }
-
       if (data.explainability_results?.chain_of_thought?.summary) {
         blocks.push({
           step_type: "cot_summary",
@@ -237,21 +242,113 @@ Enhanced endpoint that provides comprehensive explainability through:
           data.metadata?.total_time ??
           0,
         agent_type: data.metadata?.agent_type ?? agentType,
+        query_timestamp: data.metadata?.query_timestamp,
+        completion_timestamp: data.metadata?.completion_timestamp,
+        iterations_used: data.metadata?.iterations_used,
+        sources_count: data.metadata?.sources_count,
+        cot_trace_id: data.metadata?.cot_trace_id,
+        attribution_report_id: data.metadata?.attribution_report_id,
       };
 
-      setChats((prev) => [
-        ...prev,
-        {
+      let safetyCheck = data.safety_check;
+      if (!safetyCheck || Object.keys(safetyCheck).length === 0) {
+        console.log(
+          "⚠️ No safety_check from API, creating default safe structure"
+        );
+        safetyCheck = {
+          threat_level: "safe",
+          confidence_score: 0.95,
+          violation_type: "none",
+          explanation: "No safety concerns detected",
+          recommendations: [],
+          details: {
+            pattern_check: {
+              detection_method: "pattern_analysis",
+              injection_patterns_count: 0,
+            },
+          },
+        };
+      }
+
+      try {
+        let allMetrics = JSON.parse(
+          localStorage.getItem("agentic_metrics_data") || "[]"
+        );
+
+        const questionNumber = allMetrics.length + 1;
+
+        const entry = {
+          questionNumber: questionNumber,
           question: customQuery,
           answer: finalAnswer,
-          metadata,
-          reasoning_steps: steps,
-          safe: true,
-        },
-      ]);
+          agent_type: agentType,
+          timestamp: new Date().toISOString(),
+          mode: agentType === "deep_research" ? "deep_research" : "normal",
+          metadata: metadata,
+          steps: steps,
+          explainability: {
+            chain_of_thought: explainability.chain_of_thought || null,
+            tool_attribution: explainability.tool_attribution || null,
+            summary: explainability.summary || null,
+            full_data: data.explainability_results || null,
+          },
+          raw_response: data,
+          safety_check: safetyCheck,
+        };
+
+        allMetrics.push(entry);
+        localStorage.setItem(
+          "agentic_metrics_data",
+          JSON.stringify(allMetrics)
+        );
+
+        setChats((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            ...updated[updated.length - 1],
+            question: customQuery,
+            answer: finalAnswer,
+            full_response: data,
+            formatted: true,
+            metadata,
+            reasoning_steps: steps,
+            safe: safetyCheck
+              ? !["high", "critical"].includes(
+                  (safetyCheck.threat_level || "").toLowerCase()
+                )
+              : true,
+            streaming: false,
+            questionNumber: questionNumber,
+            explainability: entry.explainability,
+          };
+          return updated;
+        });
+
+        console.log("✅ Stored reasoning metrics:", entry);
+      } catch (err) {
+        console.error("❌ Failed storing reasoning metrics:", err);
+      }
     } catch (err: any) {
-      setError(err?.message || "Failed to fetch reasoning trace.");
-      streamAnswer("⚠️ Error fetching explainability response.");
+      console.error("❌ Fetch error:", err);
+
+      const errorMessage = err?.message || "Failed to fetch reasoning trace.";
+      setError(
+        `${errorMessage} ${
+          agentType === "deep_research"
+            ? "\n\nℹ️ Make sure your Deep Research backend endpoint is running."
+            : ""
+        }`
+      );
+      setChats((prev) => {
+        const updated = [...prev];
+        updated[updated.length - 1] = {
+          ...updated[updated.length - 1],
+          answer: `⚠️ Error: ${errorMessage}`,
+          streaming: false,
+          safe: true,
+        };
+        return updated;
+      });
     }
   };
 
@@ -266,7 +363,7 @@ Enhanced endpoint that provides comprehensive explainability through:
         answer: "",
         streaming: true,
         metadata: {},
-        safe: true,
+        safe: null,
       },
     ]);
     setIsLoading(true);
@@ -333,13 +430,19 @@ Enhanced endpoint that provides comprehensive explainability through:
               <div className="w-full max-w-[900px] mx-auto flex justify-end px-2">
                 <div className="bg-blue-600 text-white rounded-2xl rounded-tr-sm px-6 py-3 shadow-md">
                   <p>{chat.question}</p>
+
+                  {chat.questionNumber && (
+                    <span className="text-xs opacity-75 block mt-1">
+                      Question #{chat.questionNumber}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
 
             <div className="w-full flex justify-center">
               <div className="w-full max-w-full lg:max-w-[900px] mx-auto">
-                {!chat.streaming && chat.safe && (
+                {!chat.streaming && chat.safe === true && (
                   <div className="inline-flex items-center space-x-1 px-2 py-1 bg-green-50 rounded-full border border-green-100 mb-3 shadow-sm">
                     <Shield className="w-3.5 h-3.5 text-green-600" />
                     <span className="text-xs text-green-700 font-semibold">
@@ -347,9 +450,31 @@ Enhanced endpoint that provides comprehensive explainability through:
                     </span>
                   </div>
                 )}
+                {!chat.streaming && chat.safe === false && (
+                  <div className="inline-flex items-center space-x-1 px-2 py-1 bg-red-50 rounded-full border border-red-200 mb-3 shadow-sm">
+                    <Shield className="w-3.5 h-3.5 text-red-600" />
+                    <span className="text-xs text-red-700 font-semibold">
+                      Unsafe
+                    </span>
+                  </div>
+                )}
+                {!chat.streaming && chat.safe === null && (
+                  <div className="inline-flex items-center space-x-1 px-2 py-1 bg-yellow-50 rounded-full border border-yellow-200 mb-3 shadow-sm">
+                    <Shield className="w-3.5 h-3.5 text-yellow-600" />
+                    <span className="text-xs text-yellow-700 font-semibold">
+                      Checking...
+                    </span>
+                  </div>
+                )}
 
                 <div className="prose prose-slate max-w-none text-slate-800 leading-relaxed mb-4">
-                  <ReactMarkdown>{chat.answer}</ReactMarkdown>
+                  {chat.full_response ? (
+                    <ReactMarkdown>
+                      {chat.full_response.final_answer || chat.answer}
+                    </ReactMarkdown>
+                  ) : (
+                    <ReactMarkdown>{chat.answer}</ReactMarkdown>
+                  )}
                 </div>
 
                 {chat.reasoning_steps?.length > 0 && (

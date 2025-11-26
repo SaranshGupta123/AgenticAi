@@ -840,6 +840,349 @@ export const EvaluationMetrics: React.FC = () => {
                   )}
                 </div>
               )}
+              {selectedData.explainability && (
+                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-5 rounded-lg border-2 border-indigo-200">
+                  <h4 className="font-semibold text-indigo-900 mb-4 flex items-center gap-2">
+                    <GitBranch className="w-5 h-5" />
+                    Complete Explainability Results
+                  </h4>
+                  {(selectedData.explainability.chain_of_thought?.summary ||
+                    selectedData.explainability.summary) && (
+                    <div className="mb-4 bg-white p-4 rounded border border-purple-200">
+                      <h5 className="font-semibold text-purple-700 mb-2 text-sm">
+                        Chain of Thought Summary
+                      </h5>
+                      <div className="space-y-2 text-xs">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="bg-purple-50 p-2 rounded">
+                            <span className="text-slate-600">Total Steps:</span>
+                            <span className="font-bold text-purple-700 ml-2">
+                              {selectedData.explainability.chain_of_thought
+                                ?.summary?.total_steps ||
+                                selectedData.explainability.summary
+                                  ?.reasoning_steps ||
+                                0}
+                            </span>
+                          </div>
+                          <div className="bg-purple-50 p-2 rounded">
+                            <span className="text-slate-600">
+                              Quality Score:
+                            </span>
+                            <span className="font-bold text-purple-700 ml-2">
+                              {(
+                                selectedData.explainability.chain_of_thought
+                                  ?.summary?.quality_score ||
+                                selectedData.explainability.summary
+                                  ?.research_quality ||
+                                0
+                              ).toFixed(3)}
+                            </span>
+                          </div>
+                          <div className="bg-purple-50 p-2 rounded">
+                            <span className="text-slate-600">
+                              Reasoning Time:
+                            </span>
+                            <span className="font-bold text-purple-700 ml-2">
+                              {(
+                                selectedData.explainability.chain_of_thought
+                                  ?.summary?.reasoning_time ||
+                                selectedData.explainability.summary
+                                  ?.total_reasoning_time ||
+                                0
+                              ).toFixed(2)}
+                              s
+                            </span>
+                          </div>
+                          <div className="bg-purple-50 p-2 rounded">
+                            <span className="text-slate-600">Trace ID:</span>
+                            <span className="font-mono text-xs text-purple-700 ml-2 truncate block max-w-[120px]">
+                              {selectedData.explainability.chain_of_thought
+                                ?.summary?.trace_id ||
+                                selectedData.metadata?.cot_trace_id ||
+                                "N/A"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {selectedData.explainability.chain_of_thought
+                    ?.visualization && (
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="font-semibold text-purple-700 text-sm">
+                          Chain of Thought Trace (Full)
+                        </h5>
+                        <button
+                          onClick={() =>
+                            openFullText(
+                              "Chain of Thought Visualization",
+                              selectedData.explainability.chain_of_thought
+                                .visualization
+                            )
+                          }
+                          className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                        >
+                          <Maximize2 className="w-3 h-3" />
+                          Expand Full Trace
+                        </button>
+                      </div>
+                      <pre className="text-xs whitespace-pre-wrap overflow-x-auto bg-white p-3 rounded border border-purple-200 max-h-96 overflow-y-auto font-mono">
+                        {
+                          selectedData.explainability.chain_of_thought
+                            .visualization
+                        }
+                      </pre>
+                    </div>
+                  )}
+                  {selectedData.explainability.tool_attribution && (
+                    <div className="mb-4 bg-white p-4 rounded border border-blue-200">
+                      <h5 className="font-semibold text-blue-700 mb-2 text-sm">
+                        Tool Attribution Summary
+                      </h5>
+
+                      {selectedData.explainability.tool_attribution
+                        .tool_usage_summary && (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3 text-xs">
+                          <div className="bg-blue-50 p-2 rounded">
+                            <span className="text-slate-600">
+                              Tools Invoked:
+                            </span>
+                            <span className="font-bold text-blue-700 ml-2">
+                              {selectedData.explainability.tool_attribution
+                                .tool_usage_summary.total_tools_invoked || 0}
+                            </span>
+                          </div>
+                          <div className="bg-blue-50 p-2 rounded">
+                            <span className="text-slate-600">
+                              Unique Tools:
+                            </span>
+                            <span className="font-bold text-blue-700 ml-2">
+                              {selectedData.explainability.tool_attribution
+                                .tool_usage_summary.unique_tools_used || 0}
+                            </span>
+                          </div>
+                          <div className="bg-blue-50 p-2 rounded">
+                            <span className="text-slate-600">Most Used:</span>
+                            <span className="font-bold text-blue-700 ml-2 truncate block max-w-[100px]">
+                              {selectedData.explainability.tool_attribution
+                                .tool_usage_summary.most_used_tool || "N/A"}
+                            </span>
+                          </div>
+                          <div className="bg-blue-50 p-2 rounded">
+                            <span className="text-slate-600">Total Time:</span>
+                            <span className="font-bold text-blue-700 ml-2">
+                              {(
+                                selectedData.explainability.tool_attribution
+                                  .tool_usage_summary.total_execution_time || 0
+                              ).toFixed(2)}
+                              s
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedData.explainability.tool_attribution
+                        .answer_composition && (
+                        <div className="mb-3">
+                          <h6 className="text-xs font-semibold text-slate-700 mb-2">
+                            Answer Composition:
+                          </h6>
+                          <div className="space-y-1">
+                            {Object.entries(
+                              selectedData.explainability.tool_attribution
+                                .answer_composition
+                            ).map(([tool, percentage]: [string, any]) => (
+                              <div
+                                key={tool}
+                                className="flex items-center gap-2"
+                              >
+                                <span className="text-xs text-slate-600 w-32 truncate">
+                                  {tool}:
+                                </span>
+                                <div className="flex-1 bg-slate-200 rounded-full h-4">
+                                  <div
+                                    className="bg-blue-600 h-4 rounded-full flex items-center justify-end px-2"
+                                    style={{
+                                      width: `${Math.min(
+                                        100,
+                                        Math.max(0, Number(percentage) || 0)
+                                      )}%`,
+                                    }}
+                                  >
+                                    <span className="text-xs text-white font-bold">
+                                      {Number(percentage || 0).toFixed(1)}%
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {selectedData.explainability.tool_attribution
+                    ?.visual_report && (
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="font-semibold text-blue-700 text-sm">
+                          Tool Attribution Report (Visual)
+                        </h5>
+                        <button
+                          onClick={() =>
+                            openFullText(
+                              "Tool Attribution Visual Report",
+                              selectedData.explainability.tool_attribution
+                                .visual_report
+                            )
+                          }
+                          className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                        >
+                          <Maximize2 className="w-3 h-3" />
+                          Expand
+                        </button>
+                      </div>
+                      <pre className="text-xs whitespace-pre-wrap overflow-x-auto bg-white p-3 rounded border border-blue-200 max-h-64 overflow-y-auto font-mono">
+                        {
+                          selectedData.explainability.tool_attribution
+                            .visual_report
+                        }
+                      </pre>
+                    </div>
+                  )}
+                  {selectedData.explainability.tool_attribution?.full_report &&
+                    typeof selectedData.explainability.tool_attribution
+                      .full_report === "object" &&
+                    selectedData.explainability.tool_attribution.full_report
+                      .tools_used && (
+                      <div className="mb-4 bg-white p-4 rounded border border-green-200">
+                        <h5 className="font-semibold text-green-700 mb-3 text-sm">
+                          Detailed Tool Usage
+                        </h5>
+
+                        <div className="space-y-2">
+                          {selectedData.explainability.tool_attribution.full_report.tools_used.map(
+                            (tool: any, idx: number) => (
+                              <div
+                                key={idx}
+                                className="bg-green-50 p-3 rounded border border-green-200"
+                              >
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="font-semibold text-green-900">
+                                    {idx + 1}.{" "}
+                                    {tool.tool_name || "Unknown Tool"}
+                                  </span>
+                                  <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded">
+                                    {tool.tool_type || "N/A"}
+                                  </span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                  <div>
+                                    <span className="text-slate-600">
+                                      Execution Time:
+                                    </span>
+                                    <span className="font-bold text-green-700 ml-2">
+                                      {(tool.execution_duration || 0).toFixed(
+                                        2
+                                      )}
+                                      s
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-600">
+                                      Contribution:
+                                    </span>
+                                    <span className="font-bold text-green-700 ml-2">
+                                      {(
+                                        (tool.contribution_score || 0) * 100
+                                      ).toFixed(1)}
+                                      %
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-600">
+                                      Used in Final:
+                                    </span>
+                                    <span className="font-bold text-green-700 ml-2">
+                                      {tool.output_used_in_final
+                                        ? "✓ Yes"
+                                        : "✗ No"}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-600">
+                                      Success:
+                                    </span>
+                                    <span className="font-bold text-green-700 ml-2">
+                                      {tool.error_occurred
+                                        ? "✗ Error"
+                                        : "✓ Success"}
+                                    </span>
+                                  </div>
+                                </div>
+                                {tool.input_provided && (
+                                  <div className="mt-2">
+                                    <span className="text-xs text-slate-600">
+                                      Input:
+                                    </span>
+                                    <pre className="text-xs bg-white p-2 rounded mt-1 border border-green-100 overflow-x-auto max-h-32 overflow-y-auto">
+                                      {JSON.stringify(
+                                        tool.input_provided,
+                                        null,
+                                        2
+                                      )}
+                                    </pre>
+                                  </div>
+                                )}
+                                {tool.output_generated && (
+                                  <div className="mt-2">
+                                    <span className="text-xs text-slate-600">
+                                      Output Preview:
+                                    </span>
+                                    <pre className="text-xs bg-white p-2 rounded mt-1 border border-green-100 overflow-x-auto max-h-32 overflow-y-auto">
+                                      {typeof tool.output_generated === "string"
+                                        ? tool.output_generated.substring(
+                                            0,
+                                            200
+                                          ) +
+                                          (tool.output_generated.length > 200
+                                            ? "..."
+                                            : "")
+                                        : JSON.stringify(
+                                            tool.output_generated,
+                                            null,
+                                            2
+                                          ).substring(0, 200) + "..."}
+                                    </pre>
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  {selectedData.explainability.tool_attribution?.citations && (
+                    <div className="bg-white p-4 rounded border border-amber-200 mb-4">
+                      <h5 className="font-semibold text-amber-700 mb-2 text-sm">
+                        Source Citations
+                      </h5>
+                      <pre className="text-xs whitespace-pre-wrap bg-amber-50 p-3 rounded border border-amber-100 font-mono max-h-64 overflow-y-auto">
+                        {selectedData.explainability.tool_attribution.citations}
+                      </pre>
+                    </div>
+                  )}
+                  {/* <details className="mt-4">
+                    <summary className="cursor-pointer text-xs text-slate-600 hover:text-slate-900 font-semibold">
+                      🔍 View Raw Explainability Data (Debug)
+                    </summary>
+                    <pre className="text-xs bg-slate-900 text-green-400 p-3 rounded mt-2 overflow-x-auto max-h-96 overflow-y-auto font-mono">
+                      {JSON.stringify(selectedData.explainability, null, 2)}
+                    </pre>
+                  </details> */}
+                </div>
+              )}
 
               <div className="bg-slate-50 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">

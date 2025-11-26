@@ -134,7 +134,7 @@ export default function NotebookHome({ goBack, openNotebook }) {
                  bg-[#0E1114] border border-[#2A2D33] text-gray-300 
                  text-xs p-4 rounded-lg shadow-xl leading-relaxed z-40"
               >
-                <h5>STEP 1: Check available domain databases</h5>
+                <h5>Check available domain databases</h5>
                 • Select any domain you want to work with <br />• If the domain
                 isn't available, use the
                 <span
@@ -186,7 +186,7 @@ export default function NotebookHome({ goBack, openNotebook }) {
                 border border-[#2A2D33] text-gray-300 text-xs p-4 
                 rounded-lg shadow-xl leading-relaxed z-40"
               >
-                <h5>STEP 2: Select which domain database to use</h5>
+                <h5>Select which domain database to use</h5>
                 • Lists all domain folders found in dataset/ <br />
                 • Shows which domain is currently active <br />• Shows which
                 domains are initialized (vector stores)
@@ -280,8 +280,8 @@ export default function NotebookHome({ goBack, openNotebook }) {
                       <br />
                       <span className="text-gray-400">
                         <h5>
-                          STEP 3: Generate embeddings and create vector database
-                          for a domain
+                          Generate embeddings and create vector database for a
+                          domain
                         </h5>
                         • Processes all PDFs in dataset/{domain}/
                         <br />• Creates vector store in database/chromadb/

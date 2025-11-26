@@ -105,6 +105,8 @@ Ideal for:
     const key = mode === "deep_research" ? LS_DEEP : LS_NORMAL;
     localStorage.setItem(key, JSON.stringify(chats));
 
+    if (mode === "deep_research") return;
+
     let allMetrics: any[] = [];
     try {
       const raw = localStorage.getItem(LS_METRICS);
@@ -116,34 +118,27 @@ Ideal for:
     chats
       .filter((chat) => chat.questionNumber && chat.questionNumber > 0)
       .forEach((chat) => {
+        if (!chat.answer || chat.answer === "Error fetching response.") return;
+
         const index = updatedMetrics.findIndex(
           (m) => m.questionNumber === chat.questionNumber
         );
-        if (
-          chat.answer &&
-          chat.safety_check &&
-          chat.answer !== "" &&
-          chat.answer !== "Error fetching response."
-        ) {
-          const newEntry = {
-            questionNumber: chat.questionNumber,
-            question: chat.question,
-            answer: chat.answer,
-            metadata: chat.metadata,
-            steps: chat.steps,
-            evaluation: chat.evaluation,
-            agent_type: chat.agent_type,
-            safety_check: chat.safety_check,
-            timestamp: chat.timestamp,
-            mode,
-          };
 
-          if (index >= 0) {
-            updatedMetrics[index] = newEntry;
-          } else {
-            updatedMetrics.push(newEntry);
-          }
-        }
+        const newEntry = {
+          questionNumber: chat.questionNumber,
+          question: chat.question,
+          answer: chat.answer,
+          metadata: chat.metadata,
+          steps: chat.steps,
+          evaluation: chat.evaluation,
+          agent_type: chat.agent_type,
+          safety_check: chat.safety_check,
+          timestamp: chat.timestamp,
+          mode,
+        };
+
+        if (index >= 0) updatedMetrics[index] = newEntry;
+        else updatedMetrics.push(newEntry);
       });
 
     updatedMetrics.sort((a, b) => a.questionNumber - b.questionNumber);
