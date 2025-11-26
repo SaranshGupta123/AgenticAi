@@ -39,6 +39,9 @@ export const SafetyGuardView = ({
   const selectedEntry = metricsData.find(
     (m: any) => m.questionNumber === currentQuestion
   );
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 7;
+  const totalPages = Math.ceil(metricsData.length / PAGE_SIZE);
 
   const getSafetyColor = (sc: any) => {
     if (!sc)
@@ -132,33 +135,85 @@ export const SafetyGuardView = ({
               analysis.
             </div>
           ) : (
-            <div className="flex flex-wrap gap-2">
-              {metricsData.map((data) => {
-                const colors = getSafetyColor(data.safety_check);
-                const isSelected = currentQuestion === data.questionNumber;
-                const hasSafetyData =
-                  data.safety_check &&
-                  Object.keys(data.safety_check).length > 0;
+            <div className="w-full">
+              <div className="relative w-full overflow-hidden">
+                <div
+                  className="flex gap-2 transition-transform duration-500"
+                  style={{ transform: `translateX(-${page * 100}%)` }}
+                >
+                  {Array.from({ length: totalPages }).map((_, pageIndex) => (
+                    <div
+                      key={pageIndex}
+                      className="min-w-full flex gap-2 justify-center"
+                    >
+                      {metricsData
+                        .slice(
+                          pageIndex * PAGE_SIZE,
+                          pageIndex * PAGE_SIZE + PAGE_SIZE
+                        )
+                        .map((data) => {
+                          const colors = getSafetyColor(data.safety_check);
+                          const isSelected =
+                            currentQuestion === data.questionNumber;
+                          const hasSafetyData =
+                            data.safety_check &&
+                            Object.keys(data.safety_check).length > 0;
 
-                return (
-                  <button
-                    key={data.questionNumber}
-                    onClick={() => handleQuestionClick(data.questionNumber)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all cursor-pointer ${
-                      isSelected
-                        ? "bg-blue-600 text-white shadow-lg ring-2 ring-blue-400"
-                        : !hasSafetyData
-                        ? "bg-slate-100 text-slate-500 border border-slate-300"
-                        : `${colors.bg} ${colors.text} hover:opacity-80 border ${colors.border}`
-                    }`}
-                    title={`${data.question.substring(0, 50)}... - ${
-                      data.safety_check?.threat_level || "No data"
-                    }`}
-                  >
-                    Question {data.questionNumber}
-                  </button>
-                );
-              })}
+                          return (
+                            <button
+                              key={data.questionNumber}
+                              onClick={() =>
+                                handleQuestionClick(data.questionNumber)
+                              }
+                              className={`px-4 py-2 rounded-lg font-medium transition-all cursor-pointer ${
+                                isSelected
+                                  ? "bg-blue-600 text-white shadow-lg ring-2 ring-blue-400"
+                                  : !hasSafetyData
+                                  ? "bg-slate-100 text-slate-500 border border-slate-300"
+                                  : `${colors.bg} ${colors.text} hover:opacity-80 border ${colors.border}`
+                              }`}
+                              title={`${data.question.substring(0, 50)}... - ${
+                                data.safety_check?.threat_level || "No data"
+                              }`}
+                            >
+                              Q {data.questionNumber}
+                            </button>
+                          );
+                        })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between mt-4 px-1">
+                <button
+                  disabled={page === 0}
+                  onClick={() => setPage(page - 1)}
+                  className={`px-3 py-2 rounded-lg transition-all ${
+                    page === 0
+                      ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                      : "bg-blue-500 hover:bg-blue-600 text-white"
+                  }`}
+                >
+                  ⬅ Prev
+                </button>
+
+                <span className="text-xs text-slate-600">
+                  Page {page + 1} / {totalPages}
+                </span>
+
+                <button
+                  disabled={page === totalPages - 1}
+                  onClick={() => setPage(page + 1)}
+                  className={`px-3 py-2 rounded-lg transition-all ${
+                    page === totalPages - 1
+                      ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                      : "bg-blue-500 hover:bg-blue-600 text-white"
+                  }`}
+                >
+                  Next ➡
+                </button>
+              </div>
             </div>
           )}
 

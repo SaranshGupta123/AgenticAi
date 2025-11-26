@@ -289,36 +289,34 @@ Ideal for:
         .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
         .replace(/\*(.*?)\*/g, "<i>$1</i>");
 
-    const renderCard = (url: string, key: string) => {
-      if (!url || url.trim() === "" || url === "()") return null;
-
+    const renderLink = (url: string, key: string) => {
       const isYT = url.includes("youtube.com") || url.includes("youtu.be");
       const isGitHub = url.includes("github.com");
-      const isArxiv = url.includes("arxiv.org");
 
-      let bg = "bg-blue-600";
-      let label = "Open Link";
-
-      if (isYT) {
-        bg = "bg-red-600";
-        label = "Watch on YouTube";
-      } else if (isGitHub) {
-        bg = "bg-gray-900";
-        label = "Open GitHub Repo";
-      } else if (isArxiv) {
-        bg = "bg-purple-700";
-        label = "Open ArXiv Paper";
+      if (!isYT && !isGitHub) {
+        return (
+          <a
+            key={key}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline break-all hover:text-blue-800 transition-all"
+          >
+            {url}
+          </a>
+        );
       }
-
       return (
         <a
           key={key}
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className={`block max-w-md rounded-xl p-3 shadow-md text-white ${bg} hover:opacity-90 transition-all`}
+          className={`block max-w-md rounded-xl p-3 shadow-md text-white transition-transform hover:scale-[1.03] ${
+            isYT ? "bg-red-600 hover:bg-red-700" : "bg-gray-900 hover:bg-black"
+          }`}
         >
-          <span className="font-semibold">{label}</span>
+          {isYT ? "▶ Watch on YouTube" : "💻 View GitHub Repo"}
         </a>
       );
     };
@@ -329,15 +327,20 @@ Ideal for:
           const urls = line.match(urlRegex);
 
           if (urls) {
+            const cleanedText = line.replace(urlRegex, "").trim();
+
             return (
               <div key={i} className="space-y-2">
-                <p
-                  className="text-slate-800"
-                  dangerouslySetInnerHTML={{
-                    __html: parseMarkdown(line.replace(urlRegex, "")),
-                  }}
-                />
-                {urls.map((u, j) => renderCard(u, `${i}-${j}`))}
+                {cleanedText && (
+                  <p
+                    className="text-slate-800"
+                    dangerouslySetInnerHTML={{
+                      __html: parseMarkdown(cleanedText),
+                    }}
+                  />
+                )}
+
+                {urls.map((u, j) => renderLink(u, `${i}-${j}`))}
               </div>
             );
           }

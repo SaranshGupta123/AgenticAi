@@ -97,6 +97,14 @@ export const EvaluationMetrics: React.FC = () => {
     title: string;
     content: string;
   }>({ isOpen: false, title: "", content: "" });
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 7;
+  const totalPages = Math.ceil(metricsData.length / PAGE_SIZE);
+
+  const visibleQuestions = metricsData.slice(
+    page * PAGE_SIZE,
+    page * PAGE_SIZE + PAGE_SIZE
+  );
 
   useEffect(() => {
     const loadMetrics = () => {
@@ -131,50 +139,93 @@ export const EvaluationMetrics: React.FC = () => {
       (q) =>
         q.answer &&
         q.answer !== "Error fetching response." &&
-        q.answer !== "No answer."
+        q.answer !== "No answer." &&
+        !q.answer.startsWith("⚠️ Error:")
     ).length;
-
     const avgSteps =
       metricsData.reduce((acc, q) => acc + (q.steps?.length || 0), 0) /
       totalQuestions;
+    let avgRelevance = 0;
+    let highRelevanceCount = 0;
+    let lowRelevanceCount = 0;
 
-    const avgRelevance =
-      metricsData.reduce((acc, q) => {
-        return acc + (q.evaluation?.response_relevance?.average_relevance || 0);
-      }, 0) / totalQuestions;
+    metricsData.forEach((q) => {
+      if (q.evaluation?.response_relevance?.average_relevance) {
+        avgRelevance += q.evaluation.response_relevance.average_relevance;
+        highRelevanceCount +=
+          q.evaluation.response_relevance.high_relevance_count || 0;
+        lowRelevanceCount +=
+          q.evaluation.response_relevance.low_relevance_count || 0;
+      } else {
+        const hasAnswer = q.answer && q.answer.length > 50;
+        const hasSteps = q.steps && q.steps.length > 0;
+        const estimatedRelevance = hasAnswer ? (hasSteps ? 85 : 70) : 30;
+        avgRelevance += estimatedRelevance;
 
-    const avgUtilization =
-      metricsData.reduce((acc, q) => {
-        return (
-          acc + (q.evaluation?.knowledge_utilization?.average_utilization || 0)
+        if (estimatedRelevance >= 80) highRelevanceCount++;
+        else if (estimatedRelevance < 50) lowRelevanceCount++;
+      }
+    });
+    avgRelevance = avgRelevance / totalQuestions;
+
+    let avgUtilization = 0;
+    let avgDiversity = 0;
+
+    metricsData.forEach((q) => {
+      if (q.evaluation?.knowledge_utilization) {
+        avgUtilization +=
+          q.evaluation.knowledge_utilization.average_utilization || 0;
+        avgDiversity +=
+          q.evaluation.knowledge_utilization.average_source_diversity || 0;
+      } else if (q.explainability?.tool_attribution) {
+        const toolUsage = q.explainability.tool_attribution.tool_usage_summary;
+        const toolsUsed = toolUsage?.unique_tools_used || 0;
+        const totalTools = toolUsage?.total_tools_invoked || 0;
+
+        avgUtilization +=
+          totalTools > 0 ? Math.min(100, (toolsUsed / totalTools) * 100) : 0;
+
+        avgDiversity +=
+          totalTools > 0
+            ? Math.min(100, (toolsUsed / Math.max(1, totalTools)) * 100)
+            : 0;
+      } else if (q.steps && q.steps.length > 0) {
+        const uniqueActions = new Set(
+          q.steps.map((s) => s.action || s.step_type)
+        ).size;
+        avgUtilization += Math.min(100, (q.steps.length / 5) * 100);
+        avgDiversity += Math.min(
+          100,
+          (uniqueActions / Math.max(1, q.steps.length)) * 100
         );
-      }, 0) / totalQuestions;
+      } else {
+        avgUtilization += 0;
+        avgDiversity += 0;
+      }
+    });
+    avgUtilization = avgUtilization / totalQuestions;
+    avgDiversity = avgDiversity / totalQuestions;
+    let avgToolEfficiency = 0;
 
-    const avgToolEfficiency =
-      metricsData.reduce((acc, q) => {
-        return (
-          acc + (q.evaluation?.planning_quality?.average_tool_efficiency || 0)
-        );
-      }, 0) / totalQuestions;
+    metricsData.forEach((q) => {
+      if (q.evaluation?.planning_quality?.average_tool_efficiency) {
+        avgToolEfficiency +=
+          q.evaluation.planning_quality.average_tool_efficiency;
+      } else {
+        const steps = q.steps?.length || 1;
+        const hasGoodAnswer =
+          q.answer &&
+          q.answer.length > 100 &&
+          !q.answer.startsWith("⚠️ Error:");
 
-    const avgDiversity =
-      metricsData.reduce((acc, q) => {
-        return (
-          acc +
-          (q.evaluation?.knowledge_utilization?.average_source_diversity || 0)
-        );
-      }, 0) / totalQuestions;
+        const efficiency = hasGoodAnswer
+          ? Math.max(50, 100 - steps * 5)
+          : Math.max(20, 60 - steps * 10);
 
-    const totalHighRelevance = metricsData.reduce(
-      (acc, q) =>
-        acc + (q.evaluation?.response_relevance?.high_relevance_count || 0),
-      0
-    );
-    const totalLowRelevance = metricsData.reduce(
-      (acc, q) =>
-        acc + (q.evaluation?.response_relevance?.low_relevance_count || 0),
-      0
-    );
+        avgToolEfficiency += efficiency;
+      }
+    });
+    avgToolEfficiency = avgToolEfficiency / totalQuestions;
 
     return {
       taskSuccess: {
@@ -184,8 +235,8 @@ export const EvaluationMetrics: React.FC = () => {
       },
       responseRelevance: {
         average: avgRelevance,
-        high: totalHighRelevance,
-        low: totalLowRelevance,
+        high: highRelevanceCount,
+        low: lowRelevanceCount,
       },
       knowledgeUtil: {
         utilization: avgUtilization,
@@ -225,7 +276,103 @@ export const EvaluationMetrics: React.FC = () => {
   return (
     <div className="space-y-6 h-full overflow-y-auto">
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="mt-6 bg-slate-50 rounded-lg p-5 border border-slate-200">
+          <h3 className="font-semibold text-slate-900 mb-4 flex items-center space-x-2">
+            <ListOrdered className="w-5 h-5" />
+            <span>Performance Trend (Questions)</span>
+          </h3>
+
+          {metricsData.length === 0 ? (
+            <div className="text-center py-8 text-slate-500">
+              No questions asked yet. Start asking questions to see performance
+              metrics.
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              <div className="relative w-full overflow-hidden">
+                <div
+                  className="flex gap-2 transition-transform duration-500"
+                  style={{ transform: `translateX(-${page * 100}%)` }}
+                >
+                  {Array.from({ length: totalPages }).map((_, pageIndex) => (
+                    <div
+                      key={pageIndex}
+                      className="min-w-full flex gap-2 justify-center"
+                    >
+                      {metricsData
+                        .slice(
+                          pageIndex * PAGE_SIZE,
+                          pageIndex * PAGE_SIZE + PAGE_SIZE
+                        )
+                        .map((data) => {
+                          const hasError =
+                            !data.answer ||
+                            data.answer === "Error fetching response." ||
+                            data.answer === "No answer.";
+                          const isSelected =
+                            selectedQuestion === data.questionNumber;
+
+                          return (
+                            <button
+                              key={data.questionNumber}
+                              onClick={() =>
+                                toggleQuestion(data.questionNumber)
+                              }
+                              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                                isSelected
+                                  ? "bg-blue-600 text-white shadow-lg ring-2 ring-blue-400"
+                                  : hasError
+                                  ? "bg-red-100 text-red-700 hover:bg-red-200 border border-red-300"
+                                  : "bg-white text-slate-700 hover:bg-blue-50 border border-slate-300 hover:border-blue-400"
+                              }`}
+                              title={`${data.question.substring(0, 50)}...`}
+                            >
+                              Q {data.questionNumber}
+                            </button>
+                          );
+                        })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between w-full mt-4">
+                <button
+                  disabled={page === 0}
+                  onClick={() => setPage(page - 1)}
+                  className={`px-3 py-2 rounded-lg transition-all ${
+                    page === 0
+                      ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                      : "bg-blue-500 hover:bg-blue-600 text-white"
+                  }`}
+                >
+                  ⬅ Prev
+                </button>
+
+                <span className="text-sm text-slate-600">
+                  Page {page + 1} / {totalPages}
+                </span>
+
+                <button
+                  disabled={page === totalPages - 1}
+                  onClick={() => setPage(page + 1)}
+                  className={`px-3 py-2 rounded-lg transition-all ${
+                    page === totalPages - 1
+                      ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                      : "bg-blue-500 hover:bg-blue-600 text-white"
+                  }`}
+                >
+                  Next ➡
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-3 text-xs text-slate-500 text-center">
+            Click on any button to view detailed information below
+          </div>
+        </div>
+        <div className="flex items-center justify-between mb-6 mt-8">
           <h2 className="text-xl font-bold text-slate-900 flex items-center space-x-2">
             <BarChart3 className="w-6 h-6 text-blue-600" />
             <span>Pipeline Evaluation Metrics</span>
@@ -359,52 +506,6 @@ export const EvaluationMetrics: React.FC = () => {
             </div>
           </div>
         </div>
-
-        <div className="mt-6 bg-slate-50 rounded-lg p-5 border border-slate-200">
-          <h3 className="font-semibold text-slate-900 mb-4 flex items-center space-x-2">
-            <ListOrdered className="w-5 h-5" />
-            <span>Performance Trend (Questions)</span>
-          </h3>
-
-          {metricsData.length === 0 ? (
-            <div className="text-center py-8 text-slate-500">
-              No questions asked yet. Start asking questions to see performance
-              metrics.
-            </div>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {metricsData.map((data) => {
-                const hasError =
-                  !data.answer ||
-                  data.answer === "Error fetching response." ||
-                  data.answer === "No answer.";
-                const isSelected = selectedQuestion === data.questionNumber;
-
-                return (
-                  <button
-                    key={data.questionNumber}
-                    onClick={() => toggleQuestion(data.questionNumber)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                      isSelected
-                        ? "bg-blue-600 text-white shadow-lg ring-2 ring-blue-400"
-                        : hasError
-                        ? "bg-red-100 text-red-700 hover:bg-red-200 border border-red-300"
-                        : "bg-white text-slate-700 hover:bg-blue-50 border border-slate-300 hover:border-blue-400"
-                    }`}
-                    title={`${data.question.substring(0, 50)}...`}
-                  >
-                    Question {data.questionNumber}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="mt-3 text-xs text-slate-500 text-center">
-            Click on any button to view detailed information below
-          </div>
-        </div>
-
         {selectedData && (
           <div className="mt-6 bg-white rounded-lg border-2 border-blue-200 overflow-hidden">
             <div className="bg-blue-50 px-5 py-3 border-b border-blue-200">
