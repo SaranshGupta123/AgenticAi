@@ -136,15 +136,15 @@ export const SafetyGuardView = ({
             </div>
           ) : (
             <div className="w-full">
-              <div className="relative w-full overflow-hidden">
+              <div className="relative w-full overflow-hidden h-[60px] border rounded-lg p-2">
                 <div
-                  className="flex gap-2 transition-transform duration-500"
-                  style={{ transform: `translateX(-${page * 100}%)` }}
+                  className="transition-transform duration-500"
+                  style={{ transform: `translateY(-${page * 200}px)` }}
                 >
                   {Array.from({ length: totalPages }).map((_, pageIndex) => (
                     <div
                       key={pageIndex}
-                      className="min-w-full flex gap-2 justify-center"
+                      className="h-[200px] flex flex-wrap gap-2 justify-center items-start"
                     >
                       {metricsData
                         .slice(
@@ -176,7 +176,7 @@ export const SafetyGuardView = ({
                                 data.safety_check?.threat_level || "No data"
                               }`}
                             >
-                              Q {data.questionNumber}
+                              Question {data.questionNumber}
                             </button>
                           );
                         })}
@@ -185,33 +185,29 @@ export const SafetyGuardView = ({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between mt-4 px-1">
+              <div className="flex justify-center w-full mt-4 gap-2">
                 <button
                   disabled={page === 0}
                   onClick={() => setPage(page - 1)}
-                  className={`px-3 py-2 rounded-lg transition-all ${
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all shadow-sm ${
                     page === 0
                       ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                      : "bg-blue-500 hover:bg-blue-600 text-white"
+                      : "bg-blue-600 hover:bg-blue-700 text-white"
                   }`}
                 >
-                  ⬅ Prev
+                  ↑ Up
                 </button>
-
-                <span className="text-xs text-slate-600">
-                  Page {page + 1} / {totalPages}
-                </span>
 
                 <button
                   disabled={page === totalPages - 1}
                   onClick={() => setPage(page + 1)}
-                  className={`px-3 py-2 rounded-lg transition-all ${
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all shadow-sm ${
                     page === totalPages - 1
                       ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                      : "bg-blue-500 hover:bg-blue-600 text-white"
+                      : "bg-green-600 hover:bg-green-700 text-white"
                   }`}
                 >
-                  Next ➡
+                  ↓ Down
                 </button>
               </div>
             </div>
@@ -225,8 +221,9 @@ export const SafetyGuardView = ({
         {currentQuestion && selectedEntry && safetyCheck ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-green-50 rounded-lg p-4 text-center border border-green-200">
-                <p className="text-2xl font-bold text-green-700">
+              {/* SAFETY INDEX → Yellow Theme */}
+              <div className="bg-yellow-50 rounded-lg p-4 text-center border border-yellow-300">
+                <p className="text-2xl font-bold text-yellow-700">
                   {(1 - safetyCheck.confidence_score).toFixed(2)}
                 </p>
                 <p className="text-xs text-slate-600 mt-1 uppercase tracking-wide">
@@ -234,8 +231,9 @@ export const SafetyGuardView = ({
                 </p>
               </div>
 
-              <div className="bg-red-50 rounded-lg p-4 text-center border border-red-200">
-                <p className="text-2xl font-bold text-red-700">
+              {/* THREAT CONFIDENCE → Green Theme */}
+              <div className="bg-green-50 rounded-lg p-4 text-center border border-green-300">
+                <p className="text-2xl font-bold text-green-700">
                   {(safetyCheck.confidence_score * 100).toFixed(1)}%
                 </p>
                 <p className="text-xs text-slate-600 mt-1 uppercase tracking-wide">
@@ -243,8 +241,23 @@ export const SafetyGuardView = ({
                 </p>
               </div>
 
-              <div className="bg-amber-50 rounded-lg p-4 text-center border border-amber-200">
-                <p className="text-2xl font-bold text-amber-700 capitalize">
+              {/* VIOLATION TYPE → Green IF NONE, else Red */}
+              <div
+                className={`rounded-lg p-4 text-center border 
+    ${
+      (safetyCheck.violation_type || "None") === "None"
+        ? "bg-green-50 border-green-300"
+        : "bg-red-50 border-red-300"
+    }`}
+              >
+                <p
+                  className={`text-2xl font-bold capitalize 
+      ${
+        (safetyCheck.violation_type || "None") === "None"
+          ? "text-green-700"
+          : "text-red-700"
+      }`}
+                >
                   {safetyCheck.violation_type || "None"}
                 </p>
                 <p className="text-xs text-slate-600 mt-1 uppercase tracking-wide">

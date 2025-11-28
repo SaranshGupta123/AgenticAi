@@ -289,15 +289,15 @@ export const EvaluationMetrics: React.FC = () => {
             </div>
           ) : (
             <div className="flex flex-wrap gap-2">
-              <div className="relative w-full overflow-hidden">
+              <div className="relative w-full overflow-hidden h-[60px] border rounded-lg p-2">
                 <div
-                  className="flex gap-2 transition-transform duration-500"
-                  style={{ transform: `translateX(-${page * 100}%)` }}
+                  className="transition-transform duration-500"
+                  style={{ transform: `translateY(-${page * 200}px)` }}
                 >
                   {Array.from({ length: totalPages }).map((_, pageIndex) => (
                     <div
                       key={pageIndex}
-                      className="min-w-full flex gap-2 justify-center"
+                      className="h-[200px] flex flex-wrap gap-2 justify-center items-start"
                     >
                       {metricsData
                         .slice(
@@ -327,7 +327,7 @@ export const EvaluationMetrics: React.FC = () => {
                               }`}
                               title={`${data.question.substring(0, 50)}...`}
                             >
-                              Q {data.questionNumber}
+                              Question {data.questionNumber}
                             </button>
                           );
                         })}
@@ -335,34 +335,29 @@ export const EvaluationMetrics: React.FC = () => {
                   ))}
                 </div>
               </div>
-
-              <div className="flex items-center justify-between w-full mt-4">
+              <div className="flex justify-center w-full mb-4 gap-2">
                 <button
                   disabled={page === 0}
                   onClick={() => setPage(page - 1)}
-                  className={`px-3 py-2 rounded-lg transition-all ${
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all shadow-sm ${
                     page === 0
                       ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                      : "bg-blue-500 hover:bg-blue-600 text-white"
+                      : "bg-blue-600 hover:bg-blue-700 text-white"
                   }`}
                 >
-                  ⬅ Prev
+                  ↑ Up
                 </button>
-
-                <span className="text-sm text-slate-600">
-                  Page {page + 1} / {totalPages}
-                </span>
 
                 <button
                   disabled={page === totalPages - 1}
                   onClick={() => setPage(page + 1)}
-                  className={`px-3 py-2 rounded-lg transition-all ${
+                  className={`px-4 py-2 rounded-lg font-semibold transition-all shadow-sm ${
                     page === totalPages - 1
                       ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                      : "bg-blue-500 hover:bg-blue-600 text-white"
+                      : "bg-green-600 hover:bg-green-700 text-white"
                   }`}
                 >
-                  Next ➡
+                  ↓ Down
                 </button>
               </div>
             </div>

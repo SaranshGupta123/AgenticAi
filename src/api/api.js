@@ -241,7 +241,8 @@ export async function fetchChatResponse(query) {
     `query=${encodeURIComponent(query)}` +
     `&agent_type=react` +
     `&include_steps=true` +
-    `&use_crag=false`;
+    `&use_crag=false` +
+    `&comprehensive=true`;
 
   console.log("🔥 FINAL URL:", BASE_URL + url);
 
@@ -251,7 +252,6 @@ export async function fetchChatResponse(query) {
       Accept: "application/json",
       "ngrok-skip-browser-warning": "true",
     },
-    body: null,
   });
 
   if (!response.ok) {
@@ -262,7 +262,15 @@ export async function fetchChatResponse(query) {
 
   const data = await response.json();
   return {
-    answer: data.final_answer ?? data.answer ?? "No answer",
+    answer:
+      data.final_answer ??
+      data.answer ??
+      data.final_decision ??
+      data.final_decision_text ??
+      data.report ??
+      data.summary ??
+      JSON.stringify(data, null, 2),
+
     steps: data.agent_steps ?? [],
     metadata: data.metadata ?? {},
     evaluation: data.evaluation_metrics ?? {},
@@ -749,4 +757,47 @@ export async function fetchLocalPDFsAPI(domain) {
     console.error("Local PDF API Error:", err);
     return [];
   }
+}
+export async function fetchSubjectReasoningSolve(query, subject = "general") {
+  const url =
+    `/rag/api/rag/solve?` +
+    `query=${encodeURIComponent(query)}` +
+    `&subject=${encodeURIComponent(subject)}` +
+    `&show_work=true` +
+    `&verify_answer=true` +
+    `&include_confidence=true`;
+
+  console.log("📤 Sending Subject Solver Request:", url);
+
+  const response = await fetch(BASE_URL + url, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "ngrok-skip-browser-warning": "true",
+    },
+  });
+
+  if (!response.ok) {
+    const errorTxt = await response.text();
+    console.error("❌ Solver Error:", errorTxt);
+    throw new Error(`Solve request failed (${response.status})`);
+  }
+
+  const data = await response.json();
+  console.log("✅ Solve Response:", data);
+
+  return {
+    question: query,
+    subject: data.subject ?? subject,
+    problem_type: data.problem_type ?? "unknown",
+    subtype: data.subtype ?? null,
+    final_answer: data.answer ?? data.final_answer ?? "No answer",
+    steps: data.steps ?? [],
+    metadata: {
+      time: data.metadata?.processing_time_seconds ?? "N/A",
+      confidence: data.metadata?.confidence?.score ?? null,
+      confidence_level: data.metadata?.confidence?.level ?? null,
+    },
+    raw: data,
+  };
 }

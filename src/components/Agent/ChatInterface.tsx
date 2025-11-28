@@ -324,11 +324,23 @@ Ideal for:
     return (
       <div className="space-y-3">
         {answer.split("\n").map((line, i) => {
-          const urls = line.match(urlRegex);
+          // --- Detect ### Headings ---
+          if (line.startsWith("### ")) {
+            const headingText = line.replace("### ", "").trim();
+            return (
+              <h2
+                key={i}
+                className="text-xl font-bold mt-4 mb-2 text-slate-900 border-b border-gray-200 pb-1 transition-all duration-75"
+              >
+                {headingText || "..."}
+              </h2>
+            );
+          }
 
+          // --- Detect URLs ---
+          const urls = line.match(urlRegex);
           if (urls) {
             const cleanedText = line.replace(urlRegex, "").trim();
-
             return (
               <div key={i} className="space-y-2">
                 {cleanedText && (
@@ -339,12 +351,12 @@ Ideal for:
                     }}
                   />
                 )}
-
                 {urls.map((u, j) => renderLink(u, `${i}-${j}`))}
               </div>
             );
           }
 
+          // --- Normal Text ---
           return (
             <p
               key={i}
@@ -421,9 +433,7 @@ Ideal for:
                 )}
 
                 <div className="text-slate-800 leading-relaxed prose prose-slate max-w-none">
-                  {chat.streaming
-                    ? chat.answer
-                    : renderSmartAnswer(chat.answer)}
+                  {renderSmartAnswer(chat.answer)}
                 </div>
 
                 {!chat.streaming && chat.metadata && (
