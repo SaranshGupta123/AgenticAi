@@ -80,7 +80,9 @@ function RAGPipelineContent({
         {/* HEADER */}
         <Header
           activeTab={activeTab}
-          setActiveTab={setActiveTab}
+          setActiveTab={(tab) => {
+            if (!isLoading) setActiveTab(tab);
+          }}
           onSidebarToggle={() => !isLoading && setSidebarOpen((prev) => !prev)}
           onNotebookOpen={goToNotebook}
         />
