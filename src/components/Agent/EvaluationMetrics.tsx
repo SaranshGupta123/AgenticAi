@@ -1166,8 +1166,7 @@ export const EvaluationMetrics: React.FC = () => {
                               >
                                 <div className="flex items-center justify-between mb-2">
                                   <span className="font-semibold text-green-900">
-                                    {idx + 1}.{" "}
-                                    {tool.tool_name || "Unknown Tool"}
+                                    {idx + 1}.{tool.tool_name || "Unknown Tool"}
                                   </span>
                                   <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded">
                                     {tool.tool_type || "N/A"}

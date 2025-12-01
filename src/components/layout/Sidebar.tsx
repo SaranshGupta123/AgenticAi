@@ -24,6 +24,8 @@ export const Sidebar: React.FC<Props> = ({
     activeTab === "evaluation" ||
     activeTab === "safety";
 
+  const isNavigationLocked = isLoading;
+
   return (
     <div className="flex flex-col justify-between h-full space-y-6">
       <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
@@ -38,9 +40,17 @@ export const Sidebar: React.FC<Props> = ({
 
         <select
           value={agentType}
-          disabled={isLoading}
-          onChange={(e) => !isLoading && setAgentType(e.target.value)}
-          className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-sm focus:ring-2 focus:ring-blue-500 disabled:opacity-50 cursor-not-allowed"
+          disabled={isNavigationLocked}
+          onChange={(e) => {
+            if (!isNavigationLocked) {
+              setAgentType(e.target.value);
+            }
+          }}
+          className={`w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-sm focus:ring-2 focus:ring-blue-500 transition-all ${
+            isNavigationLocked
+              ? "opacity-50 cursor-not-allowed"
+              : "cursor-pointer hover:border-blue-400"
+          }`}
         >
           <option value="react">ReAct Agent</option>
           <option value="deep_research">Deep Research</option>
@@ -58,9 +68,17 @@ export const Sidebar: React.FC<Props> = ({
 
           <select
             value={selectedSubject}
-            disabled={isLoading}
-            onChange={(e) => !isLoading && setSelectedSubject(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-sm focus:ring-2 focus:ring-blue-500 disabled:opacity-50 cursor-not-allowed"
+            disabled={isNavigationLocked}
+            onChange={(e) => {
+              if (!isNavigationLocked) {
+                setSelectedSubject(e.target.value);
+              }
+            }}
+            className={`w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-sm focus:ring-2 focus:ring-blue-500 transition-all ${
+              isNavigationLocked
+                ? "opacity-50 cursor-not-allowed"
+                : "cursor-pointer hover:border-blue-400"
+            }`}
           >
             <option value="mathematics">Mathematics</option>
             <option value="physics">Physics</option>
@@ -90,6 +108,7 @@ export const Sidebar: React.FC<Props> = ({
           </div>
         </div>
       </div>
+
       <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
         <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
           <Settings className="w-4 h-4" />

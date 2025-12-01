@@ -12,6 +12,7 @@ import {
   fetchExplainabilityChatResponse,
   fetchDeepResearchExplainabilityResponse,
   fetchSubjectReasoningSolve,
+  fetchSourceResponse,
 } from "../../api/api";
 
 import ReactMarkdown from "react-markdown";
@@ -87,7 +88,6 @@ Enhanced endpoint that provides comprehensive explainability through:
         };
 
   const isSourceMode = agentType === "source";
-
   const REASON_KEY = isSourceMode
     ? `agent_source_${selectedSubject}`
     : agentType === "deep_research"
@@ -151,7 +151,7 @@ Enhanced endpoint that provides comprehensive explainability through:
   }, [agentType, selectedSubject]);
 
   const { isLoading, setIsLoading } = useLoading();
-  const navigationLocked = isLoading;
+  const navigationLocked = isLoading && query.trim() !== "";
   const [loadingIndex, setLoadingIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
@@ -228,7 +228,38 @@ Enhanced endpoint that provides comprehensive explainability through:
       let data;
       if (isSourceMode) {
         data = await fetchSubjectReasoningSolve(customQuery, selectedSubject);
-      } else {
+      }
+
+      // if (isSourceMode) {
+      //   const localData = await fetchSourceResponse(); // reads response_source.json
+
+      //   setChats((prev) => {
+      //     const updated = [...prev];
+      //     updated[updated.length - 1] = {
+      //       ...updated[updated.length - 1],
+      //       question: customQuery,
+      //       answer:
+      //         localData?.final_answer ||
+      //         localData?.answer ||
+      //         "No saved answer.",
+      //       full_response: localData,
+      //       metadata: localData?.metadata || {},
+      //       reasoning_steps:
+      //         localData?.steps?.map((s, i) => ({
+      //           step_number: s.step_num || i + 1,
+      //           step_type: s.action || "step",
+      //           reasoning: s.thought || "",
+      //           output_data: s.observation || "",
+      //         })) || [],
+      //       safe: true,
+      //       streaming: false,
+      //     };
+      //     return updated;
+      //   });
+
+      //   return; // stop API calls
+      // }
+      else {
         data =
           agentType === "deep_research"
             ? await fetchDeepResearchExplainabilityResponse(customQuery)
@@ -524,6 +555,10 @@ Enhanced endpoint that provides comprehensive explainability through:
       </ReactMarkdown>
     );
   };
+  const parsingMethod =
+    chats[0]?.metadata?.parsed_info?.parsing_method ||
+    chats[0]?.metadata?.parsing_method ||
+    "N/A";
 
   return (
     <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -677,7 +712,7 @@ Enhanced endpoint that provides comprehensive explainability through:
                       Computation Metadata
                     </h3>
 
-                    <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs w-full">
                       {chat.metadata.processing_time_seconds !== null && (
                         <div className="flex items-center">
                           <Clock className="w-3 h-3 mr-2 text-blue-500" />
@@ -694,36 +729,31 @@ Enhanced endpoint that provides comprehensive explainability through:
                         </div>
                       )}
                       {chat.metadata.timestamp && (
-                        <div className="flex items-center">
+                        <div className="flex items-center whitespace-nowrap overflow-hidden text-ellipsis">
                           <Clock className="w-3 h-3 mr-2 text-slate-500" />
                           <span className="font-semibold">Timestamp:</span>
-                          <span className="ml-2 text-slate-600 text-[10px]">
+                          <span className="ml-2 text-slate-600 text-[10px] max-w-[120px] truncate">
                             {new Date(chat.metadata.timestamp).toLocaleString()}
                           </span>
                         </div>
                       )}
 
-                      {chat.metadata.parsing_method && (
-                        <div className="flex items-center col-span-2">
-                          <Zap className="w-3 h-3 mr-2 text-purple-500" />
-                          <span className="font-semibold">Parsing Method:</span>
-                          <span className="ml-2 text-purple-600 font-mono">
-                            {chat.metadata.parsing_method}
-                          </span>
-                        </div>
-                      )}
+                      <div className="flex items-center col-span-2">
+                        <Zap className="w-3 h-3 mr-2 text-purple-500" />
+                        <span className="font-semibold">Parsing Method:</span>
+                        <span className="ml-2 text-purple-600 font-mono whitespace-nowrap">
+                          {chat.metadata?.parsed_info?.parsing_method ||
+                            chat.metadata?.parsing_method ||
+                            "N/A"}
+                        </span>
+                      </div>
 
                       {chat.metadata?.confidence?.score !== undefined && (
-                        <div className="flex items-center">
+                        <div className="flex items-center whitespace-nowrap overflow-hidden text-ellipsis">
                           <TrendingUp className="w-3 h-3 mr-2 text-green-500" />
                           <span className="font-semibold">Confidence:</span>
-                          <span className="ml-2 text-green-600 font-bold">
-                            {typeof chat.metadata.confidence.score === "number"
-                              ? (chat.metadata.confidence.score * 100).toFixed(
-                                  1
-                                )
-                              : "N/A"}
-                            %
+                          <span className="ml-2 text-green-600 font-bold max-w-[120px] truncate">
+                            {(chat.metadata.confidence.score * 100).toFixed(1)}%
                           </span>
                         </div>
                       )}
@@ -732,7 +762,7 @@ Enhanced endpoint that provides comprehensive explainability through:
                         <div className="flex items-center">
                           <Shield className="w-3 h-3 mr-2 text-green-500" />
                           <span className="font-semibold">Level:</span>
-                          <span className="ml-2 text-green-600 uppercase font-bold">
+                          <span className="ml-2 text-green-600 uppercase font-bold whitespace-nowrap">
                             {chat.metadata.confidence.level}
                           </span>
                         </div>
@@ -741,7 +771,7 @@ Enhanced endpoint that provides comprehensive explainability through:
 
                     {chat.metadata.confidence?.interpretation && (
                       <div className="mt-3 p-3 bg-blue-50 rounded text-xs italic text-slate-700 border-l-4 border-blue-400">
-                        <strong>Interpretation:</strong>{" "}
+                        <strong>Interpretation:</strong>
                         {chat.metadata.confidence.interpretation}
                       </div>
                     )}

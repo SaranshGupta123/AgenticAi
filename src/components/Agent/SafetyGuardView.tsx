@@ -221,7 +221,6 @@ export const SafetyGuardView = ({
         {currentQuestion && selectedEntry && safetyCheck ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {/* SAFETY INDEX → Yellow Theme */}
               <div className="bg-yellow-50 rounded-lg p-4 text-center border border-yellow-300">
                 <p className="text-2xl font-bold text-yellow-700">
                   {(1 - safetyCheck.confidence_score).toFixed(2)}
@@ -231,7 +230,6 @@ export const SafetyGuardView = ({
                 </p>
               </div>
 
-              {/* THREAT CONFIDENCE → Green Theme */}
               <div className="bg-green-50 rounded-lg p-4 text-center border border-green-300">
                 <p className="text-2xl font-bold text-green-700">
                   {(safetyCheck.confidence_score * 100).toFixed(1)}%
@@ -241,7 +239,6 @@ export const SafetyGuardView = ({
                 </p>
               </div>
 
-              {/* VIOLATION TYPE → Green IF NONE, else Red */}
               <div
                 className={`rounded-lg p-4 text-center border 
     ${

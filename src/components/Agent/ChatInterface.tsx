@@ -324,7 +324,6 @@ Ideal for:
     return (
       <div className="space-y-3">
         {answer.split("\n").map((line, i) => {
-          // --- Detect ### Headings ---
           if (line.startsWith("### ")) {
             const headingText = line.replace("### ", "").trim();
             return (
@@ -337,7 +336,6 @@ Ideal for:
             );
           }
 
-          // --- Detect URLs ---
           const urls = line.match(urlRegex);
           if (urls) {
             const cleanedText = line.replace(urlRegex, "").trim();
@@ -355,8 +353,6 @@ Ideal for:
               </div>
             );
           }
-
-          // --- Normal Text ---
           return (
             <p
               key={i}

@@ -1,4 +1,4 @@
-export const BASE_URL = "https://ea766d73c09f.ngrok-free.app";
+export const BASE_URL = "https://b5c51a4d6c45.ngrok-free.app";
 
 const defaultHeaders = {
   "Content-Type": "application/json",
@@ -786,18 +786,43 @@ export async function fetchSubjectReasoningSolve(query, subject = "general") {
   const data = await response.json();
   console.log("✅ Solve Response:", data);
 
+  // 🔥 FORMAT BACKEND RESPONSE LIKE FRONTEND EXPECTS
   return {
-    question: query,
+    success: true,
+    query,
+    final_answer: data.answer ?? data.final_answer ?? "",
+    answer: data.answer ?? data.final_answer ?? "",
     subject: data.subject ?? subject,
     problem_type: data.problem_type ?? "unknown",
     subtype: data.subtype ?? null,
-    final_answer: data.answer ?? data.final_answer ?? "No answer",
+
+    // 👇 FULL REASONING STEPS MATCHED FORMAT
     steps: data.steps ?? [],
+
+    // 👇 FRONTEND EXPECTED METADATA SHAPE
     metadata: {
-      time: data.metadata?.processing_time_seconds ?? "N/A",
-      confidence: data.metadata?.confidence?.score ?? null,
-      confidence_level: data.metadata?.confidence?.level ?? null,
+      timestamp: data.metadata?.timestamp ?? null,
+      processing_time_seconds: data.metadata?.processing_time_seconds ?? "N/A",
+      subject_hint: data.metadata?.subject_hint ?? null,
+      detected_domain: data.metadata?.detected_domain ?? null,
+      parsing_method: data.metadata?.parsing_method ?? null,
+      parsed_info: data.metadata?.parsed_info ?? null,
+      computation_details: data.metadata?.computation_details ?? null,
+      confidence: data.metadata?.confidence ?? null,
     },
+
+    // store complete original response
     raw: data,
   };
+}
+
+export async function fetchSourceResponse() {
+  try {
+    const res = await fetch("/data/response_source.json");
+    if (!res.ok) throw new Error("response_source.json not found");
+    return await res.json();
+  } catch (err) {
+    console.error("⚠️ Source fetch error:", err);
+    return null;
+  }
 }

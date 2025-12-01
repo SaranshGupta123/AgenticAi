@@ -156,13 +156,13 @@ export default function SolvedPhysicsUI({ data }) {
         <div className="p-6 bg-blue-600 text-white rounded-t-xl">
           <h1 className="text-xl sm:text-2xl font-semibold mb-1 flex items-center">
             <Settings className="w-5 h-5 mr-3" />
-            Query:{" "}
+            Query:
             <span className="ml-2 font-mono font-normal text-blue-100">
               {data.query}
             </span>
           </h1>
           <p className="text-sm opacity-90">
-            Subject:{" "}
+            Subject:
             <span className="font-medium capitalize">{data.subject}</span>
             {data.problem_type && ` | Type: ${data.problem_type}`}
             {data.subtype && ` | Subtype: ${data.subtype}`}
@@ -194,14 +194,14 @@ export default function SolvedPhysicsUI({ data }) {
 
                       <div className="p-4 bg-purple-50 rounded-lg shadow-sm border border-purple-300">
                         <p className="text-sm font-semibold text-purple-700 mb-1">
-                          Action:{" "}
+                          Action:
                           <span className="font-mono text-purple-900">
                             {step.action}
                           </span>
                         </p>
                         <p className="text-sm font-medium text-slate-700 mb-2 flex items-start">
                           <Brain className="w-4 h-4 mr-2 mt-1 flex-shrink-0 text-slate-500" />
-                          Thought:{" "}
+                          Thought:
                           <span className="ml-1 italic">{step.thought}</span>
                         </p>
                         <div className="p-3 bg-white rounded border border-slate-200 text-slate-600 text-sm">
@@ -232,13 +232,6 @@ export default function SolvedPhysicsUI({ data }) {
                   <Shield className="w-5 h-5 mr-2" />
                   Confidence
                 </h3>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-extrabold capitalize ${getConfidenceStyle(
-                    confidenceObj?.level
-                  )}`}
-                >
-                  {confidenceObj?.level || "UNKNOWN"}
-                </span>
               </div>
 
               <div className="space-y-3 text-sm">
@@ -291,13 +284,19 @@ export default function SolvedPhysicsUI({ data }) {
                     {metadata.processing_time_seconds?.toFixed(3) || "N/A"}s
                   </span>
                 </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="font-medium text-slate-600 flex items-center">
-                    <Clock className="w-4 h-4 mr-2" />
+                <div className="flex items-center gap-2 text-xs whitespace-nowrap overflow-hidden">
+                  <Clock className="w-4 h-4 text-slate-500 shrink-0" />
+                  <span className="font-medium text-slate-600 shrink-0">
                     Timestamp:
                   </span>
-                  <span className="text-slate-500">
-                    {formatTimestamp(metadata.timestamp)}
+                  <span className="truncate text-slate-500 block max-w-[140px]">
+                    {new Date(metadata.timestamp).toLocaleString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </span>
                 </div>
 
