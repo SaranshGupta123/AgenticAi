@@ -47,11 +47,11 @@ type Chat = {
 export const ReasoningView = ({
   agentType = "react",
   selectedSubject = "general",
-  onLockChange, // <-- ADD THIS
+  onLockChange,
 }: {
   agentType: "react" | "deep_research";
   selectedSubject: string;
-  onLockChange?: (locked: boolean) => void; // <-- ADD THIS
+  onLockChange?: (locked: boolean) => void;
 }) => {
   const infoText =
     agentType === "deep_research"
@@ -116,7 +116,6 @@ Enhanced endpoint that provides comprehensive explainability through:
       },
     ];
   });
-  // Reload saved chat when subject changes
   useEffect(() => {
     const key = isSourceMode
       ? `agent_source_${selectedSubject}`
@@ -221,7 +220,7 @@ Enhanced endpoint that provides comprehensive explainability through:
 
   const fetchExplainabilityData = async (customQuery: string) => {
     setIsLoading(true);
-    onLockChange?.(true); // <-- notify parent subject panel to lock
+    onLockChange?.(true);
     setError(null);
     try {
       console.log(`🔍 Fetching ${agentType} explainability for:`, customQuery);
@@ -304,23 +303,25 @@ Enhanced endpoint that provides comprehensive explainability through:
       const steps = blocks.map((b, i) => ({ ...b, step_number: i + 1 }));
 
       const metadata = {
-        // Processing time - check multiple possible locations
         processing_time_seconds:
           data.metadata?.processing_time_seconds ??
+          data.processing_time_seconds ??
           data.metadata?.total_execution_time ??
           data.metadata?.total_time ??
           null,
 
-        // Timestamp
-        timestamp: data.metadata?.timestamp ?? new Date().toISOString(),
+        timestamp:
+          data.metadata?.timestamp ??
+          data.timestamp ??
+          new Date().toISOString(),
 
-        // Parsing method
-        parsing_method: data.metadata?.parsing_method ?? null,
+        parsing_method:
+          data.metadata?.parsed_info?.parsing_method ??
+          data.metadata?.parsing_method ??
+          null,
 
-        // Agent type
         agent_type: data.metadata?.agent_type ?? agentType,
 
-        // Confidence - extract properly with all nested fields
         confidence: data.metadata?.confidence
           ? {
               score: data.metadata.confidence.score ?? null,
@@ -328,15 +329,27 @@ Enhanced endpoint that provides comprehensive explainability through:
               interpretation: data.metadata.confidence.interpretation ?? null,
               factors: data.metadata.confidence.factors ?? [],
             }
+          : data.confidence
+          ? {
+              score: data.confidence.score ?? null,
+              level: data.confidence.level ?? null,
+              interpretation: data.confidence.interpretation ?? null,
+              factors: data.confidence.factors ?? [],
+            }
           : null,
 
-        // Parsed info
-        parsed_info: data.metadata?.parsed_info ?? null,
+        parsed_info: {
+          parsing_method: data.metadata?.parsed_info?.parsing_method ?? null,
+          parse_success: data.metadata?.parsed_info?.parse_success ?? null,
+          type: data.metadata?.parsed_info?.type ?? null,
+          subtype: data.metadata?.parsed_info?.subtype ?? null,
+          expression: data.metadata?.parsed_info?.expression ?? null,
+          variable: data.metadata?.parsed_info?.variable ?? null,
+          operation: data.metadata?.parsed_info?.operation ?? null,
+        },
 
-        // Computation details
         computation_details: data.metadata?.computation_details ?? null,
 
-        // Other fields
         query_timestamp: data.metadata?.query_timestamp ?? null,
         completion_timestamp: data.metadata?.completion_timestamp ?? null,
         iterations_used: data.metadata?.iterations_used ?? null,
@@ -368,7 +381,6 @@ Enhanced endpoint that provides comprehensive explainability through:
       }
 
       try {
-        // Always compute questionNumber & entry FIRST
         let allMetrics = JSON.parse(
           localStorage.getItem("agentic_metrics_data") || "[]"
         );
@@ -397,7 +409,6 @@ Enhanced endpoint that provides comprehensive explainability through:
           full_response: data,
         };
 
-        // Only SAVE entry if NOT source mode
         if (!isSourceMode) {
           allMetrics.push(entry);
           localStorage.setItem(
@@ -406,14 +417,16 @@ Enhanced endpoint that provides comprehensive explainability through:
           );
         }
 
-        // Update UI chat regardless of mode
         setChats((prev) => {
           const updated = [...prev];
           updated[updated.length - 1] = {
             ...updated[updated.length - 1],
             question: customQuery,
             answer: formattedAnswer,
-            full_response: data,
+            full_response: {
+              ...data,
+              metadata: metadata,
+            },
             formatted: true,
             metadata,
             reasoning_steps: steps,
@@ -473,12 +486,12 @@ Enhanced endpoint that provides comprehensive explainability through:
       },
     ]);
     setIsLoading(true);
-    onLockChange?.(true); // <-- notify parent subject panel to lock
+    onLockChange?.(true);
     try {
       await fetchExplainabilityData(asked);
     } finally {
       setIsLoading(false);
-      onLockChange?.(false); // <-- unlock subject panel
+      onLockChange?.(false);
     }
   };
 
@@ -491,7 +504,6 @@ Enhanced endpoint that provides comprehensive explainability through:
   const renderSmartUI = (chat: any) => {
     const res = chat.full_response || chat;
 
-    // Check if this is a subject-based solve response
     const isSubjectSolve =
       res.subject &&
       res.problem_type &&
@@ -666,7 +678,6 @@ Enhanced endpoint that provides comprehensive explainability through:
                     </h3>
 
                     <div className="grid grid-cols-2 gap-3 text-xs">
-                      {/* Processing Time */}
                       {chat.metadata.processing_time_seconds !== null && (
                         <div className="flex items-center">
                           <Clock className="w-3 h-3 mr-2 text-blue-500" />
@@ -682,8 +693,6 @@ Enhanced endpoint that provides comprehensive explainability through:
                           </span>
                         </div>
                       )}
-
-                      {/* Timestamp */}
                       {chat.metadata.timestamp && (
                         <div className="flex items-center">
                           <Clock className="w-3 h-3 mr-2 text-slate-500" />
@@ -694,7 +703,6 @@ Enhanced endpoint that provides comprehensive explainability through:
                         </div>
                       )}
 
-                      {/* Parsing Method */}
                       {chat.metadata.parsing_method && (
                         <div className="flex items-center col-span-2">
                           <Zap className="w-3 h-3 mr-2 text-purple-500" />
@@ -705,7 +713,6 @@ Enhanced endpoint that provides comprehensive explainability through:
                         </div>
                       )}
 
-                      {/* Confidence Score */}
                       {chat.metadata?.confidence?.score !== undefined && (
                         <div className="flex items-center">
                           <TrendingUp className="w-3 h-3 mr-2 text-green-500" />
@@ -721,7 +728,6 @@ Enhanced endpoint that provides comprehensive explainability through:
                         </div>
                       )}
 
-                      {/* Confidence Level */}
                       {chat.metadata.confidence?.level && (
                         <div className="flex items-center">
                           <Shield className="w-3 h-3 mr-2 text-green-500" />
@@ -733,7 +739,6 @@ Enhanced endpoint that provides comprehensive explainability through:
                       )}
                     </div>
 
-                    {/* Confidence Interpretation */}
                     {chat.metadata.confidence?.interpretation && (
                       <div className="mt-3 p-3 bg-blue-50 rounded text-xs italic text-slate-700 border-l-4 border-blue-400">
                         <strong>Interpretation:</strong>{" "}

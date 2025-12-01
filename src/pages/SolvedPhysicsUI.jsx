@@ -15,7 +15,7 @@ import {
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
-import remarkGfm from "remark-gfm"; // Add this for better markdown support
+import remarkGfm from "remark-gfm";
 
 export default function SolvedPhysicsUI({ data }) {
   const steps = data.steps || [];
@@ -24,17 +24,14 @@ export default function SolvedPhysicsUI({ data }) {
   const computationDetails = metadata.computation_details || {};
   const confidence = metadata.confidence || {};
 
-  // Get final answer
   const finalAnswer = data.final_answer || data.answer || "";
 
-  // Clean and prepare the answer text
   const prepareAnswer = (text) => {
     if (!text) return "";
 
-    // Ensure proper markdown formatting
     let cleaned = text
-      .replace(/\*\*\*\*/g, "**") // Fix quadruple asterisks
-      .replace(/\*\*\*/g, "**") // Fix triple asterisks
+      .replace(/\*\*\*\*/g, "**")
+      .replace(/\*\*\*/g, "**")
       .trim();
 
     return cleaned;
@@ -42,7 +39,6 @@ export default function SolvedPhysicsUI({ data }) {
 
   const cleanedAnswer = prepareAnswer(finalAnswer);
 
-  // Render confidence badge
   const renderConfidenceBadge = () => {
     const score = confidence.score || 0;
     const level = confidence.level || "UNKNOWN";
@@ -91,7 +87,6 @@ export default function SolvedPhysicsUI({ data }) {
     );
   };
 
-  // Render parsed variables
   const renderParsedVariables = () => {
     if (!parsedInfo.known_values && !parsedInfo.expression) return null;
 
@@ -164,8 +159,6 @@ export default function SolvedPhysicsUI({ data }) {
       </div>
     );
   };
-
-  // Render processing timeline
   const renderProcessingTimeline = () => {
     if (steps.length === 0) return null;
 
@@ -276,7 +269,6 @@ export default function SolvedPhysicsUI({ data }) {
 
   return (
     <div className="w-full space-y-6 bg-slate-50 p-6 rounded-xl">
-      {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
@@ -314,14 +306,10 @@ export default function SolvedPhysicsUI({ data }) {
         </div>
       </div>
 
-      {/* PARSED VARIABLES */}
       {renderParsedVariables()}
 
-      {/* MAIN CONTENT GRID */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* LEFT COLUMN - Solution */}
         <div className="xl:col-span-2 space-y-6">
-          {/* SOLUTION CARD */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
               <h2 className="font-semibold text-slate-800 flex items-center gap-2">
@@ -331,7 +319,6 @@ export default function SolvedPhysicsUI({ data }) {
             </div>
 
             <div className="p-6 space-y-4">
-              {/* Full Answer with Markdown Rendering */}
               <div className="prose prose-slate max-w-none prose-p:text-slate-700 prose-strong:text-slate-900 prose-strong:font-bold">
                 <ReactMarkdown
                   remarkPlugins={[remarkMath, remarkGfm]}
@@ -457,7 +444,6 @@ export default function SolvedPhysicsUI({ data }) {
                 </ReactMarkdown>
               </div>
 
-              {/* Computation Steps */}
               {computationDetails.steps &&
                 computationDetails.steps.length > 0 && (
                   <div className="mt-6 space-y-3 pt-6 border-t border-slate-200">
@@ -482,8 +468,6 @@ export default function SolvedPhysicsUI({ data }) {
                     ))}
                   </div>
                 )}
-
-              {/* Quick Result Highlight */}
               {(computationDetails.simplified ||
                 computationDetails.derivative) && (
                 <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-6 rounded-xl shadow-lg text-white mt-6">
@@ -500,7 +484,6 @@ export default function SolvedPhysicsUI({ data }) {
                 </div>
               )}
 
-              {/* Key Principles */}
               {parsedInfo.operation && (
                 <div className="mt-6 pt-6 border-t border-slate-200">
                   <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
@@ -532,12 +515,9 @@ export default function SolvedPhysicsUI({ data }) {
             </div>
           </div>
         </div>
-
-        {/* RIGHT COLUMN - Processing Log & Metadata */}
         <div className="xl:col-span-1 space-y-6">
           {renderProcessingTimeline()}
 
-          {/* Debug Metadata */}
           <div className="bg-slate-900 rounded-xl p-5 text-slate-300 shadow-lg text-xs font-mono space-y-2">
             <h4 className="text-white font-bold mb-3 uppercase tracking-wider flex items-center gap-2">
               <Settings className="w-4 h-4" />
