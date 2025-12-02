@@ -11,14 +11,34 @@ import {
 } from "../components/context/LoadingContext";
 
 import { Header, Sidebar } from "../components/layout";
+import AnalyseInterface from "../components/analyse/AnalyseInterface";
+import AnalyseModal from "../components/analyse/AnalyseModal";
 
 export default function RAGPipelineUI({ goToNotebook }) {
   const [activeTab, setActiveTab] = useState("chat");
   const [agentType, setAgentType] = useState("react");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState<number | null>(null);
-
   const [selectedSubject, setSelectedSubject] = useState("general");
+
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const [analyseSessions, setAnalyseSessions] = useState([]);
+  const [currentSession, setCurrentSession] = useState(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("analyseSessions");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      setAnalyseSessions(parsed);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (analyseSessions.length > 0) {
+      localStorage.setItem("analyseSessions", JSON.stringify(analyseSessions));
+    }
+  }, [analyseSessions]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -44,6 +64,12 @@ export default function RAGPipelineUI({ goToNotebook }) {
         selectedSubject={selectedSubject}
         setSelectedSubject={setSelectedSubject}
         goToNotebook={goToNotebook}
+        modalOpen={modalOpen}
+        setModalOpen={setModalOpen}
+        analyseSessions={analyseSessions}
+        setAnalyseSessions={setAnalyseSessions}
+        currentSession={currentSession}
+        setCurrentSession={setCurrentSession}
       />
     </LoadingProvider>
   );
@@ -61,12 +87,17 @@ function RAGPipelineContent({
   selectedSubject,
   setSelectedSubject,
   goToNotebook,
+  modalOpen,
+  setModalOpen,
+  analyseSessions,
+  setAnalyseSessions,
+  currentSession,
+  setCurrentSession,
 }) {
   const { isLoading } = useLoading();
 
   useEffect(() => {
     const allowedTabs = ["reasoning", "evaluation", "safety"];
-
     if (agentType === "source" && !allowedTabs.includes(activeTab)) {
       setAgentType("react");
     }
@@ -77,27 +108,21 @@ function RAGPipelineContent({
       <div className="flex flex-col flex-1 bg-white shadow-xl overflow-hidden">
         <Header
           activeTab={activeTab}
-          setActiveTab={(tab) => {
-            if (!isLoading) setActiveTab(tab);
-          }}
-          onSidebarToggle={() => {
-            if (!isLoading) setSidebarOpen((prev) => !prev);
-          }}
+          setActiveTab={(tab) => !isLoading && setActiveTab(tab)}
+          onSidebarToggle={() => !isLoading && setSidebarOpen(!sidebarOpen)}
           onNotebookOpen={goToNotebook}
         />
 
         <div className="flex flex-1 min-h-0 overflow-hidden relative">
           <div
-            className={`
-              fixed z-40 inset-y-0 left-0 bg-white border-r border-slate-200 p-4 w-[260px]
+            className={`fixed z-40 inset-y-0 left-0 bg-white border-r border-slate-200 p-4 w-[260px]
               transition-transform duration-300 ease-in-out
               lg:static lg:translate-x-0 lg:w-[300px]
               ${
                 sidebarOpen
                   ? "translate-x-0"
                   : "-translate-x-full lg:translate-x-0"
-              }
-            `}
+              }`}
           >
             <Sidebar
               activeTab={activeTab}
@@ -107,6 +132,12 @@ function RAGPipelineContent({
               setSelectedSubject={setSelectedSubject}
               selectedQuestion={selectedQuestion}
               setSelectedQuestion={setSelectedQuestion}
+              onCreateChat={() => setModalOpen(true)}
+              analyseSessions={analyseSessions}
+              onSessionSelect={(session) => {
+                setCurrentSession(session);
+                setActiveTab("analyse");
+              }}
             />
           </div>
 
@@ -126,6 +157,10 @@ function RAGPipelineContent({
                   <ChatInterface key="chat-react" mode="normal" />
                 ))}
 
+              {activeTab === "analyse" && (
+                <AnalyseInterface session={currentSession} />
+              )}
+
               {activeTab === "evaluation" && <EvaluationMetrics />}
 
               {activeTab === "reasoning" && (
@@ -143,6 +178,25 @@ function RAGPipelineContent({
           </div>
         </div>
       </div>
+
+      {modalOpen && (
+        <AnalyseModal
+          close={() => setModalOpen(false)}
+          onCreate={(session) => {
+            const updatedSessions = [...analyseSessions, session];
+
+            setAnalyseSessions(updatedSessions);
+            localStorage.setItem(
+              "analyseSessions",
+              JSON.stringify(updatedSessions)
+            );
+
+            setCurrentSession(session);
+            setModalOpen(false);
+            setActiveTab("analyse");
+          }}
+        />
+      )}
     </div>
   );
 }

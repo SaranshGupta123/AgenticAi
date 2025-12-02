@@ -28,6 +28,7 @@ export const Header: React.FC<Props> = ({
 
   const tabs = [
     { id: "chat", label: "Chat", Icon: MessageSquare },
+    { id: "analyse", label: "Analyse", Icon: BarChart3 },
     { id: "evaluation", label: "Metrics", Icon: BarChart3 },
     { id: "reasoning", label: "Reasoning", Icon: GitBranch },
     { id: "safety", label: "Safety", Icon: Shield },

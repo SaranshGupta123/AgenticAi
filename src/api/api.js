@@ -1,4 +1,4 @@
-export const BASE_URL = "https://b5c51a4d6c45.ngrok-free.app";
+const BASE_URL = "https://b5c51a4d6c45.ngrok-free.app";
 
 const defaultHeaders = {
   "Content-Type": "application/json",
@@ -824,5 +824,30 @@ export async function fetchSourceResponse() {
   } catch (err) {
     console.error("⚠️ Source fetch error:", err);
     return null;
+  }
+}
+
+export async function analyseURL(url, question) {
+  try {
+    const response = await fetch(
+      "https://b5c51a4d6c45.ngrok-free.app/rag/api/rag/gemini/analyze",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          url,
+          instruction: question || "summarize this",
+        }),
+      }
+    );
+
+    const data = await response.json();
+    console.log("API Response:", data);
+    return data;
+  } catch (error) {
+    console.error("API Error:", error);
+    return { success: false, error: error.message };
   }
 }
