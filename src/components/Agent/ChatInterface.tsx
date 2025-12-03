@@ -417,16 +417,16 @@ Ideal for:
                   <strong className="font-bold">{children}</strong>
                 ),
                 em: ({ children }) => <em className="italic">{children}</em>,
-                a: ({ href, children }) => (
-                  <a
-                    className="text-blue-600 underline"
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {children}
-                  </a>
-                ),
+                // a: ({ href, children }) => (
+                //   <a
+                //     className="text-blue-600 underline"
+                //     href={href}
+                //     target="_blank"
+                //     rel="noopener noreferrer"
+                //   >
+                //     {children}
+                //   </a>
+                // ),
               }}
             >
               {cleanedAnswer}

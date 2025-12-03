@@ -21,25 +21,6 @@ import SolvedPhysicsUI from "../subject/SolvedPhysicsUI";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
-const injectionPatterns = [
-  "ignore all previous instructions",
-  "system:",
-  "developer mode",
-  "override all rules",
-  "pretend you are",
-  "jailbreak",
-  "act as",
-  "dan mode",
-  "bypass safety",
-  "reveal training data",
-  "remove all safety",
-];
-
-function detectPromptInjection(text) {
-  return injectionPatterns.some((pattern) =>
-    text.toLowerCase().includes(pattern.toLowerCase())
-  );
-}
 
 const LS_REASON_REACT = "agentic_reasoning_react";
 const LS_REASON_DEEP = "agentic_reasoning_deep";
@@ -291,7 +272,10 @@ Enhanced endpoint that provides comprehensive explainability through:
         data.final_decision ??
         data.final_decision_text ??
         "No answer.";
-      const formattedAnswer = finalAnswer;
+      const formattedAnswer = String(finalAnswer)
+        .replace(/\*\*/g, "^")
+        .replace(/(\w+)\^(\d+)/g, "$1^{$2}")
+        .replace(/\*/g, " \\cdot ");
 
       const explainability = data.explainability_results ?? {};
 
@@ -480,9 +464,7 @@ Enhanced endpoint that provides comprehensive explainability through:
             subject: data.subject ?? null,
             problem_type: data.problem_type ?? null,
             subtype: data.subtype ?? null,
-            safe: isInjection
-              ? false
-              : safetyCheck
+            safe: safetyCheck
               ? !["high", "critical"].includes(
                   (safetyCheck.threat_level || "").toLowerCase()
                 )
@@ -522,11 +504,8 @@ Enhanced endpoint that provides comprehensive explainability through:
 
   const handleSubmit = async () => {
     if (!query.trim() || isLoading) return;
-
     const asked = query.trim();
-    const isInjection = detectPromptInjection(asked);
     setQuery("");
-
     setChats((prev) => [
       ...prev,
       {
@@ -534,91 +513,13 @@ Enhanced endpoint that provides comprehensive explainability through:
         answer: "",
         streaming: true,
         metadata: {},
-        safe: !isInjection, // local safety check
-        reasoning_steps: [],
-        full_response: {},
-        questionNumber: prev.length + 1,
-        safety_check: isInjection
-          ? {
-              threat_level: "high",
-              violation_type: "prompt_injection",
-              confidence_score: 1.0,
-              explanation: "⚠ Local rule detected possible prompt injection.",
-              details: {
-                detection: "frontend_pattern_match",
-                patterns_matched: injectionPatterns.filter((p) =>
-                  asked.toLowerCase().includes(p.toLowerCase())
-                ),
-              },
-            }
-          : {
-              threat_level: "safe",
-              violation_type: "none",
-              confidence_score: 0.98,
-              explanation: "No safety concerns detected.",
-            },
+        safe: null,
       },
     ]);
-
     setIsLoading(true);
     onLockChange?.(true);
-
     try {
-      const data = isSourceMode
-        ? await fetchSubjectReasoningSolve(asked, selectedSubject)
-        : agentType === "deep_research"
-        ? await fetchDeepResearchExplainabilityResponse(asked)
-        : await fetchExplainabilityChatResponse(asked);
-
-      // 🔥 override backend safety if injection detected
-      if (isInjection) {
-        data.safety_check = {
-          ...data.safety_check,
-          threat_level: "high",
-          violation_type: "prompt_injection",
-          confidence_score: 0.99,
-          explanation: "Detected by frontend & backend safety filters.",
-        };
-      }
-
-      setChats((prev) => {
-        const updated = [...prev];
-        updated[updated.length - 1] = {
-          ...updated[updated.length - 1],
-          answer:
-            data.final_answer ??
-            data.final_decision ??
-            data.answer ??
-            "No answer.",
-          full_response: data,
-          metadata: data.metadata || {},
-          reasoning_steps:
-            data.agent_steps || data.reasoning_steps || data.steps || [],
-          safe:
-            isInjection ||
-            (data.safety_check &&
-              ["high", "critical"].includes(
-                String(data.safety_check.threat_level).toLowerCase()
-              ))
-              ? false
-              : true,
-          safety_check: data.safety_check,
-          streaming: false,
-        };
-        return updated;
-      });
-    } catch (err: any) {
-      console.error("❌ Error:", err);
-
-      setChats((prev) => {
-        const updated = [...prev];
-        updated[updated.length - 1] = {
-          ...updated[updated.length - 1],
-          answer: "⚠ Error fetching response.",
-          streaming: false,
-        };
-        return updated;
-      });
+      await fetchExplainabilityData(asked);
     } finally {
       setIsLoading(false);
       onLockChange?.(false);
@@ -686,7 +587,9 @@ Enhanced endpoint that provides comprehensive explainability through:
   const renderSmartUI = (chat: any) => {
     const res = chat.full_response || chat;
 
-    if (agentType === "source") {
+    const hasSubjectData = res.subject && res.steps && res.steps.length > 0;
+
+    if (isSourceMode && hasSubjectData) {
       return <SolvedPhysicsUI data={res} />;
     }
 
@@ -765,20 +668,21 @@ Enhanced endpoint that provides comprehensive explainability through:
 
             <div className="w-full flex justify-center">
               <div className="w-full max-w-full lg:max-w-[900px] mx-auto">
-                {!chat.streaming && (
-                  <>
-                    {chat.safe === true && (
-                      <div className="inline-flex items-center px-2 py-1 bg-green-50 text-green-700 border border-green-200 rounded-full mb-3 shadow-sm">
-                        🟢 Safe
-                      </div>
-                    )}
-
-                    {chat.safe === false && (
-                      <div className="inline-flex items-center px-2 py-1 bg-red-50 text-red-700 border border-red-200 rounded-full mb-3 shadow-sm">
-                        🔴 Unsafe — Prompt Injection Detected
-                      </div>
-                    )}
-                  </>
+                {!chat.streaming && chat.safe === true && (
+                  <div className="inline-flex items-center space-x-1 px-2 py-1 bg-green-50 rounded-full border border-green-100 mb-3 shadow-sm">
+                    <Shield className="w-3.5 h-3.5 text-green-600" />
+                    <span className="text-xs text-green-700 font-semibold">
+                      Safe
+                    </span>
+                  </div>
+                )}
+                {!chat.streaming && chat.safe === false && (
+                  <div className="inline-flex items-center space-x-1 px-2 py-1 bg-red-50 rounded-full border border-red-200 mb-3 shadow-sm">
+                    <Shield className="w-3.5 h-3.5 text-red-600" />
+                    <span className="text-xs text-red-700 font-semibold">
+                      Unsafe
+                    </span>
+                  </div>
                 )}
                 {!chat.streaming && chat.safe === null && (
                   <div className="inline-flex items-center space-x-1 px-2 py-1 bg-yellow-50 rounded-full border border-yellow-200 mb-3 shadow-sm">
@@ -790,7 +694,7 @@ Enhanced endpoint that provides comprehensive explainability through:
                 )}
 
                 <div className="prose prose-slate max-w-none text-slate-800 leading-relaxed mb-4">
-                  {agentType === "source"
+                  {isSourceMode
                     ? renderSmartUI(chat)
                     : renderSmartLinks(chat.answer)}
                 </div>
@@ -802,10 +706,7 @@ Enhanced endpoint that provides comprehensive explainability through:
                     </h3>
 
                     {chat.reasoning_steps.map((step: any, idx: number) => {
-                      const formatted =
-                        typeof step.output_data === "string"
-                          ? step.output_data
-                          : JSON.stringify(step.output_data, null, 2);
+                      const formatted = formatOutput(step.output_data);
                       const bg =
                         step.raw_type === "cot_visualization"
                           ? "bg-purple-50"
@@ -842,12 +743,11 @@ Enhanced endpoint that provides comprehensive explainability through:
                           )}
 
                           {step.output_data && (
-                            <ReactMarkdown
-                              remarkPlugins={[remarkMath, remarkGfm]}
-                              rehypePlugins={[rehypeKatex]}
+                            <pre
+                              className={`text-xs ${bg} p-3 rounded border whitespace-pre-wrap break-all overflow-x-hidden`}
                             >
                               {formatted}
-                            </ReactMarkdown>
+                            </pre>
                           )}
                         </div>
                       );
