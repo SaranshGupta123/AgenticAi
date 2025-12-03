@@ -35,15 +35,6 @@ export default function AnalyseInterface({ session }) {
     } else {
       setMessages(
         [
-          {
-            role: "system",
-            text: `🔍 Session started for: ${session.url}`,
-            time: new Date().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-          },
-
           session.question
             ? {
                 role: "user",
@@ -129,6 +120,30 @@ export default function AnalyseInterface({ session }) {
   return (
     <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <div ref={scrollRef} className="flex-1 p-6 overflow-y-auto space-y-6">
+        {session && (
+          <div className="w-full max-w-[900px] mx-auto p-4 mb-4 bg-white border border-slate-300 rounded-xl shadow-md flex items-center gap-4 hover:shadow-lg transition-all duration-200">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-bold text-xl">
+              🌐
+            </div>
+
+            <div className="flex-1 overflow-hidden">
+              <p className="font-semibold text-slate-900 truncate">
+                {session.url}
+              </p>
+
+              {session?.question && (
+                <p className="text-xs text-slate-500 truncate mt-1">
+                  Query: "{session.question}"
+                </p>
+              )}
+
+              <p className="text-[11px] text-slate-400 mt-1">
+                Created: {session.createdAt}
+              </p>
+            </div>
+          </div>
+        )}
+
         {messages.map((msg, i) => (
           <div key={i} className="space-y-3">
             {msg.role === "user" && (

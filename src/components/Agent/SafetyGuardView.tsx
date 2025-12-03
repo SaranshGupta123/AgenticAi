@@ -82,6 +82,9 @@ export const SafetyGuardView = ({
   const blocked =
     safetyCheck?.threat_level === "high" ||
     safetyCheck?.threat_level === "critical";
+  const isPromptInjection = safetyCheck?.violation_type
+    ?.toLowerCase()
+    .includes("prompt");
 
   return (
     <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">

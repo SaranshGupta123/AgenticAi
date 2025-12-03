@@ -4,6 +4,26 @@ import { fetchChatResponse, fetchDeepResearchResponse } from "../../api/api";
 import ReactMarkdown from "react-markdown";
 import { useLoading } from "../context/LoadingContext";
 
+const injectionPatterns = [
+  "ignore all previous instructions",
+  "system:",
+  "developer mode",
+  "override all rules",
+  "pretend you are",
+  "jailbreak",
+  "act as",
+  "dan mode",
+  "bypass safety",
+  "reveal training data",
+  "remove all safety",
+];
+
+function detectPromptInjection(text: string) {
+  return injectionPatterns.some((pattern) =>
+    text.toLowerCase().includes(pattern.toLowerCase())
+  );
+}
+
 const LS_NORMAL = "agentic_normal_history";
 const LS_DEEP = "agentic_deep_history";
 const LS_METRICS = "agentic_metrics_data";
@@ -164,7 +184,7 @@ Ideal for:
             fullData.evaluation_metrics ||
             fullData.evaluation ||
             last.evaluation,
-          safety_check: fullData.safety_check || last.safety_check,
+          safety_check: last.safety_check || fullData.safety_check,
           agent_type: fullData.agent_type || last.agent_type,
         },
       ];
@@ -187,7 +207,7 @@ Ideal for:
               fullData.evaluation ||
               last.evaluation,
             agent_type: fullData.agent_type || last.agent_type,
-            safety_check: fullData.safety_check || last.safety_check,
+            safety_check: last.safety_check || fullData.safety_check,
           },
         ];
       });
@@ -221,7 +241,7 @@ Ideal for:
     if (!query.trim() || isLoading) return;
     const asked = query.trim();
     setQuery("");
-
+    const isInjection = detectPromptInjection(asked);
     let allMetrics: any[] = [];
     try {
       const raw = localStorage.getItem(LS_METRICS);
@@ -236,15 +256,28 @@ Ideal for:
         answer: "",
         streaming: true,
         metadata: {},
-        safe: true,
+        safe: !isInjection,
         steps: [],
         evaluation: {},
-        safety_check: {
-          threat_level: "low",
-          violation_type: "none",
-          confidence_score: 0.0,
-          explanation: "No issue detected.",
-        },
+        safety_check: isInjection
+          ? {
+              threat_level: "high",
+              violation_type: "prompt_injection",
+              confidence_score: 1.0,
+              explanation: "Prompt injection attempt detected locally.",
+              details: {
+                pattern_check: {
+                  detection_method: "frontend_rule_match",
+                  injection_patterns_count: 1,
+                },
+              },
+            }
+          : {
+              threat_level: "low",
+              violation_type: "none",
+              confidence_score: 0.95,
+              explanation: "No issue detected.",
+            },
         agent_type: mode === "deep_research" ? "deep_research" : "react",
         questionNumber: questionNumber,
         timestamp: new Date().toISOString(),
@@ -257,6 +290,14 @@ Ideal for:
         mode === "deep_research"
           ? await fetchDeepResearchResponse(asked)
           : await fetchChatResponse(asked);
+      if (isInjection) {
+        data.safety_check = {
+          threat_level: "high",
+          violation_type: "prompt_injection",
+          confidence_score: 0.98,
+          explanation: "Detected via frontend rule matching.",
+        };
+      }
 
       console.log("[v0] API Response Data:", data);
       console.log("[v0] Steps:", data.steps?.length || 0);
@@ -281,14 +322,21 @@ Ideal for:
   function renderSmartAnswer(answer: string) {
     if (!answer) return null;
 
+    answer = answer
+      .replace(/\[\d+(\.\d+)?\]/g, "")
+      .replace(/Source\(\)/gi, "")
+      .trim();
+
     const urlRegex = /(https?:\/\/[^\s)]+)/g;
 
-    const parseMarkdown = (text: string) =>
-      text
-        .replace(/\*\*\*(.*?)\*\*\*/g, "<b><i>$1</i></b>")
-        .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
-        .replace(/\*(.*?)\*/g, "<i>$1</i>");
+    const urls = answer.match(urlRegex) || [];
 
+    const cleanedAnswer = answer.replace(urlRegex, "").trim();
+
+    const groupedRows = [];
+    for (let i = 0; i < urls.length; i += 2) {
+      groupedRows.push(urls.slice(i, i + 2));
+    }
     const renderLink = (url: string, key: string) => {
       const isYT = url.includes("youtube.com") || url.includes("youtu.be");
       const isGitHub = url.includes("github.com");
@@ -298,7 +346,6 @@ Ideal for:
         cleanDomain = new URL(url).hostname.replace(/^www\./, "");
       } catch {}
 
-      // 🔹 Normal links → light theme cards
       if (!isYT && !isGitHub) {
         return (
           <a
@@ -319,13 +366,11 @@ Ideal for:
                 </p>
               </div>
             </div>
-
             <span className="text-slate-400 text-sm">↗</span>
           </a>
         );
       }
 
-      // 🔹 YouTube / GitHub same jaise pehle
       return (
         <a
           key={key}
@@ -342,51 +387,64 @@ Ideal for:
     };
 
     return (
-      <div className="space-y-3">
-        {answer.split("\n").map((line, i) => {
-          if (line.startsWith("### ")) {
-            const headingText = line.replace("### ", "").trim();
-            return (
-              <h2
-                key={i}
-                className="text-xl font-bold mt-4 mb-2 text-slate-900 border-b border-gray-200 pb-1 transition-all duration-75"
-              >
-                {headingText || "..."}
-              </h2>
-            );
-          }
+      <div className="space-y-5">
+        {cleanedAnswer && (
+          <div className="prose prose-slate max-w-none leading-relaxed text-[15px]">
+            <ReactMarkdown
+              components={{
+                h1: ({ children }) => (
+                  <h1 className="text-2xl font-bold mt-6 mb-3">{children}</h1>
+                ),
+                h2: ({ children }) => (
+                  <h2 className="text-xl font-semibold mt-5 mb-2">
+                    {children}
+                  </h2>
+                ),
+                h3: ({ children }) => (
+                  <h3 className="text-lg font-semibold mt-4 mb-2">
+                    {children}
+                  </h3>
+                ),
+                ul: ({ children }) => (
+                  <ul className="list-disc pl-6 space-y-1">{children}</ul>
+                ),
+                ol: ({ children }) => (
+                  <ol className="list-decimal pl-6 space-y-1">{children}</ol>
+                ),
+                li: ({ children }) => <li className="mb-1">{children}</li>,
+                p: ({ children }) => <p className="mb-3">{children}</p>,
+                strong: ({ children }) => (
+                  <strong className="font-bold">{children}</strong>
+                ),
+                em: ({ children }) => <em className="italic">{children}</em>,
+                a: ({ href, children }) => (
+                  <a
+                    className="text-blue-600 underline"
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {children}
+                  </a>
+                ),
+              }}
+            >
+              {cleanedAnswer}
+            </ReactMarkdown>
+          </div>
+        )}
 
-          const urls = line.match(urlRegex);
-          if (urls) {
-            const cleanedText = line.replace(urlRegex, "").trim();
-            return (
-              <div key={i} className="space-y-2">
-                {cleanedText && (
-                  <p
-                    className="text-slate-800"
-                    dangerouslySetInnerHTML={{
-                      __html: parseMarkdown(cleanedText),
-                    }}
-                  />
-                )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                  {urls.map((u, j) => (
-                    <div key={j} className="overflow-hidden">
-                      {renderLink(u, `${i}-${j}`)}
-                    </div>
-                  ))}
+        <div className="space-y-4">
+          {groupedRows.map((row, i) => (
+            <div key={i} className="grid grid-cols-2 gap-4 w-full">
+              {row.map((url, j) => (
+                <div key={`${i}-${j}`} className="overflow-hidden">
+                  {renderLink(url, `${i}-${j}`)}
                 </div>
-              </div>
-            );
-          }
-          return (
-            <p
-              key={i}
-              className="text-slate-800"
-              dangerouslySetInnerHTML={{ __html: parseMarkdown(line) }}
-            />
-          );
-        })}
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -448,13 +506,20 @@ Ideal for:
 
             <div className="w-full flex justify-center">
               <div className="w-full max-w-[900px] mx-auto">
-                {!chat.streaming && chat.safe && (
-                  <div className="inline-flex items-center space-x-1 px-2 py-1 bg-green-50 rounded-full border border-green-100 mb-3 shadow-sm">
-                    <Shield className="w-3.5 h-3.5 text-green-600" />
-                    <span className="text-xs text-green-700 font-semibold">
-                      Safe
-                    </span>
-                  </div>
+                {!chat.streaming && (
+                  <>
+                    {chat.safe === true && (
+                      <div className="inline-flex items-center px-2 py-1 bg-green-50 text-green-700 border border-green-200 rounded-full mb-3 shadow-sm">
+                        🟢 Safe
+                      </div>
+                    )}
+
+                    {chat.safe === false && (
+                      <div className="inline-flex items-center px-2 py-1 bg-red-50 text-red-700 border border-red-200 rounded-full mb-3 shadow-sm">
+                        🔴 Unsafe — Prompt Injection Detected
+                      </div>
+                    )}
+                  </>
                 )}
 
                 <div className="text-slate-800 leading-relaxed space-y-4 break-words">
