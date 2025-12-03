@@ -98,7 +98,7 @@ export const Sidebar: React.FC<Props> = ({
             >
               <option value="react">ReAct Agent</option>
               <option value="deep_research">Deep Research</option>
-              {showSource && <option value="source">Solve</option>}
+              {showSource && <option value="source">Reasoning</option>}
             </select>
 
             <div
