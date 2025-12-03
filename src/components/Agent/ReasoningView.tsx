@@ -532,6 +532,58 @@ Enhanced endpoint that provides comprehensive explainability through:
       handleSubmit();
     }
   };
+  function renderSmartLinks(answer: string) {
+    if (!answer) return null;
+
+    const urlRegex = /(https?:\/\/[^\s)]+)/g;
+    const urls = answer.match(urlRegex);
+    if (!urls) return <p className="break-words">{answer}</p>;
+
+    const cleaned = answer.replace(urlRegex, "").trim();
+
+    return (
+      <div className="space-y-3">
+        {cleaned && <p className="text-slate-800 break-words">{cleaned}</p>}
+
+        <div className="flex flex-wrap gap-4">
+          {urls.map((url, i) => {
+            const domain = new URL(url).hostname.replace("www.", "");
+            const isYT =
+              url.includes("youtube.com") || url.includes("youtu.be");
+            const isGH = url.includes("github.com");
+
+            return (
+              <a
+                key={i}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`w-full sm:w-[48%] px-4 py-3 flex items-center justify-between 
+              rounded-xl shadow-sm transition duration-150 hover:-translate-y-[2px]
+              ${
+                isYT
+                  ? "bg-red-600 hover:bg-red-700 text-white"
+                  : isGH
+                  ? "bg-black hover:bg-gray-900 text-white"
+                  : "bg-white border border-slate-200 hover:shadow-md"
+              }
+              `}
+              >
+                <div className="flex items-center gap-3 overflow-hidden">
+                  {isYT ? "▶" : isGH ? "💻" : "🌍"}
+                  <span className="font-semibold text-sm truncate">
+                    {domain}
+                  </span>
+                </div>
+                <span className="opacity-70">↗</span>
+              </a>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
   const renderSmartUI = (chat: any) => {
     const res = chat.full_response || chat;
 
@@ -647,7 +699,7 @@ Enhanced endpoint that provides comprehensive explainability through:
                 )}
 
                 <div className="prose prose-slate max-w-none text-slate-800 leading-relaxed mb-4">
-                  {renderSmartUI(chat)}
+                  {renderSmartLinks(chat.answer)}
                 </div>
 
                 {chat.reasoning_steps?.length > 0 && (

@@ -293,6 +293,12 @@ Ideal for:
       const isYT = url.includes("youtube.com") || url.includes("youtu.be");
       const isGitHub = url.includes("github.com");
 
+      let cleanDomain = url;
+      try {
+        cleanDomain = new URL(url).hostname.replace(/^www\./, "");
+      } catch {}
+
+      // 🔹 Normal links → light theme cards
       if (!isYT && !isGitHub) {
         return (
           <a
@@ -300,19 +306,33 @@ Ideal for:
             href={url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 underline break-all hover:text-blue-800 transition-all"
+            className="flex items-center justify-between w-full max-w-[300px]
+        px-4 py-3 bg-white border border-slate-200 rounded-xl shadow-sm
+        transition-all duration-150
+        hover:border-slate-300 hover:shadow-md hover:-translate-y-[1px]"
           >
-            {url}
+            <div className="flex items-center space-x-3">
+              <span className="text-blue-600 text-lg">🌐</span>
+              <div className="min-w-0">
+                <p className="font-semibold text-[15px] text-slate-900 truncate">
+                  {cleanDomain}
+                </p>
+              </div>
+            </div>
+
+            <span className="text-slate-400 text-sm">↗</span>
           </a>
         );
       }
+
+      // 🔹 YouTube / GitHub same jaise pehle
       return (
         <a
           key={key}
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className={`block max-w-md rounded-xl p-3 shadow-md text-white transition-transform hover:scale-[1.03] ${
+          className={`w-full rounded-xl p-3 shadow-md text-white transition-transform hover:scale-[1.03] ${
             isYT ? "bg-red-600 hover:bg-red-700" : "bg-gray-900 hover:bg-black"
           }`}
         >
@@ -349,7 +369,13 @@ Ideal for:
                     }}
                   />
                 )}
-                {urls.map((u, j) => renderLink(u, `${i}-${j}`))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                  {urls.map((u, j) => (
+                    <div key={j} className="overflow-hidden">
+                      {renderLink(u, `${i}-${j}`)}
+                    </div>
+                  ))}
+                </div>
               </div>
             );
           }
@@ -401,7 +427,10 @@ Ideal for:
         </div>
       </div>
 
-      <div id="chat-scroll" className="flex-1 p-6 overflow-y-auto space-y-6">
+      <div
+        id="chat-scroll"
+        className="flex-1 p-6 overflow-y-auto overflow-x-hidden space-y-6"
+      >
         {chats.map((chat, index) => (
           <div key={index} className="space-y-3">
             <div className="w-full flex justify-center mt-24 mb-12">
@@ -428,7 +457,7 @@ Ideal for:
                   </div>
                 )}
 
-                <div className="text-slate-800 leading-relaxed prose prose-slate max-w-none">
+                <div className="text-slate-800 leading-relaxed space-y-4 break-words">
                   {renderSmartAnswer(chat.answer)}
                 </div>
 

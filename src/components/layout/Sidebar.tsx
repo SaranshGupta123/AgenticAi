@@ -1,6 +1,7 @@
 import React from "react";
 import { Settings } from "lucide-react";
 import { useLoading } from "../context/LoadingContext";
+import reactLogo from "../../assets/logo/logo.png";
 
 type Props = {
   agentType: string;
@@ -155,30 +156,41 @@ export const Sidebar: React.FC<Props> = ({
         </div>
       </div>
 
-      <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
-        <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-          <Settings className="w-4 h-4" />
-          Available Tools
-        </h3>
-        <div className="flex flex-wrap gap-2">
-          {[
-            "Search",
-            "Calculator",
-            "Weather",
-            "Stocks",
-            "News",
-            "ArXiv",
-            "Wikipedia",
-            "GitHub",
-            "Reddit",
-          ].map((tool) => (
-            <span
-              key={tool}
-              className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full font-medium"
-            >
-              {tool}
-            </span>
-          ))}
+      <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+        <div>
+          <h3 className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+            <Settings className="w-4 h-4" />
+            Available Tools
+          </h3>
+
+          <div className="flex flex-wrap gap-2 mb-5">
+            {[
+              "Search",
+              "Calculator",
+              "Weather",
+              "Stocks",
+              "News",
+              "ArXiv",
+              "Wikipedia",
+              "GitHub",
+              "Reddit",
+            ].map((tool) => (
+              <span
+                key={tool}
+                className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full font-medium"
+              >
+                {tool}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex justify-center mt-2 pb-2">
+          <img
+            src={reactLogo}
+            alt="System Logo"
+            className="w-46 h-11 opacity-80 hover:opacity-100 transition"
+          />
         </div>
       </div>
     </div>

@@ -17,6 +17,37 @@ import {
   X,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+const renderFormattedAnswer = (text: string) => {
+  if (!text) return null;
+
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const urls = text.match(urlRegex) || [];
+
+  const cleanedText = text.replace(urlRegex, "").trim();
+  const paragraphs = cleanedText.split(/\n+/).filter((p) => p.trim() !== "");
+
+  return (
+    <div className="space-y-5">
+      {paragraphs.length > 0 && (
+        <div className="prose prose-slate text-sm max-w-none">
+          <ReactMarkdown components={{ a: LinkRenderer }}>
+            {paragraphs.join("\n\n")}
+          </ReactMarkdown>
+        </div>
+      )}
+      {urls.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t pt-4">
+          {urls.map((url, i) => (
+            <LinkRenderer key={i} href={url}>
+              {url}
+            </LinkRenderer>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const LinkRenderer = (props: any) => {
   const href = props.href || "";
   const children = props.children;
@@ -30,7 +61,7 @@ const LinkRenderer = (props: any) => {
 
   let bg = "bg-blue-600 hover:bg-blue-700";
   let icon = "🔗";
-  let label = children;
+  let label = new URL(href).hostname.replace("www.", "");
 
   if (isYT) {
     bg = "bg-red-600 hover:bg-red-700";
@@ -54,10 +85,22 @@ const LinkRenderer = (props: any) => {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold text-white shadow-sm transition-all duration-200 ${bg}`}
+      className={`flex items-center justify-between 
+      w-full px-4 py-3 rounded-xl shadow-sm transition duration-150 
+      hover:-translate-y-[2px] hover:shadow-md 
+      ${
+        isYT
+          ? "bg-red-600 hover:bg-red-700 text-white"
+          : isGitHub
+          ? "bg-black hover:bg-gray-900 text-white"
+          : "bg-white border border-slate-200 text-slate-800"
+      }`}
     >
-      <span>{icon}</span>
-      <span className="truncate max-w-[160px]">{label}</span>
+      <div className="flex items-center gap-3 overflow-hidden">
+        <span className="text-lg">{icon}</span>
+        <span className="font-semibold text-sm truncate">{label}</span>
+      </div>
+      <span className="text-slate-400 text-sm">↗</span>
     </a>
   );
 };
@@ -1295,9 +1338,7 @@ export const EvaluationMetrics: React.FC = () => {
                   </button>
                 </div>
                 <div className="text-sm text-slate-700 prose prose-slate max-w-none">
-                  <ReactMarkdown components={{ a: LinkRenderer }}>
-                    {selectedData.answer || ""}
-                  </ReactMarkdown>
+                  {renderFormattedAnswer(selectedData.answer)}
                 </div>
               </div>
             </div>
