@@ -17,6 +17,8 @@ export default function NotebookHome({ goBack, openNotebook }) {
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState(false);
   const [alertMsg, setAlertMsg] = useState<string | null>(null);
+  const activeDomain = localStorage.getItem("nb_active_domain") || null;
+  const [previews, setPreviews] = useState({});
 
   const CARD_COLORS = [
     "#0B0C10",
@@ -53,6 +55,12 @@ export default function NotebookHome({ goBack, openNotebook }) {
     const cached = localStorage.getItem("notebook_domains");
     const parsed = cached ? JSON.parse(cached) : [];
     setDomains(Array.isArray(parsed) ? parsed : []);
+    const previewData = {};
+    parsed.forEach((d) => {
+      const stored = localStorage.getItem(`nb_messages_${d}`);
+      previewData[d] = stored ? JSON.parse(stored) : [];
+    });
+    setPreviews(previewData);
   }, []);
 
   const handleOpen = async (domain: string) => {
@@ -62,6 +70,7 @@ export default function NotebookHome({ goBack, openNotebook }) {
       setAlertMsg(result?.message || `Switched to ${domain}`);
       setTimeout(() => setAlertMsg(null), 1800);
 
+      localStorage.setItem("nb_active_domain", domain);
       openNotebook(domain);
     } catch {
       setAlertMsg("Failed to switch domain");
@@ -251,8 +260,10 @@ export default function NotebookHome({ goBack, openNotebook }) {
                   <h3 className="mt-4 text-lg font-semibold text-white group-hover:text-gray-300 transition-colors">
                     {domain}
                   </h3>
-                  <p className="text-gray-500 text-sm mt-1">
-                    Open this notebook
+                  <p className="text-gray-400 text-xs mt-2 truncate italic">
+                    {previews[domain]?.length > 0
+                      ? previews[domain][previews[domain].length - 1].text
+                      : "No recent activity"}
                   </p>
 
                   <div

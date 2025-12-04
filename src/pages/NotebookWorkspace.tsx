@@ -503,19 +503,22 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
     "rgba(68, 86, 72, 0.55)",
   ];
 
-  const [sources, setSources] = useState<Source[]>(() =>
-    loadLS("nb_sources", [])
-  );
+  const sourceKey = `nb_sources_${title || "default"}`;
+
+  const [sources, setSources] = useState<Source[]>(() => loadLS(sourceKey, []));
+  const storageKey = `nb_messages_${title || "default"}`;
+  const toolKey = `nb_tools_${title || "default"}`;
+
   const [messages, setMessages] = useState<Message[]>(() =>
-    loadLS("nb_messages", [])
+    loadLS(storageKey, [])
   );
   const [input, setInput] = useState("");
 
   const [collapseSources, setCollapseSources] = useState(
-    loadLS("nb_col_src", false)
+    loadLS(`nb_col_src_${title}`, false)
   );
   const [collapseStudio, setCollapseStudio] = useState(
-    loadLS("nb_col_studio", false)
+    loadLS(`nb_col_studio_${title}`, false)
   );
 
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
@@ -565,8 +568,12 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
   const [studyTopic, setStudyTopic] = useState("");
   const [studyLoading, setStudyLoading] = useState(false);
 
-  const [leftWidth, setLeftWidth] = useState(loadLS("nb_left_width", 320));
-  const [rightWidth, setRightWidth] = useState(loadLS("nb_right_width", 360));
+  const [leftWidth, setLeftWidth] = useState(
+    loadLS(`nb_left_width_${title}`, 320)
+  );
+  const [rightWidth, setRightWidth] = useState(
+    loadLS(`nb_right_width_${title}`, 360)
+  );
 
   const [draggingLeft, setDraggingLeft] = useState(false);
   const [draggingRight, setDraggingRight] = useState(false);
@@ -578,6 +585,21 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
 
   const MIN_RIGHT = 250;
   const MAX_RIGHT = 900;
+  React.useEffect(() => {
+    saveLS(`nb_left_width_${title}`, leftWidth);
+  }, [leftWidth, title]);
+
+  React.useEffect(() => {
+    saveLS(`nb_right_width_${title}`, rightWidth);
+  }, [rightWidth, title]);
+
+  React.useEffect(() => {
+    saveLS(`nb_col_src_${title}`, collapseSources);
+  }, [collapseSources, title]);
+
+  React.useEffect(() => {
+    saveLS(`nb_col_studio_${title}`, collapseStudio);
+  }, [collapseStudio, title]);
 
   const currentDomain = title || "Medical";
   const DOMAIN_FILE_MAP = {
@@ -601,7 +623,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       }));
 
       setSources(formatted);
-      saveLS("nb_sources", formatted);
+      saveLS(sourceKey, formatted);
     } catch (err) {
       console.error("[v0] PDF fetch error:", err);
       alert(
@@ -626,7 +648,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
     },
 
     { splitRegex: /##\s+/g, addPrefix: (t) => "## " + t },
-    "nb_tool_faq"
+    `${toolKey}_faq`
   );
   const mindmapTool = useContentTool(
     async () => {
@@ -638,7 +660,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       };
     },
     { splitRegex: /##\s+/g },
-    "nb_tool_mindmap"
+    `${toolKey}_mindmap`
   );
 
   const comparative = useContentTool(
@@ -651,7 +673,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       };
     },
     { splitRegex: /##\s+/g },
-    "nb_tool_comparative"
+    `${toolKey}_comparative`
   );
 
   const tutorial = useContentTool(
@@ -664,7 +686,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       };
     },
     { splitRegex: /##\s+/g },
-    "nb_tool_tutorial"
+    `${toolKey}_tutorial`
   );
 
   const report = useContentTool(
@@ -677,7 +699,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       };
     },
     { splitRegex: /##\s+/g },
-    "nb_tool_report"
+    `${toolKey}_report`
   );
 
   const blog = useContentTool(
@@ -690,7 +712,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       };
     },
     { splitRegex: /##\s+/g },
-    "nb_tool_blog"
+    `${toolKey}_blog`
   );
 
   const study = useContentTool(
@@ -703,7 +725,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       };
     },
     { splitRegex: /##\s+/g },
-    "nb_tool_study"
+    `${toolKey}_study`
   );
 
   const briefing = useContentTool(
@@ -716,7 +738,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
       };
     },
     { splitRegex: /##\s+/g },
-    "nb_tool_briefing"
+    `${toolKey}_briefing`
   );
   function smartScroll(container) {
     const threshold = 120;
@@ -762,7 +784,7 @@ export default function NotebookWorkspace({ goBack, title }: Props) {
             metadata: response.metadata ?? null,
           },
         ];
-        saveLS("nb_messages", updated);
+        saveLS(storageKey, updated);
         return updated;
       });
 

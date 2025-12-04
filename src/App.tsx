@@ -9,10 +9,7 @@ export default function App() {
 
   if (page === "workspace")
     return (
-      <NotebookWorkspace
-        topicId={selectedTopic}
-        goBack={() => setPage("home")}
-      />
+      <NotebookWorkspace title={selectedTopic} goBack={() => setPage("home")} />
     );
 
   if (page === "home")
