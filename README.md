@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Agentic_ui
 
 
@@ -169,3 +170,6 @@ export default defineConfig([
 ])
 ```
 >>>>>>> 452cd7b (Updated code)
+=======
+# AgenticAi
+>>>>>>> 51a191d25886de7f3c523b6060c855d491853779
