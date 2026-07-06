@@ -47,7 +47,7 @@ export const Header: React.FC<Props> = ({
                 Agentic Pipeline
               </h1>
               <p className="text-xs sm:text-sm text-slate-500">
-                Advanced AI with Full Observability
+                Advanced AI with Ful Observability
               </p>
             </div>
           </div>
